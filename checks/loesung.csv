@@ -1,0 +1,38 @@
+GlobalId;Klasse;Name;InstallationDate;AcceptanceDate;Status;Bemerkung
+0ahmh31Gj03RaIKrCwgzDC;IfcColumn;Concrete-Rectangular-Column:CC24x24:711731;2027-01-11;;geplant;Plandatum in der Zukunft
+0$RXqoHsP0NAfD3Cs8EOfJ;IfcBeam;K-Series Bar Joist-Angle Web:16K6:800067;2027-02-12;;geplant;Plandatum in der Zukunft
+0FD7lEIyvA7ei2jSdDG5CE;IfcSlab;Floor:1 1/2 Metal Roof Deck NO Concrete:722041;2027-03-13;;geplant;Plandatum in der Zukunft
+0B2YGPanTBc9mM6oEg4ile;IfcWallStandardCase;"Basic Wall:Concrete 18"":675720";2027-04-14;;geplant;Plandatum in der Zukunft
+0B2YGPanTBc9mM6oEg4jTv;IfcFooting;"Wall Foundation:Bearing Footing - 36""x18"":676633";2027-05-15;;geplant;Plandatum in der Zukunft
+2qPn_u$C57ueQiO7doE9y6;IfcColumn;W Shapes-Column:W10x49:642990;2027-06-16;;geplant;Plandatum in der Zukunft
+0FD7lEIyvA7ei2jSdDG5iR;IfcBeam;SF_Steel L Angle:_Size:724076;2027-07-17;;geplant;Plandatum in der Zukunft
+0cCgBhmWv0ju$4JjSRhro_;IfcSlab;SFD_Round:30x30x25':673059;2027-08-18;;geplant;Plandatum in der Zukunft
+0iiRHYyO134A5NMA7XH2Sz;IfcWallStandardCase;"Basic Wall:Concrete 12"":596357";2027-09-19;;geplant;Plandatum in der Zukunft
+2A44xp5_PCrwCnockcFdNk;IfcFooting;"Wall Foundation:Bearing Footing - 36""x18"":670988";2026-09-01;;Abnahme ausstehend;montiert, nicht abgenommen
+34kHrmtfTBuxHt3tZbWrM7;IfcColumn;W Shapes-Column:W10x49:630361;2026-09-04;;Abnahme ausstehend;montiert, nicht abgenommen
+0FD7lEIyvA7ei2jSdDGQe$;IfcBeam;K-Series Bar Joist-Angle Web:16K2:720200;2026-09-07;;Abnahme ausstehend;montiert, nicht abgenommen
+0cCgBhmWv0ju$4JjSRhrow;IfcSlab;SFD_Round:30x30x25':673063;2026-09-10;;Abnahme ausstehend;montiert, nicht abgenommen
+1Z_D8qyun52938MRTkC02x;IfcWallStandardCase;"Basic Wall:Concrete 12"":586803";2026-09-13;;Abnahme ausstehend;montiert, nicht abgenommen
+3ZT5EhLQn6JfRlijT8hpYI;IfcColumn;Concrete-Rectangular-Column:CC24x24:606574;2026-09-16;;Abnahme ausstehend;montiert, nicht abgenommen
+0FD7lEIyvA7ei2jSdDGQe_;IfcBeam;K-Series Bar Joist-Angle Web:16K2:720201;2026-09-19;;Abnahme ausstehend;montiert, nicht abgenommen
+1CEMWRTvz6HwQKgNsRJSpg;IfcSlab;SFD_Round:30x30x25':773892;2026-09-22;;Abnahme ausstehend;montiert, nicht abgenommen
+1Z_D8qyun52938MRTkC0NC;IfcWallStandardCase;"Basic Wall:Concrete 10"":586052";2026-09-25;;Abnahme ausstehend;montiert, nicht abgenommen
+3ZT5EhLQn6JfRlijT8hpuO;IfcColumn;W Shapes-Column:W14x109:608228;2026-01-01;2026-01-21;abgenommen;korrekt
+0FD7lEIyvA7ei2jSdDGQeg;IfcBeam;K-Series Bar Joist-Angle Web:16K2:720221;2026-02-02;2026-02-22;abgenommen;korrekt
+1KpZCW3Gn25x9tpICCoFoi;IfcSlab;Floor:NW Concrete on Metal Deck:792679;2026-03-03;2026-03-23;abgenommen;korrekt
+1Z_D8qyun52938MRTkC1bU;IfcWallStandardCase;"Basic Wall:Concrete 10"":585174";2026-04-04;2026-04-24;abgenommen;korrekt
+3ZT5EhLQn6JfRlijT8hpuX;IfcColumn;W Shapes-Column:W10x49:608221;2026-05-05;2026-05-25;abgenommen;korrekt
+0FD7lEIyvA7ei2jSdDGQev;IfcBeam;K-Series Bar Joist-Angle Web:16K2:720206;2026-06-06;2026-06-26;abgenommen;korrekt
+1WbiTlDUH5ROtJiH49QBh4;IfcSlab;SFD_Round:24x24x20':786771;2026-07-07;2026-07-27;abgenommen;korrekt
+2y$xKBMWH9JhKyZNsuaKnM;IfcWallStandardCase;"Basic Wall:Concrete 10"":759479";2026-08-08;2026-08-28;abgenommen;korrekt
+3ZT5EhLQn6JfRlijT8hpuh;IfcColumn;W Shapes-Column:W10x49:608215;2026-09-09;2026-09-29;abgenommen;korrekt
+0QQBK0bvT13AG6ilREGM1t;IfcBeam;W Shapes:W8x10:685225;;2026-09-15;Fehler;InstallationDate fehlt, AcceptanceDate gesetzt
+1WbiTlDUH5ROtJiH49RqHx;IfcSlab;SFD_Round:24x24x20':786412;;;Fehler;Pset nur mit PutIntoOperationDate, InstallationDate fehlt
+3U9u71_MH84e7LZnQseDG0;IfcWallStandardCase;"Basic Wall:Concrete 24"":600929";;;Fehler;InstallationDate leer
+3ZT5EhLQn6JfRlijT8hpur;IfcColumn;W Shapes-Column:W14x109:608201;;2026-08-20;Fehler;InstallationDate leer, AcceptanceDate gesetzt
+0lyEh4MQj5dfRBgL_Q5RGu;IfcBeam;W Shapes:W12X26:704075;2026-09-10;2026-09-01;abgenommen;Anforderung 2 verletzt: Abnahme vor Installation
+2MLqRu3Wn7NfqXawhVfEek;IfcSlab;SFD_Round:24x24x25':683092;2026-07-15;2026-07-10;abgenommen;Anforderung 2 verletzt: Abnahme vor Installation
+0lyEh4MQj5dfRBgL_Q5SaJ;IfcBeam;W Shapes:W8x10:705376;2026-09-30;2027-02-15;abgenommen;Anforderung 2 verletzt: Abnahme in der Zukunft
+2MLqRu3Wn7NfqXawhVfEjT;IfcSlab;SFD_Pile_Cap_Rectangle:36x36x24 Pile_24:683303;2026-10-01;2027-01-20;abgenommen;Anforderung 2 verletzt: Abnahme in der Zukunft
+0lyEh4MQj5dfRBgL_Q5Sit;IfcBeam;W Shapes:W8x10:704836;20.09.2026;;Fehler;Anforderung 1 verletzt: ungültiges Datumsformat
+2MLqRu3Wn7NfqXawhVfEjb;IfcSlab;SFD_Pile_Cap_Rectangle:36x36x24 Pile_24:683295;2026-08-03;3.9.2026;abgenommen;Anforderung 2 verletzt: ungültiges Datumsformat
