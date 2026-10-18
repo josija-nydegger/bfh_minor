@@ -1,0 +1,403 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="IST-SOLL Baufortschritt" id="5-C1xfkB7NX4l112fy54">
+    <mxGraphModel dx="3236" dy="1390" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PJr3stYDhw8oY8n4mu19-1" parent="1" style="swimlane;horizontal=0;startSize=30;html=1;whiteSpace=wrap;fontStyle=1;fillColor=#E0E2E1;" value="Team 4: Ist (Use Case Baufortschritt)" vertex="1">
+          <mxGeometry height="700" width="1680" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-2" parent="PJr3stYDhw8oY8n4mu19-1" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Auftraggeber (Bauherr)" vertex="1">
+          <mxGeometry height="175" width="1650" x="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-3" parent="PJr3stYDhw8oY8n4mu19-2" style="ellipse;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="109" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-4" parent="PJr3stYDhw8oY8n4mu19-2" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;" value="Bausitzung steht an" vertex="1">
+          <mxGeometry height="40" width="140" x="59" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-5" parent="PJr3stYDhw8oY8n4mu19-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Stand der Arbeiten anfragen" vertex="1">
+          <mxGeometry height="60" width="135" x="219.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-6" parent="PJr3stYDhw8oY8n4mu19-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Bericht entgegennehmen" vertex="1">
+          <mxGeometry height="60" width="135" x="1325.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-7" parent="PJr3stYDhw8oY8n4mu19-2" style="ellipse;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="1531" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-8" parent="PJr3stYDhw8oY8n4mu19-2" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;" value="Fortschritt bekannt (verzögert, lückenhaft)" vertex="1">
+          <mxGeometry height="40" width="140" x="1481" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-9" parent="PJr3stYDhw8oY8n4mu19-1" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Informationsmanagement (BIM-Koordination)" vertex="1">
+          <mxGeometry height="175" width="1650" x="30" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-10" parent="PJr3stYDhw8oY8n4mu19-9" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="&lt;b&gt;⚠ Schwachstellen IST&lt;/b&gt;&lt;br&gt;• IFC-Modell enthält weder Installations- noch Abnahmedatum&lt;br&gt;• kein IDS, keine automatische Prüfung, Informationsmanagement nicht beteiligt&lt;br&gt;• kein definierter Übergabe- und Prüfzeitpunkt (Prüfung nach Bedarf)" vertex="1">
+          <mxGeometry height="120" width="400" x="460.8" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-11" parent="PJr3stYDhw8oY8n4mu19-9" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="&lt;b&gt;⚠&lt;/b&gt; Mängel nur mündlich oder per E-Mail: kein BCF, Verantwortlichkeit und Erledigung nicht nachvollziehbar&lt;br&gt;&lt;b&gt;⚠&lt;/b&gt; Terminabweichungen werden manuell und spät erkannt" vertex="1">
+          <mxGeometry height="120" width="450" x="887.4" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-12" parent="PJr3stYDhw8oY8n4mu19-1" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Fachplanung / Modellautor (Unternehmer, Polier)" vertex="1">
+          <mxGeometry height="175" width="1650" x="30" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-13" parent="PJr3stYDhw8oY8n4mu19-12" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Montagen im Tagesrapport notieren" vertex="1">
+          <mxGeometry height="60" width="135" x="377.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-14" parent="PJr3stYDhw8oY8n4mu19-12" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Tagesrapport (Papier / Excel)" vertex="1">
+          <mxGeometry height="48" width="125" x="382.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-15" parent="PJr3stYDhw8oY8n4mu19-12" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Rapport per E-Mail senden" vertex="1">
+          <mxGeometry height="60" width="135" x="535.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-16" parent="PJr3stYDhw8oY8n4mu19-12" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Mangel beheben" vertex="1">
+          <mxGeometry height="60" width="135" x="851.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-17" parent="PJr3stYDhw8oY8n4mu19-1" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Prüfung (Bauleitung)" vertex="1">
+          <mxGeometry height="175" width="1650" x="30" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-18" parent="PJr3stYDhw8oY8n4mu19-17" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Bauteile vor Ort kontrollieren" vertex="1">
+          <mxGeometry height="60" width="135" x="693.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-19" parent="PJr3stYDhw8oY8n4mu19-17" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#EB7418;fontSize=10;" value="Mangel fest-&lt;br&gt;gestellt?" vertex="1">
+          <mxGeometry height="80" width="80" x="879" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-20" parent="PJr3stYDhw8oY8n4mu19-17" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Abnahme im Protokoll notieren" vertex="1">
+          <mxGeometry height="60" width="135" x="1009.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-21" parent="PJr3stYDhw8oY8n4mu19-17" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Abnahmeprotokoll (Word / Papier)" vertex="1">
+          <mxGeometry height="48" width="125" x="1014.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-22" parent="PJr3stYDhw8oY8n4mu19-17" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Fortschritt manuell in Excel mit Terminplan abgleichen" vertex="1">
+          <mxGeometry height="70" width="135" x="1167.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-23" parent="PJr3stYDhw8oY8n4mu19-17" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Excel-Liste, Terminplan (PDF)" vertex="1">
+          <mxGeometry height="48" width="125" x="1192.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-24" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-13" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-25" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-20" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-21" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-26" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-22" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-23" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-27" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-28" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-13" value="Anfrage (mündlich)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="475" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-29" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-15" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-30" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-18" value="Rapport (E-Mail)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="633" y="655" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-31" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-19" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-32" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-16" value="Ja: Meldung per Telefon / E-Mail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-33" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-18" value="erledigt (mündlich)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="791" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-34" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-20" value="Nein">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-35" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-36" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-6" value="Bericht (E-Mail)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1423" y="660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-37" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-38" parent="1" style="swimlane;horizontal=0;startSize=30;html=1;whiteSpace=wrap;fontStyle=1;fillColor=#E0E2E1;" value="Team 4: Soll (Use Case Baufortschritt)" vertex="1">
+          <mxGeometry height="700" width="2628" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-39" parent="PJr3stYDhw8oY8n4mu19-38" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Auftraggeber (Bauherr)" vertex="1">
+          <mxGeometry height="175" width="2598" x="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-40" parent="PJr3stYDhw8oY8n4mu19-39" style="ellipse;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="109" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-41" parent="PJr3stYDhw8oY8n4mu19-39" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;" value="Ausführung startet" vertex="1">
+          <mxGeometry height="40" width="140" x="59" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-42" parent="PJr3stYDhw8oY8n4mu19-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Informations-anforderungen festlegen" vertex="1">
+          <mxGeometry height="60" width="135" x="219.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-43" parent="PJr3stYDhw8oY8n4mu19-39" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="AIA / BAP-Matrix" vertex="1">
+          <mxGeometry height="48" width="125" x="224.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-44" parent="PJr3stYDhw8oY8n4mu19-39" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Fortschritt zur Kenntnis nehmen" vertex="1">
+          <mxGeometry height="60" width="135" x="2273.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-45" parent="PJr3stYDhw8oY8n4mu19-39" style="ellipse;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="2479" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-46" parent="PJr3stYDhw8oY8n4mu19-39" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;" value="Fortschritt, Verzug und Pendenzen bekannt" vertex="1">
+          <mxGeometry height="40" width="140" x="2429" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-47" parent="PJr3stYDhw8oY8n4mu19-39" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#2e7d32;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="&lt;b&gt;✔ Neu im SOLL&lt;/b&gt;&lt;br&gt;• Installations- und Abnahmedatum im IFC (Pset_InstallationOccurrence)&lt;br&gt;• fixer Übergabe- und Prüfzeitpunkt, automatischer IDS-Check" vertex="1">
+          <mxGeometry height="70" width="560" x="492.4" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-48" parent="PJr3stYDhw8oY8n4mu19-39" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#2e7d32;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="&lt;b&gt;✔&lt;/b&gt; Befunde als BCF mit GlobalId, Zuständigkeit und Frist&lt;br&gt;&lt;b&gt;✔&lt;/b&gt; Fortschritt, Verzug und Pendenzen automatisch aus dem Modell" vertex="1">
+          <mxGeometry height="70" width="560" x="1203.3999999999999" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-49" parent="PJr3stYDhw8oY8n4mu19-38" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Informationsmanagement (BIM-Koordination)" vertex="1">
+          <mxGeometry height="175" width="2598" x="30" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-50" parent="PJr3stYDhw8oY8n4mu19-49" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IDS bereitstellen" vertex="1">
+          <mxGeometry height="60" width="135" x="377.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-51" parent="PJr3stYDhw8oY8n4mu19-49" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="IDS (a1_installations-datum.ids)" vertex="1">
+          <mxGeometry height="48" width="125" x="382.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-52" parent="PJr3stYDhw8oY8n4mu19-49" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Befund als BCF erstellen und Zuständige zuweisen" vertex="1">
+          <mxGeometry height="70" width="135" x="1483.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-53" parent="PJr3stYDhw8oY8n4mu19-49" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="BCF-Issue (GlobalId, zuständig, Frist)" vertex="1">
+          <mxGeometry height="48" width="125" x="1413.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-54" parent="PJr3stYDhw8oY8n4mu19-49" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Plausibilität und Termine prüfen, Übersicht erstellen (Skript)" vertex="1">
+          <mxGeometry height="70" width="135" x="2115.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-55" parent="PJr3stYDhw8oY8n4mu19-49" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Fortschrittsübersicht (Status, Verzug, Pendenzen)" vertex="1">
+          <mxGeometry height="48" width="125" x="2045.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-56" parent="PJr3stYDhw8oY8n4mu19-38" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Fachplanung / Modellautor (Unternehmer, Polier)" vertex="1">
+          <mxGeometry height="175" width="2598" x="30" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-57" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="InstallationDate gemäss Terminplan setzen" vertex="1">
+          <mxGeometry height="60" width="135" x="535.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-58" parent="PJr3stYDhw8oY8n4mu19-56" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Terminplan (Soll-Termin pro GlobalId)" vertex="1">
+          <mxGeometry height="48" width="140" x="533" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-59" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Tatsächliches InstallationDate nachführen (Polier)" vertex="1">
+          <mxGeometry height="60" width="135" x="693.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-60" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IFC-Modell übergeben" vertex="1">
+          <mxGeometry height="60" width="135" x="851.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-61" parent="PJr3stYDhw8oY8n4mu19-56" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="IFC-Modell mit Pset_Installation-Occurrence" vertex="1">
+          <mxGeometry height="48" width="140" x="849" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-62" parent="PJr3stYDhw8oY8n4mu19-56" style="ellipse;shape=doubleEllipse;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;fontStyle=1;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="1057" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-63" parent="PJr3stYDhw8oY8n4mu19-56" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;fontStyle=1;" value="Übergabepunkt: Lieferung jeden Freitag" vertex="1">
+          <mxGeometry height="40" width="140" x="1007" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-64" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Befund beheben (Verantwortung: Modellautor / Polier)" vertex="1">
+          <mxGeometry height="70" width="135" x="1325.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-65" parent="PJr3stYDhw8oY8n4mu19-38" style="swimlane;horizontal=0;startSize=50;html=1;whiteSpace=wrap;fontSize=12;fillColor=none;" value="Prüfung (Bauleitung, Prüfskript)" vertex="1">
+          <mxGeometry height="175" width="2598" x="30" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-66" parent="PJr3stYDhw8oY8n4mu19-65" style="ellipse;shape=doubleEllipse;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;fontStyle=1;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="40" width="40" x="1215" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-67" parent="PJr3stYDhw8oY8n4mu19-65" style="text;html=1;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=10;fontStyle=1;" value="Prüfzeitpunkt: nach jeder Lieferung, vor Bausitzung" vertex="1">
+          <mxGeometry height="40" width="140" x="1165" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-68" parent="PJr3stYDhw8oY8n4mu19-65" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IDS-Check automatisch ausführen" vertex="1">
+          <mxGeometry height="60" width="135" x="1325.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-69" parent="PJr3stYDhw8oY8n4mu19-65" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Prüfbericht (HTML / JSON)" vertex="1">
+          <mxGeometry height="48" width="125" x="1330.5" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-70" parent="PJr3stYDhw8oY8n4mu19-65" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#EB7418;fontSize=10;" value="IDS erfüllt?" vertex="1">
+          <mxGeometry height="80" width="80" x="1511" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-71" parent="PJr3stYDhw8oY8n4mu19-65" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Bauteil vor Ort kontrollieren (manuell)" vertex="1">
+          <mxGeometry height="60" width="135" x="1641.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-72" parent="PJr3stYDhw8oY8n4mu19-65" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#EB7418;fontSize=10;" value="Abnahme-&lt;br&gt;fähig?" vertex="1">
+          <mxGeometry height="80" width="80" x="1827" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-73" parent="PJr3stYDhw8oY8n4mu19-65" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="AcceptanceDate setzen" vertex="1">
+          <mxGeometry height="60" width="135" x="1957.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-74" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-42" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-43" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-75" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-50" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-51" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-76" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-57" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-58" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-77" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-60" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-61" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-78" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-68" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-69" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-79" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-52" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-53" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-80" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-54" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-55" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-81" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-42" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-82" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-50" value="AIA">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="475" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-83" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-57" value="IDS">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="633" y="1115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-84" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-59" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-85" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-60" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-86" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-62" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-87" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-62" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-66" value="IFC">
+          <mxGeometry relative="1" x="0.1468" y="-25" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1265" y="1290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-88" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-66" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-68" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-89" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-68" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-70" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-90" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-52" value="Nein">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-91" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-64" value="BCF an Zuständige">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1423" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-92" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-60" value="Rückmeldung: BCF erledigt, neu liefern">
+          <mxGeometry relative="1" x="0.001" as="geometry">
+            <Array as="points">
+              <mxPoint x="1300" y="1295" />
+              <mxPoint x="1300" y="1234" />
+              <mxPoint x="949" y="1234" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-93" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-71" value="Ja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-94" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-72" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-95" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-52" value="Nein: Mangel">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1897" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-96" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-73" value="Ja">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-97" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-54" value="IFC mit AcceptanceDate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2213" y="1465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-98" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="PJr3stYDhw8oY8n4mu19-44" value="Fortschrittsübersicht">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2371" y="1120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-99" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-45" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-100" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&#39;margin-top:0px&#39;&gt;Ist-Prozess&lt;/h1&gt;" vertex="1">
+          <mxGeometry height="50" width="400" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-101" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&#39;margin-top:0px&#39;&gt;Soll-Prozess&lt;/h1&gt;" vertex="1">
+          <mxGeometry height="50" width="400" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-102" parent="1" style="text;html=1;align=left;fontSize=12;" value="&lt;b&gt;Legende&lt;/b&gt;" vertex="1">
+          <mxGeometry height="20" width="100" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-103" parent="1" style="ellipse;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="Start" vertex="1">
+          <mxGeometry height="30" width="30" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-104" parent="1" style="ellipse;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;whiteSpace=wrap;" value="Ende" vertex="1">
+          <mxGeometry height="30" width="30" x="130" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-105" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Aktivität" vertex="1">
+          <mxGeometry height="40" width="90" x="260" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-106" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#EB7418;fontSize=10;" value="Ja/Nein?" vertex="1">
+          <mxGeometry height="50" width="50" x="410" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-107" parent="1" style="ellipse;shape=doubleEllipse;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;verticalLabelPosition=bottom;verticalAlign=top;labelPosition=center;align=center;fontSize=10;fontStyle=1;whiteSpace=wrap;" value="Übergabe- / Prüfzeitpunkt" vertex="1">
+          <mxGeometry height="30" width="30" x="520" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-108" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Artefakt" vertex="1">
+          <mxGeometry height="40" width="80" x="650" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-109" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="Schwachstelle IST" vertex="1">
+          <mxGeometry height="40" width="120" x="790" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-110" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e6f4ea;strokeColor=#2e7d32;dashed=1;fontSize=10;align=left;spacingLeft=4;" value="Neu im SOLL" vertex="1">
+          <mxGeometry height="40" width="120" x="970" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-111" parent="1" style="text;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="1" x="1150" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-112" parent="1" style="text;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="1" x="1150" y="1650" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-113" parent="1" style="text;html=1;align=left;fontSize=10;" value="Sequenzfluss" vertex="1">
+          <mxGeometry height="20" width="90" x="1240" y="1640" as="geometry" />
+        </mxCell>
+        <mxCell id="PJr3stYDhw8oY8n4mu19-114" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-112" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;fontColor=#EB7418;labelBackgroundColor=#FFFFFF;" target="PJr3stYDhw8oY8n4mu19-113" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
