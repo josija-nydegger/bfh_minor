@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ids:ids xmlns:ids="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <ids:info>
+    <ids:title>Baufortschritt - Installations- und Abnahmedatum</ids:title>
+    <ids:description>Anforderung 1: InstallationDate vorhanden und im Format YYYY-MM-DD. Anforderung 2 (nur Format): AcceptanceDate, falls gesetzt, im Format YYYY-MM-DD.</ids:description>
+    <ids:date>2026-10-18</ids:date>
+  </ids:info>
+  <ids:specifications>
+    <ids:specification name="A1 InstallationDate - IfcBeam" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCBEAM</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcColumn" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCCOLUMN</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcSlab" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCSLAB</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcWall" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCWALL</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcWallStandardCase" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCWALLSTANDARDCASE</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcFooting" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCFOOTING</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcReinforcingBar" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCREINFORCINGBAR</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcElementAssembly" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCELEMENTASSEMBLY</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A1 InstallationDate - IfcBuildingElementProxy" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCBUILDINGELEMENTPROXY</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="required">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>InstallationDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcBeam" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCBEAM</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcColumn" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCCOLUMN</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcSlab" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCSLAB</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcWall" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCWALL</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcWallStandardCase" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCWALLSTANDARDCASE</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcFooting" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCFOOTING</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcReinforcingBar" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCREINFORCINGBAR</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcElementAssembly" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCELEMENTASSEMBLY</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+    <ids:specification name="A2 AcceptanceDate - IfcBuildingElementProxy" ifcVersion="IFC2X3">
+      <ids:applicability minOccurs="1" maxOccurs="unbounded">
+        <ids:entity>
+          <ids:name><ids:simpleValue>IFCBUILDINGELEMENTPROXY</ids:simpleValue></ids:name>
+        </ids:entity>
+      </ids:applicability>
+      <ids:requirements description="Generated from IDS-Light">
+        <ids:property dataType="IFCLABEL" cardinality="optional">
+          <ids:propertySet><ids:simpleValue>Pset_InstallationOccurrence</ids:simpleValue></ids:propertySet>
+          <ids:baseName><ids:simpleValue>AcceptanceDate</ids:simpleValue></ids:baseName>
+          <ids:value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"/>
+            </xs:restriction>
+          </ids:value>
+        </ids:property>
+      </ids:requirements>
+    </ids:specification>
+  </ids:specifications>
+</ids:ids>
