@@ -1,0 +1,166 @@
+# IDS-Light-Quelle für Anforderung 1 (und Formatteil von Anforderung 2)
+# Editor: https://www.idslight.com  ->  XML kopieren als a1_installationsdatum.ids
+#
+# Geltungsbereich laut MVP: alle IfcElement ohne IfcOpeningElement.
+# IDS 1.0 prüft beim Entity-Facet nur die genannte Klasse (keine Subtypen) und
+# IDS-Light kennt weder Klassenlisten noch YAML-Anker. Darum eine Regel pro
+# Bauteilklasse, die im Testmodell vorkommt (9 Klassen, 1446 Elemente).
+#
+# Datum als IfcLabel (IFC2X3 kennt kein IfcDate), Format YYYY-MM-DD per Pattern.
+# Das Pattern ist ein XSD-Regex: implizit verankert, darum ohne ^ und $.
+
+ids:
+  title: "Baufortschritt - Installations- und Abnahmedatum"
+  description: "Anforderung 1: InstallationDate vorhanden und im Format YYYY-MM-DD. Anforderung 2 (nur Format): AcceptanceDate, falls gesetzt, im Format YYYY-MM-DD."
+  date: "2026-10-18"
+  ifcVersion: "IFC2X3"
+  rules:
+    # ---------- Anforderung 1: InstallationDate erfasst ----------
+    - name: "A1 InstallationDate - IfcBeam"
+      entity: "IfcBeam"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcColumn"
+      entity: "IfcColumn"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcSlab"
+      entity: "IfcSlab"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcWall"
+      entity: "IfcWall"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcWallStandardCase"
+      entity: "IfcWallStandardCase"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcFooting"
+      entity: "IfcFooting"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcReinforcingBar"
+      entity: "IfcReinforcingBar"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcElementAssembly"
+      entity: "IfcElementAssembly"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+    - name: "A1 InstallationDate - IfcBuildingElementProxy"
+      entity: "IfcBuildingElementProxy"
+      properties:
+        - name: "Pset_InstallationOccurrence.InstallationDate"
+          datatype: "string"
+          presence: "required"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Installation (bis zur Montage: geplantes Datum) im Format YYYY-MM-DD"
+
+    # ---------- Anforderung 2 (nur Format): AcceptanceDate, falls gesetzt ----------
+    # "nicht vor InstallationDate" und "nicht in der Zukunft" sind im IDS nicht
+    # prüfbar und folgen in der eigenen Prüflogik.
+    - name: "A2 AcceptanceDate - IfcBeam"
+      entity: "IfcBeam"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcColumn"
+      entity: "IfcColumn"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcSlab"
+      entity: "IfcSlab"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcWall"
+      entity: "IfcWall"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcWallStandardCase"
+      entity: "IfcWallStandardCase"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcFooting"
+      entity: "IfcFooting"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcReinforcingBar"
+      entity: "IfcReinforcingBar"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcElementAssembly"
+      entity: "IfcElementAssembly"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
+    - name: "A2 AcceptanceDate - IfcBuildingElementProxy"
+      entity: "IfcBuildingElementProxy"
+      properties:
+        - name: "Pset_InstallationOccurrence.AcceptanceDate"
+          datatype: "string"
+          presence: "optional"
+          pattern: "[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+          instructions: "Datum der Abnahme, falls gesetzt, im Format YYYY-MM-DD"
