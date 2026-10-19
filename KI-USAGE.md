@@ -2,9 +2,13 @@
 # KI-USAGE
 
 ## Matthias
+
 | Datum | Werkzeug | Wofür eingesetzt? | Was übernommen/verändert? | Wie geprüft? |
 | --- | --- | --- | --- | --- |
-
+| 30.09.2026 | Copilot | Aufgabe AIA Forensik | Aufgabenlösung übernommen | Jede Seite der Quellenangabe kurz selber überschlagen. |
+| 30.09.2026 | Chat GPT | Fragen Welcher IFC Viewer geeignet ist und wie diesen zu bedienen. | nichts | ausprobiert obs im Viewer funktioniert |
+| 06.10.2026 | Chat GPT | MVP konzept erstellen | Alles | KI hat meine Idee formuliert und nach meiner Vorgabe interpretiert.  |
+| 13.10.2026 | Chat GPT | endgültige Idee verfeinert und in Markdown geschrieben. | Die Markdown Datei. | Eigener Inhalt kontrolliert. |
 
 ___
 
