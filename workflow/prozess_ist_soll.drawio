@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="IST-SOLL Baufortschritt" id="5-C1xfkB7NX4l112fy54">
-    <mxGraphModel dx="3236" dy="1390" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1183" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -170,7 +170,7 @@
         <mxCell id="PJr3stYDhw8oY8n4mu19-50" parent="PJr3stYDhw8oY8n4mu19-49" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IDS bereitstellen" vertex="1">
           <mxGeometry height="60" width="135" x="377.5" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="PJr3stYDhw8oY8n4mu19-51" parent="PJr3stYDhw8oY8n4mu19-49" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="IDS (a1_installations-datum.ids)" vertex="1">
+        <mxCell id="PJr3stYDhw8oY8n4mu19-51" parent="PJr3stYDhw8oY8n4mu19-49" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="IDS (a1_baufortschritt.ids)" vertex="1">
           <mxGeometry height="48" width="125" x="382.5" y="112" as="geometry" />
         </mxCell>
         <mxCell id="PJr3stYDhw8oY8n4mu19-52" parent="PJr3stYDhw8oY8n4mu19-49" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Befund als BCF erstellen und Zuständige zuweisen" vertex="1">
@@ -194,7 +194,7 @@
         <mxCell id="PJr3stYDhw8oY8n4mu19-58" parent="PJr3stYDhw8oY8n4mu19-56" style="shape=note;whiteSpace=wrap;html=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Terminplan (Soll-Termin pro GlobalId)" vertex="1">
           <mxGeometry height="48" width="140" x="533" y="112" as="geometry" />
         </mxCell>
-        <mxCell id="PJr3stYDhw8oY8n4mu19-59" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Tatsächliches InstallationDate nachführen (Polier)" vertex="1">
+        <mxCell id="PJr3stYDhw8oY8n4mu19-59" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IsInstalled&amp;nbsp; TRUE setzen (Polier)" vertex="1">
           <mxGeometry height="60" width="135" x="693.5" y="40" as="geometry" />
         </mxCell>
         <mxCell id="PJr3stYDhw8oY8n4mu19-60" parent="PJr3stYDhw8oY8n4mu19-56" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="IFC-Modell übergeben" vertex="1">
@@ -236,7 +236,7 @@
         <mxCell id="PJr3stYDhw8oY8n4mu19-72" parent="PJr3stYDhw8oY8n4mu19-65" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#EB7418;fontSize=10;" value="Abnahme-&lt;br&gt;fähig?" vertex="1">
           <mxGeometry height="80" width="80" x="1827" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="PJr3stYDhw8oY8n4mu19-73" parent="PJr3stYDhw8oY8n4mu19-65" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="AcceptanceDate setzen" vertex="1">
+        <mxCell id="PJr3stYDhw8oY8n4mu19-73" parent="PJr3stYDhw8oY8n4mu19-65" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5B7C8F;fontSize=11;" value="Bauleitung prüft per Skript die überfälligen Bauteile, dann setzt sie AcceptanceDate" vertex="1">
           <mxGeometry height="60" width="135" x="1957.5" y="40" as="geometry" />
         </mxCell>
         <mxCell id="PJr3stYDhw8oY8n4mu19-74" edge="1" parent="1" source="PJr3stYDhw8oY8n4mu19-42" style="edgeStyle=none;html=1;endArrow=none;dashed=1;dashPattern=2 3;strokeColor=#999999;" target="PJr3stYDhw8oY8n4mu19-43" value="">
