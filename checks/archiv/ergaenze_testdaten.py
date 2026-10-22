@@ -9,6 +9,7 @@ import ifcopenshell.api
 # Aufruf: python ergaenze_testdaten.py <Pfad zu einer Kopie des Original-Modells>
 # Das Modell wird überschrieben; loesung.csv wird neben diesem Skript abgelegt.
 # ACHTUNG: Dieses Skript und loesung.csv enthalten die Lösung für den IDS-Test.
+# ARCHIV: gehört zum alten Testmodell (Stand 18.10.2026), siehe requirements/archiv/README.md.
 if len(sys.argv) < 2:
     sys.exit("Aufruf: python ergaenze_testdaten.py <Pfad zu einer Kopie des Original-Modells>")
 pfad = sys.argv[1]
