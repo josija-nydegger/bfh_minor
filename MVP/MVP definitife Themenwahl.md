@@ -15,19 +15,20 @@ Die Bauleitung braucht pro Bauteil das Installations- und das Abnahmedatum aus d
 
 ## 3. Modell und Evidenz
 
-**Modell:** `01_Snowdon_Towers_Sample_Structural.ifc` (Schema IFC2X3, 1585 `IfcElement`, davon 139 `IfcOpeningElement`). Das Modell wird vom Dozenten angepasst und bereitgestellt, damit die Prüfung getestet und die Automatisierung erstellt werden kann.
+**Modell:** `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, vom Dozenten angepasste Fassung von `01_Snowdon_Towers_Sample_Structural.ifc` (Schema IFC2X3, 1585 `IfcElement`, davon 139 `IfcOpeningElement`, also 1446 zu prüfende Bauteile).
 
-Das IFC-4.3-PropertySet `Pset_InstallationOccurrence` (anwendbar auf `IfcElement`, `IfcAsset`, `IfcSystem`) definiert folgende Properties:
+Das IFC-4.3-PropertySet `Pset_InstallationOccurrence` (anwendbar auf `IfcElement`, `IfcAsset`, `IfcSystem`) definiert die drei Datums-Properties. `IsInstalled` ist eine projektspezifische Ergänzung, die im Modell im selben Pset liegt:
 
-| Property               | Datentyp  | Bedeutung                                                |
-| ---------------------- | --------- | -------------------------------------------------------- |
-| `InstallationDate`     | `IfcDate` | Datum der Installation (bis zur Montage: geplantes Datum) |
-| `AcceptanceDate`       | `IfcDate` | Datum der Abnahme                                        |
-| `PutIntoOperationDate` | `IfcDate` | Datum der Inbetriebnahme (im MVP nicht verwendet)        |
+| Property               | Datentyp     | Bedeutung                                                         |
+| ---------------------- | ------------ | ----------------------------------------------------------------- |
+| `InstallationDate`     | `IfcDate`    | Soll-Datum der Installation gemäss Terminplan, wird nicht verändert |
+| `IsInstalled`          | `IfcBoolean` | Montagestatus: FALSE = nicht montiert, TRUE = montiert (projektspezifisch, nicht in IFC 4.3) |
+| `AcceptanceDate`       | `IfcDate`    | Datum der Abnahme durch die Bauleitung                            |
+| `PutIntoOperationDate` | `IfcDate`    | Datum der Inbetriebnahme (im MVP nicht verwendet)                 |
 
-Das Schema IFC2X3 kennt den Datentyp `IfcDate` nicht; bleibt das Modell in IFC2X3, muss die Gültigkeit des Datums (`YYYY-MM-DD`) über die eigene Prüflogik sichergestellt werden.
+Das Schema IFC2X3 kennt den Datentyp `IfcDate` nicht; die Daten liegen deshalb als `IfcLabel` vor und das Format (`YYYY-MM-DD`) wird per IDS-Pattern geprüft.
 
-**Was fehlt im Modell (Stand Originalmodell):**
+**Was im Originalmodell fehlte:**
 
 - Keines der 1585 Elemente trägt `Pset_InstallationOccurrence`; es gibt auch kein anderes PropertySet mit Installations- oder Abnahmedatum.
 - Das Modell enthält keinen Terminplan (0 `IfcTask`, 0 `IfcWorkSchedule`).
@@ -38,33 +39,48 @@ Das Schema IFC2X3 kennt den Datentyp `IfcDate` nicht; bleibt das Modell in IFC
 | Concrete-Rectangular Beam:CB24x24:606873 | `IfcBeam` | `3ZT5EhLQn6JfRlijT8hpjb` | `Pset_InstallationOccurrence` fehlt |
 | Floor:NW Concrete on Metal Deck:621720 | `IfcSlab` | `3eRW_mgkzCZQysdnuCHWNw` | `Pset_InstallationOccurrence` fehlt |
 
+**Stand angepasstes Modell:**
+
+- Alle 1446 Bauteile tragen `Pset_InstallationOccurrence` mit `IsInstalled` als `IfcBoolean` (1061 TRUE, 385 FALSE); `AcceptanceDate` ist überall leer.
+- `InstallationDate` ist nur bei den 1061 montierten Bauteilen gesetzt (2026-05-04 bis 2026-10-20), bei den 385 unmontierten leer. Für sie fehlt das Soll-Datum; Anforderung 1 ist dort nicht erfüllt.
+- Weiterhin kein Terminplan im Modell (0 `IfcTask`, 0 `IfcWorkSchedule`); der Soll-Termin steckt nur in `InstallationDate`.
+
+| Beispiel | IFC-Klasse | `GlobalId` | Befund |
+|---|---|---|---|
+| Wall Foundation:Bearing Footing - 36"x18":676633 | `IfcFooting` | `0B2YGPanTBc9mM6oEg4jTv` | `InstallationDate` = 2026-05-04, `IsInstalled` = TRUE, nicht abgenommen |
+| W Shapes-Column:W8x31:705124 | `IfcColumn` | `0lyEh4MQj5dfRBgL_Q5SWN` | `IsInstalled` = FALSE, `InstallationDate` leer |
+
 **Prozess:**
-1. Das `InstallationDate` wird bei jedem Element initial gemäss Terminplan gesetzt (geplantes Datum).
-2. Der Polier passt das `InstallationDate` bei der tatsächlichen Installation an und informiert die Bauleitung.
-3. Die Bauleitung kontrolliert das Element und setzt das `AcceptanceDate`.
+1. Der Modellautor setzt bei jedem Element `InstallationDate` gemäss Terminplan (Soll-Datum) und `IsInstalled` = FALSE. Das `InstallationDate` wird danach nicht mehr verändert.
+2. Der Polier setzt bei der Montage `IsInstalled` = TRUE.
+3. Die Bauleitung prüft per Skript, ob alles montiert ist, was bis heute hätte montiert sein sollen, kontrolliert die montierten Elemente und setzt danach das `AcceptanceDate`.
 
-**Prüfbedarf:** Es wird untersucht, ob die Properties vorhanden, gültig und zueinander sowie zum Terminplan plausibel sind. Geprüft werden alle `IfcElement` ohne `IfcOpeningElement` (Öffnungen werden nicht montiert). Abweichungen werden mit der jeweiligen `GlobalId` dokumentiert. Aus den beiden Properties wird pro Bauteil der Status abgeleitet:
+**Prüfbedarf:** Es wird untersucht, ob die Properties vorhanden, gültig und zueinander plausibel sind und ob Montagen im Verzug sind. Geprüft werden alle `IfcElement` ohne `IfcOpeningElement` (Öffnungen werden nicht montiert). Abweichungen werden mit der jeweiligen `GlobalId` dokumentiert. Aus den drei Properties wird pro Bauteil der Status abgeleitet:
 
-| `InstallationDate`   | `AcceptanceDate` | Status                                  |
-| -------------------- | ---------------- | --------------------------------------- |
-| in der Zukunft       | leer             | geplant                                 |
-| heute oder vergangen | leer             | Abnahme ausstehend (Pendenz Bauleitung) |
-| gesetzt              | gesetzt          | abgenommen                              |
-| leer                 | beliebig         | Fehler                                  |
+| `InstallationDate`   | `IsInstalled` | `AcceptanceDate` | Status                                  |
+| -------------------- | ------------- | ---------------- | --------------------------------------- |
+| in der Zukunft       | FALSE         | leer             | geplant                                 |
+| heute oder vergangen | FALSE         | leer             | Montage überfällig (Pendenz Polier)     |
+| beliebig             | TRUE          | leer             | Abnahme ausstehend (Pendenz Bauleitung) |
+| beliebig             | TRUE          | gesetzt          | abgenommen                              |
+| beliebig             | FALSE         | gesetzt          | Fehler (Abnahme ohne Montage)           |
+| leer                 | beliebig      | beliebig         | Fehler                                  |
 
 ## 4. Drei Anforderungen
 
-| Anforderung                                   | Prüfkriterium                                                                                                                                                | Quelle                                            | Prüfbar mit      |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | ---------------- |
-| Installationsdatum bei jedem Element erfasst  | `InstallationDate` vorhanden und ein gültiges Datum (`YYYY-MM-DD`)                                                                                           | IFC 4.3                                           | IDS              |
-| Abnahmedatum plausibel                        | `AcceptanceDate`, falls gesetzt, ein gültiges Datum, nicht vor `InstallationDate` und nicht in der Zukunft                                                   | IFC 4.3, Projektregel (Abnahme folgt auf Montage) | eigene Prüflogik |
-| Installationsdatum mit Terminplan abgeglichen | Jedes Element hat einen Soll-Termin im Terminplan; Abweichung `InstallationDate` − Soll-Termin wird in Tagen ausgewiesen, ein späteres Datum gilt als Verzug | Terminplan                                        | eigene Prüflogik |
+| Anforderung | Prüfkriterium | Quelle | Prüfbar mit |
+| --- | --- | --- | --- |
+| Soll-Installationsdatum und Montagestatus bei jedem Element erfasst | `InstallationDate` vorhanden und ein gültiges Datum (`YYYY-MM-DD`); `IsInstalled` vorhanden und `IfcBoolean` | IFC 4.3, Projektvorgabe (`IsInstalled`) | IDS |
+| Abnahmedatum plausibel | `AcceptanceDate`, falls gesetzt, ein gültiges Datum, nur bei `IsInstalled` = TRUE und nicht in der Zukunft; vor `InstallationDate` nur Hinweis (vorzeitig montiert) | IFC 4.3, Projektregel (Abnahme nur nach Montage) | IDS (Format) + eigene Prüflogik |
+| Montageverzug erkannt | Bauteil ist überfällig, wenn `InstallationDate` ≤ Prüfdatum und `IsInstalled` = FALSE; Verzug in Tagen = Prüfdatum − `InstallationDate` | Terminplan (als `InstallationDate` im Modell) | eigene Prüflogik |
+
+Da `InstallationDate` das Soll-Datum ist und nicht überschrieben wird, gibt es kein Ist-Datum der Montage. Der Verzug wird darum nur für noch nicht montierte Bauteile berechnet.
 
 ## 5. MVP: Automatisierung
 
-- **Input:** angepasstes IFC-Modell, Terminplan (Soll-Termin pro `GlobalId`)
-- **Automatisierung:** Die drei Anforderungen prüfen, Status pro Bauteil ableiten und Abweichung zum Soll-Termin berechnen
-- **Output:** Fortschrittsübersicht (geplant / Abnahme ausstehend / abgenommen), Terminabweichungen und offene Pendenzen mit `GlobalId`
+- **Input:** IFC-Modell mit `Pset_InstallationOccurrence` (Soll-Datum, `IsInstalled` vom Polier, `AcceptanceDate` von der Bauleitung), Prüfdatum (Standard: heute)
+- **Automatisierung:** Die drei Anforderungen prüfen (IDS und eigene Prüflogik), Status pro Bauteil ableiten und für nicht montierte Bauteile den Verzug in Tagen seit dem Soll-Datum berechnen
+- **Output:** Fortschrittsübersicht (geplant / Montage überfällig / Abnahme ausstehend / abgenommen), Liste der überfälligen Bauteile mit Verzug in Tagen und offene Pendenzen (Polier: Montage, Bauleitung: Abnahme) mit `GlobalId`
 
 ## 6. Verworfene Ideen
 
@@ -81,7 +97,7 @@ Das Schema IFC2X3 kennt den Datentyp `IfcDate` nicht; bleibt das Modell in IFC
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Claude Opus 5.5 (Claude Code) | Gegenlesen des MVP-Entwurfs auf Schlüssigkeit und gegen die Aufgabenstellung, Korrektur von Formulierungen und Tippfehlern | Statustabelle, präzisierte Prüfkriterien, Spalte «Prüfbar mit»; Prozess und die drei Anforderungen stammen von der Gruppe | Pset-Definition in den IfcOpenShell-Templates nachgeschlagen  |
 | Claude Opus 5.5 (Claude Code) | Auswertung des Modells `01_Snowdon_Towers_Sample_Structural.ifc` für Abschnitt 3                                           | Kennzahlen (Schema, Anzahl Elemente, fehlendes Pset, kein Terminplan) und drei Beispiel-`GlobalId`                        | `GlobalId` stichprobenweise im IFClite nachgeprüft; Kennzahlen mit IfcOpenShell direkt aus dem Modell ausgelesen            |
-
+| Claude Opus 5.5 (Claude Code) | Abschnitte 3, 4 und 5 an das Modell des Dozenten und den neuen Prozess (`IsInstalled` durch Polier, `InstallationDate` als Soll-Datum) angepasst | Pset-Tabelle, Befund zum angepassten Modell, Prozess, Statustabelle, die drei Anforderungen sowie Input und Output der Automatisierung | Kennzahlen und Beispiel-`GlobalId` mit IfcOpenShell aus dem neuen Modell ausgelesen |
 
 
 #BIM #IFC #Baustelle #MVP #Baufortschritt

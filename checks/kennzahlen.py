@@ -6,7 +6,7 @@ import ifcopenshell
 import ifcopenshell.util.element as el
 
 # Aufruf: python kennzahlen.py [Pfad zum IFC-Modell]
-pfad = sys.argv[1] if len(sys.argv) > 1 else Path(__file__).parent.parent / "model" / "01_Snowdon_Towers_Sample_Structural_ergaenzt.ifc"
+pfad = sys.argv[1] if len(sys.argv) > 1 else Path(__file__).parent.parent / "model" / "Team_4_Snowdon_Baufortschritt_IsInstalled.ifc"
 model = ifcopenshell.open(str(pfad))
 
 print("Modell:", pfad)
