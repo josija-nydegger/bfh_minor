@@ -89,9 +89,28 @@ Dateiname: `<Modell>_IsInstalled_<aenderungen|alle>_<Stichtag>.csv`. Trennzeiche
 | `Stichtag` | Datum, auf das sich `Status` und `VerzugTage` beziehen |
 | `GeaendertDurchPolier` | `ja`, wenn der Polier `IsInstalled` geändert hat |
 
+## Rückführung ins IFC-Modell
+
+Das Skript [`csv_ins_ifc.py`](csv_ins_ifc.py) übernimmt die Rückmeldung aus dem CSV ins Modell (Python mit IfcOpenShell):
+
+```bash
+python apps/polier-tool/csv_ins_ifc.py model/<modell>.ifc <rueckmeldung>.csv [weitere.csv ...]
+```
+
+- **Übernommene Werte:** nur `Pset_InstallationOccurrence.IsInstalled` als `IfcBoolean`. `InstallationDate` und `AcceptanceDate` bleiben unverändert. Standardmässig werden nur Zeilen mit `GeaendertDurchPolier` = `ja` übernommen; mit `--alle` alle Zeilen.
+- **Mehrere CSV:** Rückmeldungen mehrerer Poliere lassen sich in einem Lauf übernehmen.
+- **Ergebnis:** Ein neues Modell `<modell>_rueckgemeldet_<datum>.ifc`, das Eingabemodell bleibt unverändert. Mit `-o` lässt sich ein anderes Ziel angeben. Daneben entsteht ein Protokoll `…_protokoll.csv` mit altem und neuem Wert pro `GlobalId`.
+- **Übersprungen und im Protokoll vermerkt** werden:
+  - `GlobalId` nicht im Modell
+  - ungültiger Wert (weder `TRUE` noch `FALSE`)
+  - widersprüchliche Angaben in mehreren CSV
+  - `FALSE` für ein bereits abgenommenes Bauteil
+- **Nur Hinweis:** Weicht das `InstallationDate` im CSV vom Modell ab (CSV aus einer anderen Modellversion), wird der Wert trotzdem gesetzt und die Abweichung im Protokoll vermerkt.
+- **Fehlendes Pset oder fehlende Property:** wird angelegt.
+
 ## Grenzen
 
-- **Keine Änderung am IFC:** Das Tool schreibt nicht ins Modell. Die Werte aus dem CSV müssen per Skript über die `GlobalId` ins Modell übernommen werden. Dieser Schritt ist noch offen.
+- **Keine Änderung am IFC durch das Tool selbst:** Das Tool schreibt nicht ins Modell. Die Rückführung erfolgt mit `csv_ins_ifc.py` (siehe oben).
 - **Kein Abgleich zwischen Geräten:** Rückmeldungen verschiedener Geräte oder Browser werden nicht zusammengeführt. Jeder Polier exportiert sein eigenes CSV.
 - **Nicht alle Bauteile in 3D:** Bauteile ohne Geometrie erscheinen nur in der Liste. Öffnungen (`IfcOpeningElement`) werden nicht berücksichtigt.
 - **Grosse Modelle:** Das Laden kann auf älteren Handys einige Sekunden dauern.
