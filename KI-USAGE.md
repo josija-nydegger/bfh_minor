@@ -9,7 +9,7 @@
 | 30.09.2026 | Chat GPT | Fragen Welcher IFC Viewer geeignet ist und wie diesen zu bedienen. | nichts | ausprobiert obs im Viewer funktioniert |
 | 06.10.2026 | Chat GPT | MVP konzept erstellen | Alles | KI hat meine Idee formuliert und nach meiner Vorgabe interpretiert.  |
 | 13.10.2026 | Chat GPT | endgültige Idee verfeinert und in Markdown geschrieben. | Die Markdown Datei. | Eigener Inhalt kontrolliert. |
-| 27.10.2026 | Claude Code (Opus 5.5) | Baufortschritt-Check (HTML) erstellt. | HTML übernommen. | Anhand des Modells Tower getestet und Resultate mit js. abgeglichen. |
+| 27.10.2026 | Claude Code (Opus 5.5) | Baufortschritt-Check erstellt: HTML-Variante `Baufortschritt-Check.html` und ifclite-Skript `baufortschritt.js` (ifclite.com v5.2.2) mit derselben Prüflogik (drei Anforderungen, Status, Verzug, CSV). Das Skript färbt zusätzlich die Bauteile im 3D-Modell nach Status ein. | Beide Dateien übernommen; Regeln und Statustabelle aus dem MVP der Gruppe. Im Skript Variable `z` umbenannt, weil die Vorprüfung von ifclite sie als «Detached snippet» abweist. | Anhand des Modells Tower getestet und Resultate mit js. abgeglichen. Agent: Prüflogik von HTML und Skript in Node auf Team-4-Modell, Snowdon-Original und Testmodell mit allen Fehlerfällen Bauteil für Bauteil verglichen, 0 Abweichungen (Team-4-Modell: 1061 Abnahme ausstehend, 385 Soll-Datum leer); Skript in ifclite v5.2.2 mit dem Demo-Modell ohne Fehler ausgeführt (Übersicht, Einfärbung, CSV-Zeilen). Ausstehend: Skript in ifclite mit dem Team-4-Modell ausführen. |
 
 ___
 
