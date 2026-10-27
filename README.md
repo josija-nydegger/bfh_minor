@@ -21,6 +21,7 @@ Daraus leitet ein Prüfskript pro Bauteil den Status ab: geplant, Montage überf
 | [`model/`](model/) | IFC-Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, IFC2X3) |
 | [`checks/`](checks/) | Python-Skripte (IfcOpenShell), z. B. `kennzahlen.py` für die Kennzahlen des Modells |
 | [`results/`](results/) | Prüfresultate (ifclite-Reports) |
+| [`apps/polier-tool/`](apps/polier-tool/) | Polier-Tool: IFC im Browser laden, heute fällige und überfällige Bauteile anzeigen, `IsInstalled` setzen, CSV-Export und Skript `csv_ins_ifc.py` für die Rückführung ins IFC ([Anleitung](apps/polier-tool/Anleitung.md)) |
 | [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) |
 | [`poster/`](poster/) | Poster (folgt) |
 
@@ -36,6 +37,12 @@ python checks/kennzahlen.py
 ```
 
 Ohne Argument liest das Skript `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`; ein anderes Modell kann als Pfad übergeben werden.
+
+Rückmeldung des Poliers (CSV aus dem Polier-Tool) ins Modell übernehmen:
+
+```bash
+python apps/polier-tool/csv_ins_ifc.py model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc rueckmeldung.csv
+```
 
 IDS prüfen: `requirements/a1_baufortschritt.ids` und das Modell in https://www.ifclite.com laden. Das IDS wird aus der YAML-Datei in https://www.idslight.com erzeugt.
 
