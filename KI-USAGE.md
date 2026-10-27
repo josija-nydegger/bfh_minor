@@ -9,6 +9,7 @@
 | 30.09.2026 | Chat GPT | Fragen Welcher IFC Viewer geeignet ist und wie diesen zu bedienen. | nichts | ausprobiert obs im Viewer funktioniert |
 | 06.10.2026 | Chat GPT | MVP konzept erstellen | Alles | KI hat meine Idee formuliert und nach meiner Vorgabe interpretiert.  |
 | 13.10.2026 | Chat GPT | endgültige Idee verfeinert und in Markdown geschrieben. | Die Markdown Datei. | Eigener Inhalt kontrolliert. |
+| 27.10.2026 | Claude Code (Opus 5.5) | Baufortschritt-Check (HTML) erstellt. | HTML übernommen. | Anhand des Modells Tower getestet und Resultate mit js. abgeglichen. |
 
 ___
 
