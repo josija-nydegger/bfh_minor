@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Polier-Tool</title>
+<style>
+/* Layout: Kopfleiste / 3D-Bühne / Sheet unten (Handy) bzw. Panel rechts (Desktop). Nur Systemschriften. */
+:root {
+  --ink: #1b2127; --ink-2: #48525c; --muted: #6a7480;
+  --bg: #f3f4f5; --stage: #e8ebee; --card: #ffffff; --line: #dce0e4; --soft: #eef0f2;
+  --bar: #1b2127; --bar-fg: #ffffff; --bar-muted: #a9b2bb;
+  --accent: #1c7ed6; --ok: #2b9348; --ok-soft: #e6f4ea; --ok-ink: #1d6b33;
+  --warn-ink: #a85f00; --bad: #d62828; --violet: #7b2cbf;
+  --glass: rgba(255,255,255,.9);
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-display: "Arial Narrow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #e9edf1; --ink-2: #c3cad1; --muted: #8f99a4;
+  --bg: #14181c; --stage: #1c2228; --card: #1f252b; --line: #323a42; --soft: #282f36;
+  --bar: #0e1114; --bar-fg: #ffffff; --bar-muted: #8f99a4;
+  --ok-soft: #1c3424; --ok-ink: #7fd99a; --warn-ink: #ffb347; --glass: rgba(31,37,43,.92);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --ink: #e9edf1; --ink-2: #c3cad1; --muted: #8f99a4;
+  --bg: #14181c; --stage: #1c2228; --card: #1f252b; --line: #323a42; --soft: #282f36;
+  --bar: #0e1114; --bar-fg: #ffffff; --bar-muted: #8f99a4;
+  --ok-soft: #1c3424; --ok-ink: #7fd99a; --warn-ink: #ffb347; --glass: rgba(31,37,43,.92);
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; height: 100%; }
+.topbar { display: flex; align-items: center; gap: 8px; background: var(--bar); color: var(--bar-fg);
+  padding-block: 8px; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); position: relative; z-index: 20; }
+.brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.logo { width: 34px; height: 34px; border-radius: 9px; background: #e9edf1; display: grid; place-items: center; flex: none; }
+.logo svg { width: 20px; height: 20px; }
+.brand > div:last-child { min-width: 0; }
+.brand h1 { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--f-display); font-size: 20px; line-height: 1.1; }
+.brand p { margin: 2px 0 0; font-size: 12px; color: var(--bar-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { min-width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; font-size: 24px; line-height: 1; display: grid; place-items: center; padding: 0; }
+.topbar .icon-btn { color: var(--bar-fg); }
+.day { display: flex; align-items: center; }
+.day-pill { min-width: 86px; height: 42px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); color: var(--bar-fg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 10px; }
+.day-pill b { font-family: var(--f-display); font-size: 17px; line-height: 1.05; }
+.day-pill small { font-size: 11px; color: var(--bar-muted); }
+.day-pill.today { background: #e9edf1; border-color: #e9edf1; color: #1b2127; }
+.day-pill.today small { color: #48525c; }
+.tabbtn { height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: transparent; color: var(--bar-fg); font-weight: 600; font-size: 14px; }
+.tabbtn.on { background: var(--bar-fg); color: var(--bar); }
+
+.note { font-size: 12.5px; color: var(--ink-2); background: var(--soft); border-bottom: 1px solid var(--line);
+  padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+.stage { position: relative; min-height: 0; overflow: hidden; background: var(--stage); }
+#cv { display: block; width: 100%; height: 100%; touch-action: none; }
+.overlay { position: absolute; inset: 0 0 auto 0; display: flex; flex-direction: column; gap: 8px; padding: 10px;
+  padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); pointer-events: none; }
+.overlay > * { pointer-events: auto; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--glass); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip .n { min-width: 22px; padding: 1px 6px; border-radius: 999px; background: var(--soft); color: var(--ink); font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.chip.on .n { background: var(--ink-2); color: var(--bg); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; display: inline-block; }
+.storey { align-self: flex-start; height: 38px; max-width: 100%; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); font-weight: 600; font-size: 14px; }
+.tools { flex-direction: row; flex-wrap: wrap; }
+.tool { height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); font-weight: 600; font-size: 14px; }
+.tool.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.legend { position: absolute; left: max(10px, env(safe-area-inset-left, 0px)); bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 6px 10px; border-radius: 10px;
+  background: var(--glass); font-size: 12px; color: var(--ink-2); pointer-events: none; max-width: calc(100% - 20px); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; }
+.toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 5; }
+
+/* Startbildschirm: IFC-Datei wählen */
+.start { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; background: var(--stage); z-index: 4; }
+.drop { width: min(460px, 100%); padding: 28px 22px; border: 2px dashed var(--line); border-radius: 18px; background: var(--card); text-align: center; }
+.drop.over { border-color: var(--accent); }
+.drop h2 { margin: 0 0 6px; font-family: var(--f-display); font-size: 24px; }
+.drop p { margin: 0 0 16px; color: var(--ink-2); font-size: 14px; line-height: 1.4; }
+.drop .err { color: var(--bad); font-weight: 600; margin-top: 14px; margin-bottom: 0; }
+.filebtn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 22px; border-radius: var(--r); background: var(--accent); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer; }
+.filebtn input { display: none; }
+.spinner { width: 34px; height: 34px; margin: 4px auto 12px; border-radius: 50%; border: 4px solid var(--soft); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.sheet { background: var(--card); border-radius: 18px 18px 0 0; box-shadow: 0 -6px 24px rgba(0,0,0,.12); display: flex; flex-direction: column; min-height: 0; max-height: 46vh; z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+.app.sel .sheet { max-height: 58vh; }
+.app.collapsed .sheet { max-height: none; }
+.app.nomodel .sheet { display: none; }
+.handle { height: 22px; border: 0; background: none; display: grid; place-items: center; flex: none; }
+.handle span { width: 40px; height: 5px; border-radius: 3px; background: var(--line); }
+.inner { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.head { padding-bottom: 10px; cursor: pointer; flex: none; }
+.head h2 { margin: 0; font-family: var(--f-display); font-size: 21px; }
+.muted { color: var(--muted); font-weight: 500; }
+.prog { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.bar { flex: 1; height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--ok); transition: width .3s; }
+.prog small { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bulk { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.list { list-style: none; margin: 0; padding: 0 8px 8px; overflow-y: auto; border-top: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
+.row { width: 100%; min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px; border: 0; border-bottom: 1px solid var(--soft); background: none; text-align: left; }
+.row:hover { background: var(--soft); }
+.rm { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.rm b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rm small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { font-size: 13px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.c-montiert, .c-abgenommen { color: var(--ok-ink); } .c-ueberfaellig { color: var(--bad); } .c-heute { color: var(--warn-ink); } .c-fehler { color: var(--violet); }
+.empty { padding: 24px 12px; text-align: center; color: var(--muted); }
+.link { border: 0; background: none; color: var(--accent); font-weight: 600; padding: 8px; }
+.more-rows { display: block; margin: 8px auto; }
+
+.detail { overflow-y: auto; padding-bottom: 16px; }
+.dh { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.dh h2 { margin: 6px 0 2px; font-family: var(--f-display); font-size: 22px; line-height: 1.15; overflow-wrap: anywhere; }
+.dh p { margin: 0; font-size: 13px; }
+.badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; }
+.stepper { display: flex; align-items: center; color: var(--muted); flex: none; }
+.stepper .icon-btn { background: var(--soft); color: var(--ink); }
+.stepper small { min-width: 46px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+.primary { width: 100%; min-height: 56px; margin: 14px 0 6px; border: 0; border-radius: var(--r); background: var(--ok); color: #fff;
+  font-family: var(--f-display); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 3px 0 #1d6b33; }
+.primary:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d6b33; }
+.done { min-height: 56px; margin: 14px 0 6px; padding: 0 6px 0 16px; border-radius: var(--r); background: var(--ok-soft); color: var(--ok-ink); font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.info { margin: 14px 0 6px; padding: 12px 14px; border-radius: var(--r); background: var(--soft); color: var(--ink-2); font-size: 14px; line-height: 1.4; }
+.props { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+.props caption { text-align: left; font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding-bottom: 4px; }
+.props th { width: 42%; text-align: left; font-weight: 500; color: var(--ink-2); padding: 8px 8px 8px 0; border-top: 1px solid var(--soft); vertical-align: middle; }
+.props td { padding: 8px 0; border-top: 1px solid var(--soft); overflow-wrap: anywhere; }
+code { font-size: 12px; background: var(--soft); padding: 2px 6px; border-radius: 6px; user-select: all; }
+
+/* Tabelle / Export */
+.tablewrap { overflow: auto; flex: 1; min-height: 0; border-top: 1px solid var(--line); }
+.gt { border-collapse: collapse; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gt th, .gt td { padding: 7px 10px; border-bottom: 1px solid var(--soft); text-align: left; }
+.gt th { position: sticky; top: 0; background: var(--card); color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }
+.gt tr.chg td { background: var(--ok-soft); }
+.gt td.guid { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; }
+.tbl-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 10px; }
+.btn2 { min-height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-weight: 600; font-size: 13.5px; }
+.btn2.go { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn2.danger { color: var(--bad); }
+
+@media (min-width: 900px) {
+  .app { grid-template-columns: 1fr 420px; grid-template-rows: auto auto 1fr; }
+  .topbar, .note { grid-column: 1 / -1; }
+  .stage { grid-column: 1; grid-row: 3; }
+  .sheet, .app.sel .sheet, .app.collapsed .sheet { grid-column: 2; grid-row: 3; max-height: none; border-radius: 0; box-shadow: none; border-left: 1px solid var(--line); }
+  .handle { display: none; }
+  .head, .detail { padding-top: 16px; }
+  .app.tablemode { grid-template-columns: 1fr 1fr; }
+  .app.nomodel { grid-template-columns: 1fr; }
+}
+@media (max-width: 440px) {
+  .brand > div:last-child { display: none; }
+  .app.nomodel .brand > div:last-child { display: block; }
+  .day-pill { min-width: 72px; padding: 0 6px; }
+  .topbar .icon-btn { min-width: 32px; }
+  .tabbtn { padding: 0 9px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } .spinner { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app nomodel" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 20 20"><rect x="2" y="9" width="16" height="9" fill="none" stroke="#1b2127" stroke-width="2"/><path d="M1 10 10 2l9 8" fill="none" stroke="#1b2127" stroke-width="2"/><path d="m6 13 2.5 2.5L14 11" fill="none" stroke="#2b9348" stroke-width="2.2"/></svg></div>
+      <div><h1>Polier-Tool</h1><p id="modelName">Montage-Rückmeldung · Pset_InstallationOccurrence.IsInstalled</p></div>
+    </div>
+    <div class="day" id="dayNav" hidden>
+      <button class="icon-btn" id="dPrev" aria-label="Vorheriger Tag">‹</button>
+      <button class="day-pill" id="dPill" aria-label="Zurück zu heute"><b id="dMain"></b><small id="dSub"></small></button>
+      <button class="icon-btn" id="dNext" aria-label="Nächster Tag">›</button>
+    </div>
+    <button class="tabbtn" id="tblBtn" aria-pressed="false" hidden>Export</button>
+    <button class="tabbtn" id="openBtn" hidden>Datei</button>
+  </header>
+  <div class="note">Die IFC-Datei wird nur lokal im Browser gelesen und nicht hochgeladen. Rückmeldungen bleiben in diesem Browser gespeichert, bis sie als CSV exportiert werden.</div>
+  <main class="stage">
+    <canvas id="cv"></canvas>
+    <div class="overlay" id="ovList" hidden>
+      <div class="chips" id="chips"></div>
+      <select class="storey" id="storey" aria-label="Geschoss"></select>
+    </div>
+    <div class="overlay tools" id="ovSel" hidden>
+      <button class="tool" id="bBack">‹ Liste</button>
+      <button class="tool on" id="bIso">Isoliert</button>
+      <button class="tool" id="bZoom">Zoom</button>
+    </div>
+    <div class="legend" id="legend" hidden></div>
+    <div class="start" id="start">
+      <div class="drop" id="drop">
+        <div id="startIdle">
+          <h2>IFC-Modell laden</h2>
+          <p>Datei wählen oder hierher ziehen. Benötigt wird <code>Pset_InstallationOccurrence</code> mit <code>InstallationDate</code> (Soll-Datum) und <code>IsInstalled</code>.</p>
+          <label class="filebtn">IFC-Datei wählen<input type="file" id="file" accept=".ifc"></label>
+          <p class="err" id="err" hidden></p>
+        </div>
+        <div id="startBusy" hidden><div class="spinner"></div><p id="busyMsg">Modell wird gelesen …</p></div>
+      </div>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+  </main>
+  <section class="sheet" id="sheet">
+    <button class="handle" id="handle" aria-label="Liste ein- oder ausklappen"><span></span></button>
+    <div id="sheetBody" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="module">
+import * as WebIFC from 'https://cdn.jsdelivr.net/npm/web-ifc@0.0.77/web-ifc-api.js';
+
+// Workflow (MVP Abschnitt 3): InstallationDate = Soll-Datum gemäss Terminplan (unverändert),
+// der Polier setzt nur IsInstalled = TRUE, AcceptanceDate setzt später die Bauleitung.
+const PSET = 'Pset_InstallationOccurrence';
+const WASM = 'https://cdn.jsdelivr.net/npm/web-ifc@0.0.77/';
+const COLORS = { heute: '#f08c00', ueberfaellig: '#d62828', montiert: '#2b9348', abgenommen: '#0b7285', geplant: '#b4bcc5', fehler: '#7b2cbf' };
+const CAT_LABEL = { heute: 'Heute fällig', ueberfaellig: 'Überfällig', montiert: 'Montiert', abgenommen: 'Abgenommen', geplant: 'Später geplant', fehler: 'Fehler' };
+const TYPE = { IfcWall: 'Wand', IfcWallStandardCase: 'Wand', IfcSlab: 'Platte', IfcBeam: 'Träger', IfcMember: 'Stab', IfcWindow: 'Fenster', IfcDoor: 'Tür',
+  IfcStair: 'Treppe', IfcRailing: 'Geländer', IfcColumn: 'Stütze', IfcFooting: 'Fundament', IfcReinforcingBar: 'Bewehrung', IfcElementAssembly: 'Baugruppe', IfcBuildingElementProxy: 'Proxy' };
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const LIST_STEP = 200;
+
+// ── Datum ──
+const toIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const fromIso = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = fromIso(s); d.setDate(d.getDate() + n); return toIso(d); };
+const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / 864e5);
+const short = s => { if (!s) return '–'; const d = fromIso(s); return `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`; };
+const ch = s => { if (!s) return '–'; const d = fromIso(s); return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`; };
+const TODAY = toIso(new Date());
+
+// ── Zustand ──
+let els = [];            // Bauteile aus dem Modell
+let byId = new Map();    // expressID -> Index in els
+let changes = {};        // GlobalId -> IsInstalled (true/false), nur Änderungen des Poliers
+let storeKey = '';
+let modelFile = '';
+const S = { day: TODAY, filter: 'heute', storey: 'alle', sel: null, iso: true, open: true, table: false, confirm: null, limit: LIST_STEP };
+
+const loadChanges = () => { try { changes = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (e) { changes = {}; } };
+const saveChanges = () => { try { localStorage.setItem(storeKey, JSON.stringify(changes)); } catch (e) {} };
+
+// Wirksamer Wert: Rückmeldung des Poliers vor Modellwert
+const isInst = el => el.g in changes ? changes[el.g] : el.isInst;
+function cat(el, day) {
+  const inst = isInst(el);
+  if (el.acc && inst !== true) return 'fehler';
+  if (inst === true) return el.acc ? 'abgenommen' : 'montiert';
+  if (!el.dateOk || inst == null) return 'fehler';
+  return el.inst === day ? 'heute' : el.inst < day ? 'ueberfaellig' : 'geplant';
+}
+function fehlerText(el) {
+  const inst = isInst(el), t = [];
+  if (el.acc && inst !== true) t.push('AcceptanceDate gesetzt, aber nicht montiert');
+  if (!el.dateOk) t.push(el.inst ? `InstallationDate ungültig („${el.inst}“)` : 'InstallationDate fehlt');
+  if (inst == null) t.push('IsInstalled fehlt');
+  return t.join(' · ');
+}
+const fehlerKurz = el => el.acc && isInst(el) !== true ? 'Abnahme o. Montage' : !el.dateOk ? (el.inst ? 'Datum ungültig' : 'kein Soll-Datum') : 'IsInstalled fehlt';
+// Status gemäss MVP-Statustabelle (Prüfdatum = Stichtag)
+const MVP_STATUS = { heute: 'Montage überfällig', ueberfaellig: 'Montage überfällig', montiert: 'Abnahme ausstehend', abgenommen: 'abgenommen', geplant: 'geplant', fehler: 'Fehler' };
+
+// ── IFC lesen (web-ifc) ──
+const ifc = new WebIFC.IfcAPI();
+ifc.SetWasmPath(WASM, true);
+let ifcReady = null;
+const val = x => (x && typeof x === 'object' && 'value' in x) ? x.value : x;
+const boolOf = v => v === true || v === 'T' || v === '.T.' || v === 'true' ? true : v === false || v === 'F' || v === '.F.' || v === 'false' ? false : null;
+const refs = x => (Array.isArray(x) ? x : x ? [x] : []).map(r => val(r)).filter(n => typeof n === 'number');
+
+async function readIfc(buffer) {
+  ifcReady = ifcReady || ifc.Init(undefined, true);
+  await ifcReady;
+  const mid = ifc.OpenModel(new Uint8Array(buffer), { COORDINATE_TO_ORIGIN: true });
+  try {
+    const typeName = id => ifc.GetNameFromTypeCode(ifc.GetLineType(mid, id));
+    const ids = ifc.GetLineIDsWithType(mid, WebIFC.IFCELEMENT, true);
+    const list = [];
+    for (let i = 0; i < ids.size(); i++) {
+      const id = ids.get(i), t = typeName(id);
+      if (/^IFCOPENING/i.test(t)) continue; // Öffnungen werden nicht montiert
+      const l = ifc.GetLine(mid, id);
+      list.push({ id, g: val(l.GlobalId) || '', n: val(l.Name) || '(ohne Name)', t, s: '', inst: '', dateOk: false, isInst: null, acc: '', parts: [], parent: null });
+    }
+    byId = new Map(list.map((e, k) => [e.id, k]));
+    // Pset_InstallationOccurrence
+    const rels = ifc.GetLineIDsWithType(mid, WebIFC.IFCRELDEFINESBYPROPERTIES);
+    for (let i = 0; i < rels.size(); i++) {
+      const r = ifc.GetLine(mid, rels.get(i));
+      const targets = refs(r.RelatedObjects).filter(o => byId.has(o));
+      if (!targets.length) continue;
+      const ps = ifc.GetLine(mid, val(r.RelatingPropertyDefinition));
+      if (!ps || val(ps.Name) !== PSET) continue;
+      const vals = {};
+      refs(ps.HasProperties).forEach(pid => { const p = ifc.GetLine(mid, pid); if (p && p.Name) vals[val(p.Name)] = p.NominalValue ? val(p.NominalValue) : null; });
+      targets.forEach(o => {
+        const e = list[byId.get(o)];
+        if ('InstallationDate' in vals && vals.InstallationDate != null) { e.inst = String(vals.InstallationDate).trim(); e.dateOk = DATE_RE.test(e.inst); }
+        if ('IsInstalled' in vals) e.isInst = boolOf(vals.IsInstalled);
+        if ('AcceptanceDate' in vals && vals.AcceptanceDate != null) e.acc = String(vals.AcceptanceDate).trim();
+      });
+    }
+    // Geschoss (IfcRelContainedInSpatialStructure) und Baugruppen (IfcRelAggregates)
+    const cont = ifc.GetLineIDsWithType(mid, WebIFC.IFCRELCONTAINEDINSPATIALSTRUCTURE);
+    for (let i = 0; i < cont.size(); i++) {
+      const r = ifc.GetLine(mid, cont.get(i)); const st = ifc.GetLine(mid, val(r.RelatingStructure));
+      const name = st ? (val(st.LongName) || val(st.Name) || '') : '';
+      refs(r.RelatedElements).forEach(o => { if (byId.has(o)) list[byId.get(o)].s = name; });
+    }
+    const agg = ifc.GetLineIDsWithType(mid, WebIFC.IFCRELAGGREGATES);
+    for (let i = 0; i < agg.size(); i++) {
+      const r = ifc.GetLine(mid, agg.get(i)); const p = val(r.RelatingObject);
+      if (!byId.has(p)) continue;
+      refs(r.RelatedObjects).forEach(o => { if (byId.has(o)) { list[byId.get(p)].parts.push(byId.get(o)); list[byId.get(o)].parent = byId.get(p); } });
+    }
+    list.forEach(e => { if (!e.s) { let p = e.parent; while (p != null && !list[p].s) p = list[p].parent; e.s = p != null ? list[p].s : '–'; } });
+    // Geometrie: pro Bauteil ein zusammengeführtes Mesh
+    const geo = new Map();
+    const m4 = new THREE.Matrix4(), v = new THREE.Vector3();
+    ifc.StreamAllMeshes(mid, mesh => {
+      if (!byId.has(mesh.expressID)) return;
+      const pos = [], idx = []; let alpha = 1;
+      for (let j = 0; j < mesh.geometries.size(); j++) {
+        const pg = mesh.geometries.get(j);
+        const g = ifc.GetGeometry(mid, pg.geometryExpressID);
+        const va = ifc.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize());
+        const ia = ifc.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
+        m4.fromArray(pg.flatTransformation);
+        const base = pos.length / 3;
+        for (let q = 0; q < va.length; q += 6) { v.set(va[q], va[q + 1], va[q + 2]).applyMatrix4(m4); pos.push(v.x, v.y, v.z); }
+        for (let q = 0; q < ia.length; q++) idx.push(ia[q] + base);
+        alpha = Math.min(alpha, pg.color ? pg.color.w : 1);
+        g.delete && g.delete();
+      }
+      if (pos.length) geo.set(byId.get(mesh.expressID), { pos: new Float32Array(pos), idx: new Uint32Array(idx), alpha });
+    });
+    return { list, geo, schema: ifc.GetModelSchema(mid) };
+  } finally { ifc.CloseModel(mid); }
+}
+// ── Three.js ──
+const cv = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, logarithmicDepthBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+function applyBg() { const c = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#e8ebee'; scene.background = new THREE.Color(c); }
+applyBg();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyBg);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 5000);
+const controls = new THREE.OrbitControls(camera, cv);
+controls.enableDamping = true; controls.dampingFactor = 0.12;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c0c8, 1.0));
+const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(40, 80, 30); scene.add(sun);
+let meshes = new Map(); let all = []; let modelBox = new THREE.Box3();
+
+function buildScene(geo) {
+  all.forEach(m => { scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
+  meshes = new Map(); all = []; modelBox = new THREE.Box3();
+  geo.forEach((d, k) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(d.pos, 3)); g.setIndex(new THREE.BufferAttribute(d.idx, 1));
+    g.computeVertexNormals(); g.computeBoundingBox();
+    const mat = new THREE.MeshStandardMaterial({ roughness: .85, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+    const m = new THREE.Mesh(g, mat); m.userData.k = k; m.userData.alpha = d.alpha;
+    scene.add(m); meshes.set(k, m); all.push(m); modelBox.expandByObject(m);
+  });
+}
+// Meshes eines Bauteils inkl. Teile einer Baugruppe
+const meshKeys = k => { const out = [], st = [k]; while (st.length) { const x = st.pop(); if (meshes.has(x)) out.push(x); st.push(...els[x].parts); } return out; };
+
+let flight = null;
+function resize() { const p = cv.parentElement; const w = p.clientWidth, h = p.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(cv.parentElement); resize();
+function fit(box, animate, pad) {
+  if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()); const r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, .5);
+  const fov = THREE.MathUtils.degToRad(camera.fov); const ff = camera.aspect < 1 ? 2 * Math.atan(Math.tan(fov / 2) * camera.aspect) : fov;
+  const dist = r * pad / Math.sin(ff / 2);
+  camera.near = Math.max(dist / 1000, .01); camera.far = dist * 20; camera.updateProjectionMatrix();
+  let dir = camera.position.clone().sub(controls.target).normalize();
+  if (!animate || !isFinite(dir.x) || dir.lengthSq() === 0) dir = new THREE.Vector3(1, .75, 1.2).normalize();
+  if (dir.y < .25) { dir.y = .25; dir.normalize(); }
+  const to = c.clone().add(dir.multiplyScalar(dist));
+  if (!animate) { camera.position.copy(to); controls.target.copy(c); controls.update(); return; }
+  flight = { t0: performance.now(), fp: camera.position.clone(), tp: to, ft: controls.target.clone(), tt: c };
+}
+const boxOf = ks => { const b = new THREE.Box3(); ks.forEach(k => meshKeys(k).forEach(x => b.expandByObject(meshes.get(x)))); return b; };
+controls.addEventListener('start', () => flight = null);
+(function loop() {
+  requestAnimationFrame(loop);
+  if (flight) { const t = Math.min((performance.now() - flight.t0) / 550, 1), e = 1 - Math.pow(1 - t, 3);
+    camera.position.lerpVectors(flight.fp, flight.tp, e); controls.target.lerpVectors(flight.ft, flight.tt, e); if (t >= 1) flight = null; }
+  controls.update(); renderer.render(scene, camera);
+})();
+
+// Antippen
+const ray = new THREE.Raycaster(); let down = null;
+cv.addEventListener('pointerdown', e => { down = e.isPrimary ? { x: e.clientX, y: e.clientY, t: performance.now() } : null; });
+cv.addEventListener('pointerup', e => {
+  if (!down || !e.isPrimary || !els.length) return; if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8 || performance.now() - down.t > 600) return;
+  const r = cv.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  const hit = ray.intersectObjects(all.filter(m => m.visible && !m.userData.ghost), false)[0];
+  if (hit) select(hit.object.userData.k);
+});
+
+// ── Abgeleitete Daten ──
+const inStorey = el => S.storey === 'alle' || el.s === S.storey;
+const rows = () => els.map((el, k) => ({ el, k, c: cat(el, S.day) }));
+function matches(r) {
+  if (S.filter === 'heute') return r.c === 'heute';
+  if (S.filter === 'ueberfaellig') return r.c === 'ueberfaellig';
+  if (S.filter === 'montiert') return r.c === 'montiert' || r.c === 'abgenommen';
+  if (S.filter === 'fehler') return r.c === 'fehler';
+  return true;
+}
+const ORDER = ['ueberfaellig', 'heute', 'fehler', 'geplant', 'montiert', 'abgenommen'];
+const listRows = R => R.filter(r => inStorey(r.el) && matches(r)).sort((a, b) => ORDER.indexOf(a.c) - ORDER.indexOf(b.c) || a.el.inst.localeCompare(b.el.inst) || a.el.n.localeCompare(b.el.n, 'de', { numeric: true }));
+
+// ── 3D-Darstellung ──
+const SEL = new THREE.Color('#1c7ed6'), GHOST = new THREE.Color('#9aa3ad');
+function paint(R) {
+  const selSet = new Set(S.sel != null ? meshKeys(S.sel) : []);
+  R.forEach(r => {
+    const m = meshes.get(r.k); if (!m) return;
+    const parentIn = r.el.parent != null && inStorey(els[r.el.parent]);
+    let look = 'normal';
+    if (selSet.has(r.k)) look = 'sel'; else if (S.sel != null && S.iso) look = 'ghost'; else if (!inStorey(r.el) && !parentIn) look = 'hidden'; else if (!matches(r)) look = 'ghost';
+    const mat = m.material; m.visible = look !== 'hidden'; m.userData.ghost = look === 'ghost'; m.renderOrder = look === 'sel' ? 2 : look === 'ghost' ? 1 : 0;
+    mat.emissive.setRGB(0, 0, 0);
+    let op = 1;
+    if (look === 'sel') { mat.color.copy(SEL); mat.emissive.copy(SEL).multiplyScalar(.25); }
+    else if (look === 'ghost') { mat.color.copy(GHOST); op = .07; }
+    else { mat.color.set(COLORS[r.c]); op = m.userData.alpha < 1 ? Math.max(m.userData.alpha, .45) : 1; }
+    const tr = op < 1; if (mat.transparent !== tr) mat.needsUpdate = true; mat.transparent = tr; mat.opacity = op; mat.depthWrite = !tr;
+  });
+}
+
+// ── Oberfläche ──
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const typ = t => TYPE[t] || t.replace(/^Ifc/, '');
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1800); }
+
+// Polier setzt nur IsInstalled; Abgenommenes bleibt gesperrt
+function setInstalled(ks, value) {
+  let n = 0;
+  ks.forEach(k => {
+    const el = els[k]; if (el.acc) return;
+    if (value === el.isInst) delete changes[el.g]; else changes[el.g] = value;
+    n++;
+  });
+  saveChanges(); render(); return n;
+}
+
+function select(k) {
+  S.sel = k; S.iso = true; S.open = true; S.table = false; S.confirm = null; render();
+  requestAnimationFrame(() => requestAnimationFrame(() => fit(boxOf([k]), true, 1.8)));
+}
+const storeyKeys = () => els.map((e, k) => k).filter(k => inStorey(els[k]));
+function back() { S.sel = null; render(); fit(boxOf(storeyKeys()), true, .95); }
+
+function render() {
+  const app = $('app');
+  const loaded = els.length > 0;
+  app.classList.toggle('nomodel', !loaded);
+  ['dayNav', 'tblBtn', 'openBtn'].forEach(id => $(id).hidden = !loaded);
+  if (!loaded) { $('ovList').hidden = $('ovSel').hidden = $('legend').hidden = true; $('sheetBody').innerHTML = ''; return; }
+  const R = rows(), L = listRows(R);
+  app.classList.toggle('sel', S.sel != null); app.classList.toggle('collapsed', !S.open); app.classList.toggle('tablemode', S.table);
+  const isToday = S.day === TODAY;
+  $('dMain').textContent = isToday ? 'Heute' : short(S.day);
+  $('dSub').textContent = isToday ? short(S.day) : 'Stichtag';
+  $('dPill').classList.toggle('today', isToday);
+  $('tblBtn').classList.toggle('on', S.table); $('tblBtn').setAttribute('aria-pressed', S.table);
+  $('ovList').hidden = S.sel != null; $('ovSel').hidden = S.sel == null; $('legend').hidden = S.sel != null;
+  $('bIso').classList.toggle('on', S.iso); $('bIso').textContent = S.iso ? 'Isoliert' : 'Isolieren';
+
+  const SR = R.filter(r => inStorey(r.el));
+  const dayAll = SR.filter(r => r.el.dateOk && r.el.inst === S.day);
+  const cnt = { heute: SR.filter(r => r.c === 'heute').length, ueberfaellig: SR.filter(r => r.c === 'ueberfaellig').length,
+    montiert: SR.filter(r => r.c === 'montiert' || r.c === 'abgenommen').length, fehler: SR.filter(r => r.c === 'fehler').length, alle: SR.length,
+    dayAll: dayAll.length, dayDone: dayAll.filter(r => r.c === 'montiert' || r.c === 'abgenommen').length };
+  const chip = (id, label, n, tone) => `<button class="chip ${S.filter === id ? 'on' : ''}" data-f="${id}">${tone ? `<span class="dot" style="background:${COLORS[tone]}"></span>` : ''}${label}<span class="n">${n}</span></button>`;
+  $('chips').innerHTML = chip('heute', isToday ? 'Heute' : short(S.day), cnt.heute, 'heute') + chip('ueberfaellig', 'Überfällig', cnt.ueberfaellig, 'ueberfaellig')
+    + chip('montiert', 'Montiert', cnt.montiert, 'montiert') + (cnt.fehler ? chip('fehler', 'Fehler', cnt.fehler, 'fehler') : '') + chip('alle', 'Alle', cnt.alle);
+  $('legend').innerHTML = ['heute', 'ueberfaellig', 'montiert', 'abgenommen', 'geplant', 'fehler'].map(c => `<span><i style="background:${COLORS[c]}"></i>${CAT_LABEL[c]}</span>`).join('');
+
+  const body = $('sheetBody');
+  if (S.table) body.innerHTML = tableView(R);
+  else if (S.sel != null) body.innerHTML = detailView(R[S.sel], L);
+  else body.innerHTML = listView(L, cnt, isToday, R);
+  paint(R);
+}
+
+function listView(L, cnt, isToday, R) {
+  const titles = { heute: `${isToday ? 'Heute' : short(S.day)} zu montieren`, ueberfaellig: 'Überfällig', montiert: 'Montiert', fehler: 'Fehler im Modell', alle: 'Alle Bauteile' };
+  const pct = cnt.dayAll ? Math.round(cnt.dayDone / cnt.dayAll * 100) : 0;
+  let h = `<div class="head inner" data-a="toggle"><h2>${titles[S.filter]}<span class="muted"> · ${L.length}</span></h2>`;
+  if (S.filter === 'heute') h += `<div class="prog"><div class="bar"><span style="width:${pct}%"></span></div><small>${cnt.dayDone} von ${cnt.dayAll} mit Soll-Datum ${short(S.day)} montiert</small></div>`;
+  if (S.filter === 'fehler') h += `<p class="muted" style="margin:6px 0 0;font-size:13px">Diese Bauteile kann das Tool nicht einordnen. Bitte dem Modellautor bzw. der Bauleitung melden.</p>`;
+  if ((S.filter === 'heute' || S.filter === 'ueberfaellig') && L.length > 1) {
+    h += `<div class="bulk">${S.confirm === 'bulk'
+      ? `<button class="btn2 go" data-a="bulkYes">Ja, alle ${L.length} als montiert melden</button><button class="btn2" data-a="bulkNo">Abbrechen</button>`
+      : `<button class="btn2" data-a="bulk">Alle ${L.length} angezeigten als montiert melden …</button>`}</div>`;
+  }
+  h += '</div>';
+  if (!S.open) return h;
+  h += '<ul class="list">';
+  if (!L.length) {
+    const next = R.filter(r => r.c === 'geplant' && inStorey(r.el)).map(r => r.el.inst).sort()[0];
+    const msg = { heute: `Für ${short(S.day)} ist keine Montage offen.`, ueberfaellig: 'Keine überfälligen Bauteile.', montiert: 'Noch keine Bauteile montiert.', fehler: 'Keine Fehler.', alle: 'Keine Bauteile.' }[S.filter];
+    h += `<li class="empty"><p>${msg}</p>${S.filter === 'heute' && next ? `<button class="link" data-day="${next}">Nächster Soll-Termin: ${short(next)} ›</button>` : ''}</li>`;
+  }
+  L.slice(0, S.limit).forEach(r => {
+    const meta = r.c === 'montiert' ? '✓ montiert' : r.c === 'abgenommen' ? `✓ abgen. ${short(r.el.acc)}` : r.c === 'fehler' ? fehlerKurz(r.el)
+      : r.c === 'ueberfaellig' ? `${daysBetween(r.el.inst, S.day)} T. Verzug` : short(r.el.inst);
+    const changed = r.el.g in changes ? ' · geändert' : '';
+    h += `<li><button class="row" data-k="${r.k}"><span class="dot" style="background:${COLORS[r.c]}"></span><span class="rm"><b>${esc(r.el.n)}</b><small>${esc(typ(r.el.t))} · ${esc(r.el.s)}${changed}</small></span><span class="meta c-${r.c}">${meta}</span></button></li>`;
+  });
+  if (L.length > S.limit) h += `<li><button class="btn2 more-rows" data-a="more">Weitere ${Math.min(LIST_STEP, L.length - S.limit)} von ${L.length - S.limit} anzeigen</button></li>`;
+  return h + '</ul>';
+}
+
+function detailView(r, L) {
+  const { el, c } = r; const pos = L.findIndex(x => x.k === r.k);
+  const inst = isInst(el);
+  const light = c === 'geplant';
+  let h = `<div class="detail inner"><div class="dh"><div><span class="badge" style="background:${COLORS[c]};${light ? 'color:#1b2127' : ''}">${CAT_LABEL[c]}</span><h2>${esc(el.n)}</h2><p class="muted">${esc(typ(el.t))} · ${esc(el.s)}</p></div>
+    <div class="stepper"><button class="icon-btn" data-a="prev" aria-label="Vorheriges Bauteil">‹</button><small>${pos >= 0 ? pos + 1 : '–'} / ${L.length}</small><button class="icon-btn" data-a="next" aria-label="Nächstes Bauteil">›</button></div></div>`;
+  if (el.acc) h += `<div class="info">${inst === true ? `Von der Bauleitung am ${ch(el.acc)} abgenommen.` : `<b>Fehler:</b> AcceptanceDate ${esc(el.acc)} gesetzt, aber IsInstalled ist nicht TRUE.`} Der Montagestatus kann hier nicht mehr geändert werden.</div>`;
+  else if (inst === true) h += `<div class="done"><span>✓ Als montiert gemeldet</span><button class="link" data-a="undo">Rückgängig</button></div>`;
+  else h += `<button class="primary" data-a="installed">✓ Als montiert melden</button>`;
+  if (c === 'fehler' && !el.acc) h += `<div class="info"><b>Fehler im Modell:</b> ${esc(fehlerText(el))}</div>`;
+  const verzug = (c === 'ueberfaellig' || c === 'heute') ? `${daysBetween(el.inst, S.day)} Tage` : '–';
+  const b = x => x === true ? 'TRUE' : x === false ? 'FALSE' : 'fehlt';
+  h += `<table class="props"><caption>${PSET}</caption><tbody>
+    <tr><th>InstallationDate (Soll)</th><td>${el.dateOk ? ch(el.inst) : esc(el.inst || 'fehlt')}</td></tr>
+    <tr><th>IsInstalled</th><td><b>${b(inst)}</b>${el.g in changes ? ` <span class="muted">(im Modell: ${b(el.isInst)}, geändert)</span>` : ''}</td></tr>
+    <tr><th>AcceptanceDate</th><td>${el.acc ? esc(el.acc) : '–'}</td></tr>
+    <tr><th>Verzug am Stichtag</th><td>${verzug}</td></tr>
+  </tbody></table>
+  <p class="muted" style="font-size:12px;margin-top:12px">${esc(el.t)} · GlobalId <code>${esc(el.g)}</code>${el.parts.length ? ` · Baugruppe mit ${el.parts.length} Teilen` : ''}</p>`;
+  return h + '</div>';
+}
+
+// ── CSV-Export: eine Zeile pro GlobalId, Werte gemäss Workflow ──
+const CSV_HEAD = ['GlobalId', 'IfcKlasse', 'Name', 'Geschoss', 'InstallationDate', 'IsInstalled', 'AcceptanceDate', 'Status', 'VerzugTage', 'Stichtag', 'GeaendertDurchPolier'];
+function csvText(R) {
+  const q = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const b = x => x === true ? 'TRUE' : x === false ? 'FALSE' : '';
+  return '﻿' + [CSV_HEAD.join(';')].concat(R.map(r => {
+    const verzug = (r.c === 'ueberfaellig' || r.c === 'heute') ? daysBetween(r.el.inst, S.day) : '';
+    return [r.el.g, r.el.t, r.el.n, r.el.s, r.el.inst, b(isInst(r.el)), r.el.acc, MVP_STATUS[r.c], verzug, S.day, r.el.g in changes ? 'ja' : 'nein'].map(q).join(';');
+  })).join('\r\n') + '\r\n';
+}
+function download(R, suffix) {
+  const base = modelFile.replace(/\.ifc$/i, '');
+  const blob = new Blob([csvText(R)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${base}_IsInstalled_${suffix}_${S.day}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function tableView(R) {
+  const changed = R.filter(r => r.el.g in changes);
+  let h = `<div class="head inner" style="cursor:default"><h2>Export<span class="muted"> · ${R.length} Bauteile, ${changed.length} geändert</span></h2>
+    <p class="muted" style="margin:6px 0 10px;font-size:13px">Eine Zeile pro GlobalId. Grün = IsInstalled vom Polier geändert. Status und Verzug beziehen sich auf den Stichtag ${ch(S.day)}.</p>
+    <div class="tbl-actions"><button class="btn2 go" data-a="csvChanged" ${changed.length ? '' : 'disabled'}>CSV: nur Änderungen (${changed.length})</button><button class="btn2" data-a="csvAll">CSV: alle Bauteile</button>
+    ${S.confirm === 'reset' ? `<button class="btn2 danger" data-a="resetYes">Wirklich alle Änderungen verwerfen</button><button class="btn2" data-a="resetNo">Abbrechen</button>` : `<button class="btn2 danger" data-a="reset" ${changed.length ? '' : 'disabled'}>Änderungen verwerfen</button>`}</div></div>`;
+  h += `<div class="tablewrap"><table class="gt"><thead><tr><th>GlobalId</th><th>Name</th><th>Status</th><th>InstallationDate</th><th>IsInstalled</th><th>AcceptanceDate</th></tr></thead><tbody>`;
+  const b = x => x === true ? 'TRUE' : x === false ? 'FALSE' : '';
+  [...R].sort((a, c) => ((c.el.g in changes) - (a.el.g in changes)) || a.el.inst.localeCompare(c.el.inst)).forEach(r => {
+    h += `<tr class="${r.el.g in changes ? 'chg' : ''}" data-k="${r.k}"><td class="guid">${esc(r.el.g)}</td><td>${esc(r.el.n)}</td><td class="c-${r.c}">${MVP_STATUS[r.c]}</td><td>${esc(r.el.inst)}</td><td>${b(isInst(r.el))}</td><td>${esc(r.el.acc)}</td></tr>`;
+  });
+  return h + '</tbody></table></div>';
+}
+
+// ── Ereignisse ──
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-f],[data-k],[data-a],[data-day]'); if (!t || !els.length) return;
+  const R = rows(), L = listRows(R);
+  if (t.dataset.f) { S.filter = t.dataset.f; S.confirm = null; S.limit = LIST_STEP; render(); return; }
+  if (t.dataset.day) { S.day = t.dataset.day; render(); return; }
+  if (t.dataset.k != null && t.dataset.a == null) { select(+t.dataset.k); return; }
+  const a = t.dataset.a, el = S.sel != null ? els[S.sel] : null;
+  if (a === 'toggle') { if (innerWidth < 900 && !e.target.closest('.bulk')) { S.open = !S.open; render(); } }
+  else if (a === 'installed') { setInstalled([S.sel], true); toast(`${el.n}: montiert ✓`); }
+  else if (a === 'undo') { setInstalled([S.sel], false); toast('Zurückgesetzt'); }
+  else if (a === 'bulk') { S.confirm = 'bulk'; render(); }
+  else if (a === 'bulkNo') { S.confirm = null; render(); }
+  else if (a === 'bulkYes') { S.confirm = null; const n = setInstalled(L.map(r => r.k), true); toast(`${n} Bauteile als montiert gemeldet`); }
+  else if (a === 'prev' || a === 'next') { const i = L.findIndex(x => x.k === S.sel); const n = L[(i + (a === 'next' ? 1 : -1) + L.length) % L.length]; if (n) select(n.k); }
+  else if (a === 'more') { S.limit += LIST_STEP; render(); }
+  else if (a === 'csvAll') { download(R, 'alle'); toast('CSV gespeichert'); }
+  else if (a === 'csvChanged') { download(R.filter(r => r.el.g in changes), 'aenderungen'); toast('CSV gespeichert'); }
+  else if (a === 'reset') { S.confirm = 'reset'; render(); }
+  else if (a === 'resetNo') { S.confirm = null; render(); }
+  else if (a === 'resetYes') { changes = {}; saveChanges(); S.confirm = null; render(); toast('Alle Änderungen verworfen'); }
+});
+$('storey').onchange = e => { S.storey = e.target.value; S.limit = LIST_STEP; render(); fit(boxOf(storeyKeys()), true, .95); };
+$('bBack').onclick = back;
+$('bIso').onclick = () => { S.iso = !S.iso; render(); };
+$('bZoom').onclick = () => S.sel != null && fit(boxOf([S.sel]), true, 1.8);
+$('dPrev').onclick = () => { S.day = addDays(S.day, -1); render(); };
+$('dNext').onclick = () => { S.day = addDays(S.day, 1); render(); };
+$('dPill').onclick = () => { S.day = TODAY; render(); };
+$('tblBtn').onclick = () => { S.table = !S.table; S.confirm = null; if (S.table) S.open = true; render(); };
+$('handle').onclick = () => { if (innerWidth < 900) { S.open = !S.open; render(); } };
+$('openBtn').onclick = () => { $('start').hidden = false; showStart(); };
+
+// ── Datei laden ──
+function showStart(err) {
+  $('startIdle').hidden = false; $('startBusy').hidden = true;
+  $('err').hidden = !err; $('err').textContent = err || '';
+}
+async function openModel(buffer, name) {
+  $('start').hidden = false; $('startIdle').hidden = true; $('startBusy').hidden = false; $('busyMsg').textContent = `${name} wird gelesen …`;
+  await new Promise(r => setTimeout(r, 30));
+  let res;
+  try { res = await readIfc(buffer); }
+  catch (e) { console.error(e); showStart(`Die Datei konnte nicht gelesen werden (${e.message || e}).`); return; }
+  if (!res.list.length) { showStart('Die Datei enthält keine Bauteile (IfcElement).'); return; }
+  if (!res.list.some(e => e.inst || e.isInst != null)) { showStart(`Kein Bauteil hat ${PSET} mit InstallationDate oder IsInstalled.`); return; }
+  els = res.list; modelFile = name; storeKey = `polier-tool:${name}:${buffer.byteLength}`; loadChanges();
+  const known = new Set(els.map(e => e.g)); Object.keys(changes).forEach(g => { if (!known.has(g)) delete changes[g]; });
+  buildScene(res.geo);
+  const storeys = [...new Set(els.map(e => e.s))].sort((a, b) => a.localeCompare(b, 'de', { numeric: true }));
+  $('storey').innerHTML = ['alle', ...storeys].map(s => `<option value="${esc(s)}">${s === 'alle' ? 'Alle Geschosse' : esc(s)}</option>`).join('');
+  Object.assign(S, { day: TODAY, filter: 'heute', storey: 'alle', sel: null, table: false, confirm: null, limit: LIST_STEP, open: true });
+  $('modelName').textContent = `${name} · ${res.schema} · ${els.length} Bauteile`;
+  $('start').hidden = true;
+  render(); resize(); fit(modelBox, false, .95);
+  const n = Object.keys(changes).length; if (n) toast(`${n} gespeicherte Rückmeldungen übernommen`);
+}
+async function openFile(f) { if (!f) return; openModel(await f.arrayBuffer(), f.name); }
+$('file').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => openFile(e.dataTransfer.files[0]));
+
+// Optional: Modell per URL-Parameter (?ifc=pfad/zur/datei.ifc), wenn das Tool über einen Webserver läuft
+const urlIfc = new URLSearchParams(location.search).get('ifc');
+if (urlIfc) fetch(urlIfc).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+  .then(buf => openModel(buf, decodeURIComponent(urlIfc.split('/').pop())), e => showStart(`Modell konnte nicht geladen werden (${e.message}).`));
+render();
+</script>
+</body>
+</html>

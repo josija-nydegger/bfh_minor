@@ -21,6 +21,7 @@ Daraus leitet ein Prüfskript pro Bauteil den Status ab: geplant, Montage überf
 | [`model/`](model/) | IFC-Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, IFC2X3) |
 | [`checks/`](checks/) | Python-Skripte (IfcOpenShell), z. B. `kennzahlen.py` für die Kennzahlen des Modells |
 | [`results/`](results/) | Prüfresultate (ifclite-Reports) |
+| [`apps/polier-tool/`](apps/polier-tool/) | Polier-Tool: IFC im Browser laden, heute fällige und überfällige Bauteile anzeigen, `IsInstalled` setzen, CSV-Export ([Anleitung](apps/polier-tool/Anleitung.md)) |
 | [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) |
 | [`poster/`](poster/) | Poster (folgt) |
 
