@@ -22,6 +22,7 @@ Daraus leitet ein Prüfskript pro Bauteil den Status ab: geplant, Montage überf
 | [`checks/`](checks/) | Python-Skripte (IfcOpenShell), z. B. `kennzahlen.py` für die Kennzahlen des Modells |
 | [`results/`](results/) | Prüfresultate (ifclite-Reports) |
 | [`apps/polier-tool/`](apps/polier-tool/) | Polier-Tool: IFC im Browser laden, heute fällige und überfällige Bauteile anzeigen, `IsInstalled` setzen, CSV-Export und Skript `csv_ins_ifc.py` für die Rückführung ins IFC ([Anleitung](apps/polier-tool/Anleitung.md)) |
+| [`apps/baufortschritt-check/`](apps/baufortschritt-check/) | Baufortschritt-Check für die Bauleitung: prüft die drei Anforderungen, zeigt Status, Pendenzen und Verzug; als HTML oder ifclite-Skript ([Anleitung](apps/baufortschritt-check/Anleitung.md)) |
 | [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) |
 | [`poster/`](poster/) | Poster (folgt) |
 
@@ -50,7 +51,8 @@ IDS prüfen: `requirements/a1_baufortschritt.ids` und das Modell in https://www.
 
 - Anforderungen, IDS und Soll-Prozess sind auf den aktuellen Prozess mit `IsInstalled` umgestellt.
 - Im aktuellen Modell fehlt bei den 385 nicht montierten Bauteilen das `InstallationDate`. Der Dozent liefert ein korrigiertes Modell; danach folgt der IDS-Test in ifclite.
-- Die Prüflogik für die Anforderungen 2 und 3 (Python) ist noch offen.
+- Die Prüflogik für die Anforderungen 1–3 ist im Baufortschritt-Check umgesetzt (JavaScript statt Python).
+- Offen: Kein Werkzeug setzt bisher `AcceptanceDate` (Abnahme durch die Bauleitung).
 
 ## KI-Einsatz
 

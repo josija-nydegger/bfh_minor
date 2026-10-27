@@ -6,7 +6,9 @@ Das Tool deckt nur den Teil des Poliers im Soll-Prozess ab (siehe [MVP](../../MV
 
 1. Der Modellautor setzt `InstallationDate` (Soll-Datum gemäss Terminplan) und `IsInstalled` = FALSE.
 2. **Der Polier setzt bei der Montage `IsInstalled` = TRUE (dieses Tool).**
-3. Die Bauleitung prüft per Skript und setzt nach der Kontrolle `AcceptanceDate`.
+3. Die Bauleitung prüft mit dem [Baufortschritt-Check](../baufortschritt-check/Anleitung.md) und setzt nach der Kontrolle `AcceptanceDate` (dafür gibt es noch kein Werkzeug).
+
+Ablauf im Überblick: Polier-Tool → CSV → `csv_ins_ifc.py` → zurückgeführtes IFC → Baufortschritt-Check (siehe [Weiter mit dem Baufortschritt-Check](#weiter-mit-dem-baufortschritt-check)).
 
 ## Voraussetzungen
 
@@ -67,6 +69,8 @@ Das Tool leitet den Status pro Bauteil aus den drei Properties und dem Stichtag 
 
 Fehlerhafte Bauteile kann der Polier trotzdem als montiert melden. Die Ursache steht in der Liste und in der Detailansicht und sollte dem Modellautor gemeldet werden.
 
+Der Baufortschritt-Check verwendet dieselbe Statustabelle, nennt «Fehler» aber «Daten fehlerhaft». Er prüft `AcceptanceDate` zusätzlich auf Format und «nicht nach dem Prüfdatum». Ein Bauteil, das hier «Abgenommen» ist, kann dort darum als «Daten fehlerhaft» erscheinen.
+
 ## Speichern und Export
 
 - **Speichern:** Rückmeldungen werden automatisch im Browser gespeichert (`localStorage`). Lädt man dieselbe Datei wieder, werden sie übernommen. Gespeichert wird pro Dateiname und Dateigrösse, nur auf diesem Gerät und in diesem Browser.
@@ -108,9 +112,26 @@ python apps/polier-tool/csv_ins_ifc.py model/<modell>.ifc <rueckmeldung>.csv [we
 - **Nur Hinweis:** Weicht das `InstallationDate` im CSV vom Modell ab (CSV aus einer anderen Modellversion), wird der Wert trotzdem gesetzt und die Abweichung im Protokoll vermerkt.
 - **Fehlendes Pset oder fehlende Property:** wird angelegt.
 
+## Weiter mit dem Baufortschritt-Check
+
+Die Bauleitung prüft das zurückgeführte Modell mit dem [Baufortschritt-Check](../baufortschritt-check/Anleitung.md):
+
+1. Polier: **Export → CSV: nur Änderungen** und das CSV der Bauleitung schicken.
+2. Bauleitung: `csv_ins_ifc.py` ausführen (siehe oben). Mehrere CSV verschiedener Poliere in einem Lauf übergeben, das Protokoll auf übersprungene Zeilen prüfen.
+3. Bauleitung: `<modell>_rueckgemeldet_<datum>.ifc` im Baufortschritt-Check laden und als Prüfdatum denselben Stichtag wählen wie im Polier-Tool.
+4. Bauleitung: Bauteile mit Status «Abnahme ausstehend» vor Ort kontrollieren und `AcceptanceDate` setzen. Dafür gibt es noch kein Werkzeug.
+5. Das neue Modell ist die Grundlage für den nächsten Tag: Der Polier lädt es im Polier-Tool und sieht dann den aktuellen Stand, sobald gesetzt auch die Abnahmen.
+
+Wichtig:
+
+- Der Baufortschritt-Check liest nur das IFC-Modell, nicht das CSV. Ohne Schritt 2 fehlen die Rückmeldungen des Poliers.
+- Das CSV aus dem Polier-Tool ist die Rückmeldung für `csv_ins_ifc.py`. Das CSV aus dem Baufortschritt-Check ist der Prüfbericht für `results/`. Die beiden CSV haben verschiedene Spalten und sind nicht austauschbar.
+- Nach dem Laden des neuen Modells im Polier-Tool sind die alten Rückmeldungen im Browser nicht mehr zugeordnet, weil Dateiname und Grösse sich ändern. Die Werte stehen dann im Modell selbst.
+
 ## Grenzen
 
 - **Keine Änderung am IFC durch das Tool selbst:** Das Tool schreibt nicht ins Modell. Die Rückführung erfolgt mit `csv_ins_ifc.py` (siehe oben).
+- **Keine Abnahme:** Das Tool setzt kein `AcceptanceDate`. Dieser Schritt der Bauleitung ist noch offen.
 - **Kein Abgleich zwischen Geräten:** Rückmeldungen verschiedener Geräte oder Browser werden nicht zusammengeführt. Jeder Polier exportiert sein eigenes CSV.
 - **Nicht alle Bauteile in 3D:** Bauteile ohne Geometrie erscheinen nur in der Liste. Öffnungen (`IfcOpeningElement`) werden nicht berücksichtigt.
 - **Grosse Modelle:** Das Laden kann auf älteren Handys einige Sekunden dauern.

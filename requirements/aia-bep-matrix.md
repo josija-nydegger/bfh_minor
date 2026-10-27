@@ -17,6 +17,24 @@ Statusableitung pro Bauteil (Grundlage für Anforderungen 2 und 3):
 
 Hinweis zu Anforderung 3: Weil `InstallationDate` das Soll-Datum ist und nicht überschrieben wird, gibt es kein Ist-Datum der Montage. Der Verzug wird darum nur für noch nicht montierte Bauteile berechnet. Ein Abgleich mit einem externen Terminplan entfällt.
 
+## Werkzeuge
+
+Pro Rolle gibt es ein Werkzeug. Beide lesen dasselbe Modell und wenden dieselbe Statustabelle an.
+
+| Property | Gesetzt von | Werkzeug | Stand |
+|---|---|---|---|
+| `InstallationDate`, `IsInstalled` = FALSE | Modellautor | Autorensoftware | im Modell des Dozenten vorhanden (`InstallationDate` noch unvollständig, siehe unten) |
+| `IsInstalled` = TRUE | Polier | [Polier-Tool](../apps/polier-tool/Anleitung.md) (Josija): heute fällige und überfällige Bauteile anzeigen, Montage melden, CSV-Export; Rückführung ins IFC mit `csv_ins_ifc.py` | umgesetzt |
+| Prüfung Anforderungen 1–3 | Bauleitung | [Baufortschritt-Check](../apps/baufortschritt-check/Anleitung.md) (Matthias): Baukontrolle als HTML oder ifclite-Skript, Status, Pendenzen nach Rolle, Verzug, CSV / PDF für `results/` | umgesetzt, liest nur |
+| `AcceptanceDate` | Bauleitung | – | **offen** |
+
+Offen / ungelöst: Kein Werkzeug setzt bisher `AcceptanceDate`. Das Polier-Tool zeigt Abnahmen nur an und sperrt abgenommene Bauteile. Der Baufortschritt-Check listet die offenen Abnahmen, schreibt aber nicht ins Modell. Mögliche Lösungen:
+- Eintrag von Hand in der Autorensoftware bzw. einem IFC-Editor
+- Abnahme-Funktion im Baufortschritt-Check mit CSV-Export und Rückführung analog zu `csv_ins_ifc.py`
+- Erweiterung von `csv_ins_ifc.py` um `AcceptanceDate`
+
+Bis dahin lässt sich Anforderung 2 nur mit Testdaten prüfen (im Modell des Dozenten ist `AcceptanceDate` überall leer).
+
 ## Prüfbar gemacht: Anforderung Nr. 1
 - Spezifikation: `a1_baufortschritt.yaml` / `a1_baufortschritt.ids`, 27 Regeln: je Bauteilklasse „A1 InstallationDate“, „A1 IsInstalled“ und den Formatteil von Anforderung 2 („A2 AcceptanceDate“). Das IDS wurde aus derselben Regelliste wie die YAML erzeugt (Aufbau wie die IDS-Light-Ausgabe, `boolean` → `IFCBOOLEAN` gemäss idslight.com/docs).
 - Modell: `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc` (IFC2X3, vom Dozenten bereitgestellt). 1446 Elemente (1585 `IfcElement` − 139 `IfcOpeningElement`), alle mit `Pset_InstallationOccurrence`; `IsInstalled` als IfcBoolean bei allen 1446 (1061 TRUE, 385 FALSE); `AcceptanceDate` überall leer.
@@ -285,3 +303,4 @@ ids:
 | Claude Code (Opus 5.5) | Matrix für die drei Anforderungen aus dem MVP ausgefüllt, IDS-Light-YAML für Anforderung 1 (plus Formatteil Anforderung 2) erstellt | Einträge in der Matrix (Vorschläge in „…“), YAML-Regeln pro Bauteilklasse und Liste „Was die Regel nicht prüft“ | Bauteilklassen mit IfcOpenShell aus dem Testmodell ausgelesen; Ausschnitt der YAML in idslight.com konvertiert (gültig, IFC2X3, IFCLABEL, Pattern). Vorschläge in „…“ geprüft. |
 | Claude Code (Opus 5.5) | Prüfung der vom Studenten ergänzten Resultate, Abgleich des ifclite-Reports mit `checks/loesung.csv` | Korrigierte Resultate getrennt nach A1/A2, korrigierte GlobalId des positiven Testfalls, neuer negativer Testfall für A1, Hinweise zu Testmodell, Blindtest und Validator-Warnung | JSON-Export von ifclite per Skript mit `loesung.csv` verglichen (37 von 37 übereinstimmend); GlobalIds im Modell nachgeschlagen. Erwartung vor dem Lauf bestätigt. |
 | Claude Code (Opus 5.5) | Matrix, YAML und IDS an den neuen Prozess angepasst (`InstallationDate` = Soll-Datum, `IsInstalled` durch Polier, `AcceptanceDate` durch Bauleitung) und auf das Modell des Dozenten umgestellt | Neue Anforderungen 1–3, Statustabelle, 27 IDS-Regeln, Befund zum Modell; altes IDS nach `archiv/` verschoben | IDS mit ifctester gegen das IDS-1.0-Schema und das Modell geprüft (385 Fehler bei `InstallationDate`, sonst keine), Negativtest mit drei absichtlich fehlerhaften Werten. Ausstehend: Lauf in ifclite durch das Team. |
+| Claude Code (Opus 5.5) | Abschnitt «Werkzeuge» ergänzt: Polier-Tool (Polier), Baufortschritt-Check (Bauleitung), Setzen von `AcceptanceDate` offen | Zuordnung von Josija vorgegeben; Tabelle und Lösungsvarianten als Vorschlag | Funktionsumfang beider Tools im Code nachgelesen (keines schreibt `AcceptanceDate`), Links geprüft. |
