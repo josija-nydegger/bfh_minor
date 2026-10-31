@@ -81,26 +81,35 @@ function style(name, r, g, b) {
   return (styleCache[name] = add(`IFCPRESENTATIONSTYLEASSIGNMENT((${ss}))`));
 }
 const COL = {
-  beton: ["Beton", 0.62, 0.62, 0.6], holz: ["Holz", 0.79, 0.64, 0.42], fassade: ["Fassade dunkel", 0.18, 0.19, 0.2],
-  glas: ["Glas", 0.5, 0.7, 0.84], dach: ["Blech Dach", 0.36, 0.38, 0.4], tank: ["Tank", 0.86, 0.9, 0.92],
-  pv: ["PV", 0.11, 0.18, 0.35], tuer: ["Tür", 0.42, 0.29, 0.17],
+  beton: ["Beton", 0.62, 0.62, 0.6], holz: ["Holz", 0.79, 0.64, 0.42], laerche: ["Lärchenschalung", 0.8, 0.6, 0.33],
+  glas: ["Glas", 0.55, 0.72, 0.85], dach: ["Blech Dach", 0.58, 0.6, 0.62], tank: ["Tank", 0.86, 0.9, 0.92],
+  pv: ["PV-Modul", 0.09, 0.1, 0.13], tuer: ["Tür Lärche", 0.86, 0.72, 0.48], rahmenWeiss: ["Fensterrahmen weiss", 0.93, 0.93, 0.92],
+  rahmenSchwarz: ["Fensterrahmen schwarz", 0.12, 0.12, 0.13], alu: ["Aluminium", 0.75, 0.77, 0.79], stahl: ["Gitterrost", 0.45, 0.47, 0.5],
 };
 
 // ---------- Bauteile ----------
 // Quader: (x, y, z) = Ecke im Geschoss-Koordinatensystem, (dx, dy, dz) = Masse in m.
-// opts.axis/opts.ref drehen das lokale System (für geneigte Dachflächen).
-const elements = [];
-function bauteil(cls, name, st, x, y, z, dx, dy, dz, extra, col, plan, opts = {}) {
-  const S = storey[st];
-  const pl = placement(S.pl, x, y, z, opts.axis, opts.ref);
+// axis/ref drehen das lokale System (für geneigte Dachflächen).
+function quader(x, y, z, dx, dy, dz, col, axis, ref) {
   const prof = add(`IFCRECTANGLEPROFILEDEF(.AREA.,$,${add(`IFCAXIS2PLACEMENT2D(${pt2(dx / 2, dy / 2)},$)`)},${f(dx)},${f(dy)})`);
-  const solid = add(`IFCEXTRUDEDAREASOLID(${prof},${add(`IFCAXIS2PLACEMENT3D(${origin},$,$)`)},${zDir},${f(dz)})`);
+  const pos = add(`IFCAXIS2PLACEMENT3D(${pt(x, y, z)},${axis || "$"},${ref || "$"})`);
+  const solid = add(`IFCEXTRUDEDAREASOLID(${prof},${pos},${zDir},${f(dz)})`);
   add(`IFCSTYLEDITEM(${solid},(${style(...COL[col])}),$)`);
-  const rep = add(`IFCSHAPEREPRESENTATION(${ctx},'Body','SweptSolid',(${solid}))`);
+  return solid;
+}
+// Ein Bauteil kann aus mehreren Quadern bestehen (z. B. Schalungsbretter, PV-Module, Fensterrahmen).
+const elements = [];
+function element(cls, name, st, solids, extra, plan) {
+  const S = storey[st];
+  const pl = placement(S.pl, 0, 0, 0);
+  const rep = add(`IFCSHAPEREPRESENTATION(${ctx},'Body','SweptSolid',(${solids.join(",")}))`);
   const shape = add(`IFCPRODUCTDEFINITIONSHAPE($,$,(${rep}))`);
   const id = add(`${cls}(${gid()},${oh},${str(name)},$,$,${pl},${shape},$${extra ? "," + extra : ""})`);
   S.items.push(id);
   elements.push({ id, cls, name, st, plan });
+}
+function bauteil(cls, name, st, x, y, z, dx, dy, dz, extra, col, plan, opts = {}) {
+  element(cls, name, st, [quader(x, y, z, dx, dy, dz, col, opts.axis, opts.ref)], extra, plan);
 }
 const W = (...a) => bauteil("IFCWALL", ...a.slice(0, 8), "", ...a.slice(8));
 
@@ -144,17 +153,6 @@ W("Innenwand EG Nord 1", eg, 6.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["20
 W("Innenwand EG Nord 2", eg, 15.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-10-20", false, null]);
 bauteil("IFCSLAB", "Decke über EG", eg, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-10-26", false, null]);
 bauteil("IFCSTAIR", "Treppe EG–OG", eg, 19.6, 5.15, 0, 2.6, 2.05, 2.8, ".STRAIGHT_RUN_STAIR.", "holz", ["2026-10-28", false, null]);
-bauteil("IFCDOOR", "Hauseingangstür", eg, L - 0.2, 5.6, 0, 0.1, 1.2, 2.2, "2.2,1.2", "tuer", ["2026-11-05", false, "2026-10-28"]);
-[2, 5.5, 9, 15, 18.5].forEach((x, i) =>
-  bauteil("IFCWINDOW", `Fenster EG Süd ${i + 1}`, eg, x, 0.1, 0.9, 1.6, 0.1, 1.4, "1.4,1.6", "glas",
-    i === 2 ? ["2026-11-05", true, "2026-10-30"] : [`2026-11-0${4 + (i % 3)}`, false, null]));
-[3, 10, 17].forEach((x, i) =>
-  bauteil("IFCWINDOW", `Fenster EG Nord ${i + 1}`, eg, x, B - 0.2, 1.2, 1.0, 0.1, 1.1, "1.1,1.", "glas", ["2026-11-06", false, null]));
-// Fassade (über EG und OG, 0–6.2 m)
-bauteil("IFCCOVERING", "Fassade Süd", eg, 0, -0.08, 0, L, 0.08, 6.2, ".CLADDING.", "fassade", ["2026-11-20", false, null]);
-bauteil("IFCCOVERING", "Fassade Nord", eg, 0, B, 0, L, 0.08, 6.2, ".CLADDING.", "fassade", ["2026-11-23", false, null]);
-bauteil("IFCCOVERING", "Fassade West", eg, -0.08, -0.08, 0, 0.08, B + 0.16, 6.2, ".CLADDING.", "fassade", ["2026-11-24", false, null]);
-bauteil("IFCCOVERING", "Fassade Ost", eg, L, -0.08, 0, 0.08, B + 0.16, 6.2, ".CLADDING.", "fassade", ["2026-11-25", false, null]);
 
 // Obergeschoss
 const og = "Obergeschoss";
@@ -169,21 +167,112 @@ W("Korridorwand OG Nord", og, t, 7.2, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-11
 [5.8, 11.4, 17.0].forEach((x, i) =>
   W(`Zimmerwand OG Nord ${i + 1}`, og, x, 7.35, 0, 0.12, B - t - 7.35, 2.8, "holz", ["2026-11-12", i === 1 ? "FALSE" : false, null]));
 bauteil("IFCSLAB", "Decke über OG", og, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-16", false, null]);
-[1.5, 5.2, 9.5, 13.8, 17.6, 20.6].forEach((x, i) =>
-  bauteil("IFCWINDOW", `Fenster OG Süd ${i + 1}`, og, x, 0.1, 1.0, 0.9, 0.1, 1.1, "1.1,0.9", "glas", ["2026-11-18", false, null]));
-[3, 8.5, 14, 19.5].forEach((x, i) =>
-  bauteil("IFCWINDOW", `Fenster OG Nord ${i + 1}`, og, x, B - 0.2, 1.0, 0.9, 0.1, 1.1, "1.1,0.9", "glas", ["2026-11-19", false, null]));
-
-// Dach: zwei geneigte Dachflächen (Satteldach, First in der Mitte, 1.5 m über Traufe)
+// Dach: zwei geneigte Blech-Dachflächen mit Falzrippen (Satteldach, First 1.5 m über Traufe)
 const dach = "Dach", ov = 0.3, rise = 1.5, half = B / 2 + ov;
 const len = Math.hypot(half, rise), ca = half / len, sa = rise / len;
-const nSued = dir(0, -sa, ca), nNord = dir(0, sa, ca), negX = dir(-1, 0, 0);
-bauteil("IFCSLAB", "Dachfläche Süd", dach, -ov, -ov, 0, L + 2 * ov, len, 0.25, ".ROOF.", "dach", ["2026-11-17", false, null], { axis: nSued, ref: xDir });
-bauteil("IFCSLAB", "Dachfläche Nord", dach, L + ov, B + ov, 0, L + 2 * ov, len, 0.25, ".ROOF.", "dach", ["2026-11-18", false, null], { axis: nNord, ref: negX });
-// PV-Anlage auf der Süddachfläche (gleiche Neigung, 0.25 m über der Dachfläche)
-const pvX = 3, pvY = 1.0;
-bauteil("IFCENERGYCONVERSIONDEVICE", "PV-Anlage Dach Süd", dach, -ov + pvX, -ov + pvY * ca - 0.25 * sa, pvY * sa + 0.25 * ca, 16, 4.0, 0.06, "", "pv",
-  ["24.11.2026", false, null], { axis: nSued, ref: xDir });
+function dachflaeche(name, x0, y0, lx, ny, nz, axis, ref, plan) {
+  const s = [quader(x0, y0, 0, L + 2 * ov, len, 0.25, "dach", axis, ref)];
+  for (let u = 0.25; u < L + 2 * ov; u += 0.5)
+    s.push(quader(x0 + u * lx, y0 + 0.25 * ny, 0.25 * nz, 0.03, len, 0.035, "dach", axis, ref));
+  element("IFCSLAB", name, dach, s, ".ROOF.", plan);
+}
+dachflaeche("Dachfläche Süd", -ov, -ov, 1, -sa, ca, dir(0, -sa, ca), xDir, ["2026-11-17", false, null]);
+dachflaeche("Dachfläche Nord", L + ov, B + ov, -1, sa, ca, dir(0, sa, ca), dir(-1, 0, 0), ["2026-11-18", false, null]);
+
+// ---------- Fassade nach den Fotos der Hütte ----------
+// Lärchenschalung (vertikale Bretter), PV-Module im OG-Band Süd und am ganzen Westgiebel,
+// Fenster mit Rahmen. Fassadenkoordinaten: u = entlang der Fassade, v = Höhe über EG,
+// n = Abstand nach aussen ab der Wandfläche.
+const FACE = {
+  sued: (u, v, du, dv, n0, n1) => [u, -n1, v, du, n1 - n0, dv],
+  nord: (u, v, du, dv, n0, n1) => [u, B + n0, v, du, n1 - n0, dv],
+  west: (u, v, du, dv, n0, n1) => [-n1, u, v, n1 - n0, du, dv],
+  ost: (u, v, du, dv, n0, n1) => [L + n0, u, v, n1 - n0, du, dv],
+};
+const ZOFF = { [ug]: -2.72, [eg]: 0, [og]: 3.1 };
+function q(face, st, col, u, v, du, dv, n0, n1) {
+  const [x, y, z, dx, dy, dz] = FACE[face](u, v - ZOFF[st], du, dv, n0, n1);
+  return quader(x, y, z, dx, dy, dz, col);
+}
+// Unterkante Dach am Giebel (Höhe über EG) an der Stelle u = y
+const giebel = (y) => 6.2 + rise * Math.max(0, Math.min(y + ov, B + ov - y)) / half;
+// Rechteck [u0, v0, u1, v1] minus Aussparungen
+function minus(r, holes) {
+  let out = [r];
+  for (const h of holes) {
+    const next = [];
+    for (const [a, b, c, d] of out) {
+      if (h[0] >= c || h[2] <= a || h[1] >= d || h[3] <= b) { next.push([a, b, c, d]); continue; }
+      if (h[0] > a) next.push([a, b, h[0], d]);
+      if (h[2] < c) next.push([h[2], b, c, d]);
+      const l = Math.max(a, h[0]), r2 = Math.min(c, h[2]);
+      if (h[1] > b) next.push([l, b, r2, h[1]]);
+      if (h[3] < d) next.push([l, h[3], r2, d]);
+    }
+    out = next;
+  }
+  return out.filter(([a, b, c, d]) => c - a > 0.02 && d - b > 0.02);
+}
+function schalung(face, st, area, holes, top) {
+  const s = [], w = 0.16, g = 0.02;
+  for (let u = area[0]; u < area[2] - 0.02; u += w + g) {
+    const u1 = Math.min(u + w, area[2]);
+    const vt = top ? Math.min(area[3], top((u + u1) / 2)) : area[3];
+    for (const [a, b, c, d] of minus([u, area[1], u1, vt], holes)) s.push(q(face, st, "laerche", a, b, c - a, d - b, 0, 0.025));
+  }
+  return s;
+}
+function pvModule(face, st, area, holes, pw, ph, top) {
+  const s = [], g = 0.025;
+  for (let v = area[1]; v < area[3] - 0.05; v += ph)
+    for (let u = area[0]; u < area[2] - 0.05; u += pw) {
+      const u1 = Math.min(u + pw, area[2]);
+      let v1 = Math.min(v + ph, area[3]);
+      if (top) v1 = Math.min(v1, top(u), top(u1));
+      for (const [a, b, c, d] of minus([u + g / 2, v + g / 2, u1 - g / 2, v1 - g / 2], holes)) s.push(q(face, st, "pv", a, b, c - a, d - b, 0, 0.045));
+    }
+  return s;
+}
+// Fenster: Rahmen (4 Profile, bei Fensterbändern mit Sprossen) und Glas
+function fenster(face, st, [u0, v0, u1, v1], rahmen, felder = 1) {
+  const fw = 0.06, s = [];
+  s.push(q(face, st, rahmen, u0, v0, u1 - u0, fw, 0, 0.05), q(face, st, rahmen, u0, v1 - fw, u1 - u0, fw, 0, 0.05));
+  s.push(q(face, st, rahmen, u0, v0 + fw, fw, v1 - v0 - 2 * fw, 0, 0.05), q(face, st, rahmen, u1 - fw, v0 + fw, fw, v1 - v0 - 2 * fw, 0, 0.05));
+  for (let i = 1; i < felder; i++) s.push(q(face, st, rahmen, u0 + fw, v0 + (i * (v1 - v0)) / felder - fw / 2, u1 - u0 - 2 * fw, fw, 0, 0.05));
+  s.push(q(face, st, "glas", u0 + fw, v0 + fw, u1 - u0 - 2 * fw, v1 - v0 - 2 * fw, 0.01, 0.02));
+  return s;
+}
+
+// Öffnungen (in Fassadenkoordinaten, Höhe über EG)
+const fEGSued = [2, 5.5, 9, 15, 18.5].map((u) => [u, 0.9, u + 1.6, 2.3]);
+const tuerSued = [12.0, 0, 13.1, 2.2];
+const fEGNord = [3, 10, 17].map((u) => [u, 1.2, u + 1.0, 2.3]);
+const fOGSued = [1.5, 5.2, 9.5, 13.8, 17.6, 20.6].map((u) => [u, 4.1, u + 0.9, 5.2]);
+const fOGNord = [3, 8.5, 14, 19.5].map((u) => [u, 4.1, u + 0.9, 5.2]);
+const bandWest = [4.75, 0.3, 6.75, 6.9], bandOst = [5.4, 0.5, 6.1, 6.8];
+
+fEGSued.forEach((r, i) => element("IFCWINDOW", `Fenster EG Süd ${i + 1}`, eg, fenster("sued", eg, r, "rahmenWeiss"), "1.4,1.6",
+  i === 2 ? ["2026-11-05", true, "2026-10-30"] : [`2026-11-0${4 + (i % 3)}`, false, null]));
+element("IFCDOOR", "Hauseingangstür", eg, [q("sued", eg, "tuer", tuerSued[0], 0, 1.1, 2.2, 0, 0.05)], "2.2,1.1", ["2026-11-05", false, "2026-10-28"]);
+fEGNord.forEach((r, i) => element("IFCWINDOW", `Fenster EG Nord ${i + 1}`, eg, fenster("nord", eg, r, "rahmenWeiss"), "1.1,1.", ["2026-11-06", false, null]));
+fOGSued.forEach((r, i) => element("IFCWINDOW", `Fenster OG Süd ${i + 1}`, og, fenster("sued", og, r, "rahmenSchwarz"), "1.1,0.9", ["2026-11-18", false, null]));
+fOGNord.forEach((r, i) => element("IFCWINDOW", `Fenster OG Nord ${i + 1}`, og, fenster("nord", og, r, "rahmenWeiss"), "1.1,0.9", ["2026-11-19", false, null]));
+element("IFCWINDOW", "Fensterband West", eg, fenster("west", eg, bandWest, "alu", 5), "6.6,2.", ["2026-11-18", false, null]);
+element("IFCWINDOW", "Fensterband Ost", eg, fenster("ost", eg, bandOst, "alu", 6), "6.3,0.7", ["2026-11-19", false, null]);
+
+const ridge = 6.2 + rise;
+element("IFCCOVERING", "Lärchenschalung Süd", eg, schalung("sued", eg, [0, 0, L, 3.1], [...fEGSued, tuerSued]), ".CLADDING.", ["2026-11-20", false, null]);
+element("IFCCOVERING", "Lärchenschalung Nord", eg, schalung("nord", eg, [0, 0, L, 6.2], [...fEGNord, ...fOGNord]), ".CLADDING.", ["2026-11-23", false, null]);
+element("IFCCOVERING", "Lärchenschalung Ost", eg, schalung("ost", eg, [0, 0, B, ridge], [bandOst], giebel), ".CLADDING.", ["2026-11-24", false, null]);
+element("IFCENERGYCONVERSIONDEVICE", "PV-Fassade Süd", eg, pvModule("sued", eg, [0, 3.1, L, 6.2], fOGSued, L / 20, 3.1 / 3), "", ["2026-11-25", false, null]);
+element("IFCENERGYCONVERSIONDEVICE", "PV-Fassade West", eg,
+  [...pvModule("west", eg, [0, 0, B, ridge], [bandWest], B / 10, 1.0, giebel), ...pvModule("west", eg, [1.5, -2.72, 10, 0], [], 8.5 / 7, 2.72 / 3)],
+  "", ["24.11.2026", false, null]);
+
+// Terrasse Süd: Gitterrost auf Betonstützen
+element("IFCSLAB", "Terrasse Süd (Gitterrost)", eg,
+  [quader(8.6, -2.4, -0.42, 14.2, 2.3, 0.06, "stahl"), ...[9, 13, 17, 21.5].map((x) => quader(x, -1.6, -1.3, 0.3, 0.3, 0.88, "beton"))],
+  ".NOTDEFINED.", ["2026-11-26", false, null]);
 
 // ---------- Beziehungen und Psets ----------
 for (const s of Object.values(storey))
