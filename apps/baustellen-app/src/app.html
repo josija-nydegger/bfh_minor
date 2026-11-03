@@ -87,9 +87,10 @@ iframe { border: 0; width: 100%; flex: 1; background: var(--paper); }
 
 <script id="writer">
 /* Schreibt Rückmeldungen direkt in Pset_InstallationOccurrence (IFC-Text, STEP).
-   changes: { GlobalId: { IsInstalled?: true|false, AcceptanceDate?: 'JJJJ-MM-TT'|null } }
-   Regeln wie früher in csv_ins_ifc.py: nur diese zwei Properties, InstallationDate bleibt unverändert,
-   geteilte Psets/Properties werden für das Bauteil getrennt, fehlendes Pset/Property wird angelegt. */
+   changes: { GlobalId: { IsInstalled?: true|false, AcceptanceDate?: 'JJJJ-MM-TT'|null, InstallationDate?: 'JJJJ-MM-TT' } }
+   IsInstalled setzt der Polier, AcceptanceDate die Bauleitung. InstallationDate ändert nur die Bauleitung,
+   und nur zur Korrektur von Datenfehlern. Geteilte Psets/Properties werden für das Bauteil getrennt,
+   fehlendes Pset/Property wird angelegt (Regeln wie früher in csv_ins_ifc.py). */
 var IfcWriter = (function () {
   var PSET = "pset_installationoccurrence";
   var B64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
@@ -198,7 +199,7 @@ var IfcWriter = (function () {
         }
       }
       var changed = false;
-      ["IsInstalled", "AcceptanceDate"].forEach(function (name) {
+      ["InstallationDate", "IsInstalled", "AcceptanceDate"].forEach(function (name) {
         if (!(name in ch)) return;
         var pid = pset.props.find(function (p) { return props.get(p) && props.get(p).name === name; });
         var prop = pid != null ? props.get(pid) : null;
@@ -245,7 +246,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     "4d3eb5178ada3e68f1b068401692eed3c145a64e5bd1c17d4fe5579d6f5d8a58": { id: "bauleitung", label: "Bauleitung", color: "var(--bauleitung)" }
   };
   var $ = function (id) { return document.getElementById(id); };
-  var S = { role: null, name: "", text: "", pend: { inst: {}, acc: {} } };
+  var S = { role: null, name: "", text: "", pend: { inst: {}, acc: {}, soll: {} } };
 
   function toast(t) { var el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 3200); }
   function todayIso() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
@@ -278,7 +279,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     return H.map(function (v) { return (v >>> 0).toString(16).padStart(8, "0"); }).join("");
   }
 
-  function pendCount() { var g = new Set(Object.keys(S.pend.inst).concat(Object.keys(S.pend.acc))); return g.size; }
+  function pendCount() { var g = new Set(Object.keys(S.pend.inst).concat(Object.keys(S.pend.acc), Object.keys(S.pend.soll))); return g.size; }
   function bar() {
     var r = S.role, n = pendCount();
     $("role").hidden = !r; if (r) { $("role").textContent = r.label; $("role").style.setProperty("--c", r.color); }
@@ -326,7 +327,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     fr.onload = function () {
       var t = bytesToText(fr.result);
       if (!/ISO-10303-21/.test(t.slice(0, 2000))) { $("pickErr").textContent = "Das ist keine IFC-Datei (.ifc)."; $("pickErr").hidden = false; return; }
-      $("pickErr").hidden = true; S.text = t; S.name = file.name; S.pend = { inst: {}, acc: {} };
+      $("pickErr").hidden = true; S.text = t; S.name = file.name; S.pend = { inst: {}, acc: {}, soll: {} };
       bar(); loadView();
     };
     fr.readAsArrayBuffer(file);
@@ -344,6 +345,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     var d = ev.data || {};
     if (d.type === "bs-inst" && S.role.id === "polier") S.pend.inst = d.changes || {};
     if (d.type === "bs-acc" && S.role.id === "bauleitung") S.pend.acc = d.changes || {};
+    if (d.type === "bs-soll" && S.role.id === "bauleitung") S.pend.soll = d.changes || {};
     bar();
   });
 
@@ -351,6 +353,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     var ch = {};
     Object.keys(S.pend.inst).forEach(function (g) { (ch[g] = ch[g] || {}).IsInstalled = S.pend.inst[g]; });
     Object.keys(S.pend.acc).forEach(function (g) { (ch[g] = ch[g] || {}).AcceptanceDate = S.pend.acc[g]; });
+    Object.keys(S.pend.soll).forEach(function (g) { (ch[g] = ch[g] || {}).InstallationDate = S.pend.soll[g]; });
     var res;
     try { res = IfcWriter.write(S.text, ch); } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
     var base = S.name.replace(/\.ifc$/i, "").replace(/_stand_\d{4}-\d{2}-\d{2}(_\d{4})?(\s*\(\d+\))?$/, "");
@@ -360,7 +363,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     a.href = URL.createObjectURL(new Blob([textToBytes(res.text)], { type: "application/octet-stream" }));
     a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-    S.text = res.text; S.name = name; S.pend = { inst: {}, acc: {} };
+    S.text = res.text; S.name = name; S.pend = { inst: {}, acc: {}, soll: {} };
     $("view").contentWindow.postMessage({ type: "bs-saved" }, "*");
     bar(); send();
     var r = res.report;

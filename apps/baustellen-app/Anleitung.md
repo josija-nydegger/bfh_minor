@@ -26,12 +26,13 @@ node apps/baustellen-app/build.js
 3. **Stand speichern:** Die App speichert `<Modell>_stand_<Datum>_<Uhrzeit>.ifc` im Download-Ordner. Diese Datei in den gemeinsamen Ordner legen.
 4. **Bauleitung:** mit dem Bauleitungs-Passwort anmelden und diese neue Datei öffnen. Der Check läuft sofort.
    Unter **Modell nach Status** zeigt ein 3D-Modell die Bauteile in den Farben der Übersicht. Geplante Bauteile sind durchscheinend, damit der Rohbau sichtbar bleibt. Der Filter der Bauteilliste (z. B. «Montage überfällig») wirkt auch im Modell. Ein Klick auf ein Bauteil zeigt Status, Soll-Datum und Abnahme. Bei offener Abnahme lässt es sich dort direkt **abnehmen**.
+   **Datenfehler korrigieren:** Bei Bauteilen mit «Daten fehlerhaft» öffnet **Korrigieren** (in der Liste oder in der 3D-Detailkarte) einen Dialog. Dort setzt oder ändert die Bauleitung das **Soll-Datum** (`InstallationDate`) und setzt, ändert oder leert das **Abnahmedatum**. Ein Abnahmedatum ist nur bei montierten Bauteilen möglich und höchstens bis heute bzw. zum Prüfdatum. **Korrektur zurücknehmen** steht danach beim Bauteil. Fehler, die kein Datum betreffen (z. B. `IsInstalled` als Text), korrigiert weiterhin der Modellautor.
 5. Vor Ort kontrollieren, dann in der Bauteilliste bei «Abnahme ausstehend» auf **Abnehmen** klicken, oder **Alle … angezeigten abnehmen**. Das Abnahmedatum ist das Prüfdatum. Ein Datum nach heute ist nicht möglich. **Rückgängig** steht beim Bauteil unter «Abgenommen».
 6. **Stand speichern** und die neue Datei wieder in den gemeinsamen Ordner legen. Den Prüfbericht für `results/` speichert ihr wie bisher unter «Ergebnis sichern».
 
 ## Regeln beim Speichern
 
-- Geändert werden nur `IsInstalled` (Polier) und `AcceptanceDate` (Bauleitung) in `Pset_InstallationOccurrence`. `InstallationDate` bleibt unverändert.
+- Geändert werden nur Werte in `Pset_InstallationOccurrence`: `IsInstalled` (Polier), `AcceptanceDate` (Bauleitung) und `InstallationDate`. Das Soll-Datum ändert nur die Bauleitung, und nur bei Datenfehlern.
 - Abgenommene Bauteile kann der Polier nicht zurücksetzen.
 - Ist ein Pset oder eine Property für mehrere Bauteile gemeinsam, trennt die App sie für das geänderte Bauteil. Fehlt das Pset oder die Property, wird sie angelegt.
 - Alle übrigen Zeilen der IFC-Datei bleiben byte-gleich.

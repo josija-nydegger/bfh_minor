@@ -139,6 +139,15 @@ button, input, select { font: inherit; color: inherit; }
 .sel3d .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .sel3d .x { position: absolute; top: 6px; right: 8px; background: none; border: 0; cursor: pointer; font-size: 1.1rem; color: var(--muted); }
 .hint3d { font-size: .8rem; color: var(--muted); margin-top: 6px; }
+/* Korrektur-Dialog für Datenfehler */
+.fixbg { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); display: grid; place-items: center; z-index: 25; padding: 16px; }
+.fixbox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px; }
+.fixbox h3 { font-size: 1.1rem; }
+.fixbox label { font-weight: 600; font-size: .9rem; display: flex; flex-direction: column; gap: 4px; }
+.fixbox input[type=date] { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--paper); }
+.fixbox small { color: var(--muted); font-weight: 400; }
+.fixbox .err { color: var(--st-late); font-weight: 600; font-size: .88rem; }
+.fixbox .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .chart { width: 100%; overflow-x: auto; }
 .chart svg { display: block; width: 100%; min-width: 560px; height: auto; }
 .chart text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
@@ -335,6 +344,17 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
   <footer>Baufortschritt-Check <span id="ver"></span> · Team 4 · BFH Architektur, Holz und Bau · läuft lokal im Browser</footer>
 </div>
 
+<div class="fixbg" id="fixbg" hidden>
+  <form class="fixbox" id="fixform" novalidate>
+    <h3 id="fix-title">Daten korrigieren</h3>
+    <p class="muted" id="fix-why" style="font-size:.88rem"></p>
+    <label for="fix-soll">Soll-Datum (InstallationDate)<input type="date" id="fix-soll"><small id="fix-soll-old"></small></label>
+    <label for="fix-acc">Abnahmedatum (AcceptanceDate)<input type="date" id="fix-acc"><small id="fix-acc-old"></small></label>
+    <p class="err" id="fix-err" hidden></p>
+    <div class="row"><button type="submit" class="btn">Übernehmen</button><button type="button" class="btn ghost" id="fix-cancel">Abbrechen</button></div>
+    <small>Die Korrektur gelangt erst mit «Stand speichern» ins IFC-Modell.</small>
+  </form>
+</div>
 <div class="progress" id="progress" hidden><div class="box"><strong id="progress-t">Modell wird gelesen …</strong><div class="track"><div class="fill" id="progress-f"></div></div><span class="muted" id="progress-s" style="font-size:.85rem"></span></div></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -705,7 +725,7 @@ if (typeof module !== "undefined") module.exports = BF;
   var PRIO = { ueberfaellig: 0, fehler: 1, ausstehend: 2, geplant: 3, abgenommen: 4 };
   var PAGE = 100;
   var $ = function (id) { return document.getElementById(id); };
-  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, confirm: false };
+  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, soll: {}, confirm: false };
   // Läuft nur innerhalb der Baustellen-App (Login dort); Abnahmen gehen per Nachricht an die App
   var inApp = window.parent !== window;
   var framed = false;
@@ -750,7 +770,8 @@ if (typeof module !== "undefined") module.exports = BF;
     if (!x) { box.hidden = true; return; }
     var st = STATUS[x.status], fmt = function (v) { return /^\d{4}-/.test(v) ? BF.fmt(v) : v || "–"; };
     var act = x.gid in state.acc ? '<button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Abnahme rückgängig</button>'
-      : x.status === "ausstehend" ? '<button type="button" class="btn" data-acc="' + esc(x.gid) + '">Abnehmen</button>' : "";
+      : x.status === "ausstehend" ? '<button type="button" class="btn" data-acc="' + esc(x.gid) + '">Abnehmen</button>'
+      : x.status === "fehler" ? '<button type="button" class="btn" data-fix="' + esc(x.gid) + '">Korrigieren</button>' : "";
     box.innerHTML = '<button type="button" class="x" data-close3d aria-label="Schliessen">×</button>' +
       '<b>' + esc(x.name) + '</b><span class="muted">' + esc(x.cls) + " · " + esc(x.storey || "–") + "</span>" +
       '<div class="row"><span class="pill" style="--c:' + st.c + '">' + st.label + "</span>" + (x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + " Verzug</span>" : "") + "</div>" +
@@ -763,11 +784,56 @@ if (typeof module !== "undefined") module.exports = BF;
   // Abnahmen dieser Sitzung über die Modellwerte legen (ohne das Modell selbst zu verändern)
   function applyAcc() {
     state.model.elements.forEach(function (e) {
-      if (!e.hasPset) return;
-      if (!("accOrig" in e)) e.accOrig = e.acc;
-      e.acc = e.gid in state.acc ? (state.acc[e.gid] ? accDay(state.acc[e.gid]) : { empty: true }) : e.accOrig;
+      if (!("orig" in e)) e.orig = { hasPset: e.hasPset, hasSoll: e.hasSoll, soll: e.soll, hasInst: e.hasInst, inst: e.inst, acc: e.acc };
+      var o = e.orig, fixed = e.gid in state.soll || e.gid in state.acc;
+      // Fehlt das Pset, legt die App es beim Speichern an (IsInstalled bleibt dann «fehlt»)
+      e.hasPset = o.hasPset || fixed;
+      e.hasInst = o.hasPset ? o.hasInst : false;
+      e.inst = o.hasPset ? o.inst : { empty: true };
+      e.hasSoll = o.hasSoll || e.gid in state.soll;
+      e.soll = e.gid in state.soll ? accDay(state.soll[e.gid]) : o.hasPset ? o.soll : { empty: true };
+      e.acc = e.gid in state.acc ? (state.acc[e.gid] ? accDay(state.acc[e.gid]) : { empty: true }) : o.hasPset ? o.acc : { empty: true };
     });
   }
+  function reportSoll() { parent.postMessage({ type: "bs-soll", changes: state.soll }, "*"); }
+
+  // ---------- Datenfehler korrigieren (Soll-Datum, Abnahmedatum) ----------
+  var fixGid = null;
+  function openFix(gid) {
+    var x = state.result.rows.find(function (r) { return r.gid === gid; }); if (!x) return;
+    var e = state.model.elements.find(function (m) { return m.gid === gid; }), o = e.orig;
+    fixGid = gid;
+    $("fix-title").textContent = x.name;
+    $("fix-why").textContent = x.reasons.join(" · ") || "Keine Datenfehler.";
+    var sollNow = gid in state.soll ? state.soll[gid] : (o.hasPset && o.soll.ok ? o.soll.iso : "");
+    var accNow = gid in state.acc ? (state.acc[gid] || "") : (o.hasPset && o.acc.ok ? o.acc.iso : "");
+    $("fix-soll").value = sollNow; $("fix-acc").value = accNow;
+    $("fix-soll-old").textContent = "Im Modell: " + (!o.hasPset ? "Pset fehlt" : o.soll.ok ? BF.fmt(o.soll.iso) : o.soll.empty ? "leer" : "«" + o.soll.raw + "» (ungültig)");
+    $("fix-acc-old").textContent = "Im Modell: " + (!o.hasPset || o.acc.empty ? "leer" : o.acc.ok ? BF.fmt(o.acc.iso) : "«" + o.acc.raw + "» (ungültig)") + " · leer lassen = keine Abnahme";
+    $("fix-err").hidden = true; $("fixbg").hidden = false; $("fix-soll").focus();
+  }
+  function closeFix() { fixGid = null; $("fixbg").hidden = true; }
+  $("fix-cancel").addEventListener("click", closeFix);
+  $("fixbg").addEventListener("click", function (ev) { if (ev.target === this) closeFix(); });
+  $("fixform").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var g = fixGid, e = state.model.elements.find(function (m) { return m.gid === g; }), o = e.orig;
+    var soll = $("fix-soll").value, acc = $("fix-acc").value, pruef = $("pdate").value || todayIso();
+    var montiert = o.hasPset && o.inst.ok && o.inst.val === true;
+    var err = !soll ? "Bitte ein Soll-Datum angeben."
+      : acc && !montiert ? "Abnahme nur bei montierten Bauteilen (IsInstalled = Ja). Feld leeren oder zuerst die Montage melden lassen."
+      : acc && acc > todayIso() ? "Das Abnahmedatum darf nicht nach heute liegen."
+      : acc && acc > pruef ? "Das Abnahmedatum liegt nach dem Prüfdatum " + BF.fmt(pruef) + "."
+      : "";
+    if (err) { $("fix-err").textContent = err; $("fix-err").hidden = false; return; }
+    var sollOrig = o.hasPset && o.soll.ok ? o.soll.iso : null;
+    if (soll !== sollOrig) state.soll[g] = soll; else delete state.soll[g];
+    var accOrig = o.hasPset && !o.acc.empty ? (o.acc.ok ? o.acc.iso : o.acc.raw) : "";
+    if (acc !== accOrig) state.acc[g] = acc || null; else delete state.acc[g];
+    reportSoll(); reportAcc(); closeFix(); run();
+    toast("Korrigiert. Zum Übernehmen «Stand speichern».");
+  });
+  function unfix(g) { delete state.soll[g]; delete state.acc[g]; reportSoll(); reportAcc(); run(); toast("Korrektur zurückgenommen"); }
   function setAcc(gids, on) {
     var iso = $("pdate").value || todayIso();
     if (on && iso > todayIso()) { toast("Abnahmen sind höchstens bis heute möglich. Bitte Prüfdatum anpassen."); return 0; }
@@ -1044,6 +1110,8 @@ if (typeof module !== "undefined") module.exports = BF;
       var verzug = x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + "</span>" : x.until != null ? '<span class="muted">in ' + plural(x.until, "Tag", "Tagen") + "</span>" : "";
       var why = x.reasons.map(function (t) { return '<div class="reason">' + esc(t) + "</div>"; }).join("") + x.hints.map(function (t) { return '<div class="reason hint">' + esc(t) + "</div>"; }).join("");
       if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Polier: montieren und melden</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren, dann «Abnehmen»</div>' : "";
+      if (x.gid in state.soll || (x.gid in state.acc && state.acc[x.gid] == null)) why += '<div class="reason hint">Korrigiert, nicht gespeichert</div><button type="button" class="linkbtn" data-unfix="' + esc(x.gid) + '">Korrektur zurücknehmen</button>';
+      else if (x.status === "fehler") why += '<button type="button" class="linkbtn" data-fix="' + esc(x.gid) + '">Korrigieren</button>';
       var neu = x.gid in state.acc;
       var abn = neu ? '<b>' + esc(BF.fmt(x.acc)) + '</b><br><span class="muted">neu, nicht gespeichert</span><br><button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Rückgängig</button>'
         : x.status === "ausstehend" ? '<button type="button" class="linkbtn" data-acc="' + esc(x.gid) + '">Abnehmen</button>'
@@ -1088,6 +1156,9 @@ if (typeof module !== "undefined") module.exports = BF;
     var s3 = ev.target.closest("[data-show],[data-close3d]");
     if (s3 && s3.dataset.show) { state.filter = "alle"; state.q = s3.dataset.show; $("search").value = state.q; state.shown = PAGE; renderFilters(); renderTable(); $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
     if (s3) { sel3d = null; showSel(); paint3d(); return; }
+    var fx = ev.target.closest("[data-fix],[data-unfix]");
+    if (fx && fx.dataset.fix) { openFix(fx.dataset.fix); return; }
+    if (fx) { unfix(fx.dataset.unfix); return; }
     var t = ev.target.closest("[data-acc],[data-unacc],[data-bulk]");
     if (t && t.dataset.acc) { if (setAcc([t.dataset.acc], true)) toast("Abnahme gesetzt. Zum Übernehmen «Stand speichern»."); return; }
     if (t && t.dataset.unacc) { setAcc([t.dataset.unacc], false); toast("Abnahme zurückgenommen"); return; }
@@ -1124,8 +1195,8 @@ if (typeof module !== "undefined") module.exports = BF;
   window.addEventListener("message", function (ev) {
     if (ev.source !== window.parent) return;
     var d = ev.data || {};
-    if (d.type === "bs-open") { state.acc = {}; state.confirm = false; sel3d = null; $("results").hidden = false; parse(d.text, d.name, false); load3d(d.buffer); }
-    if (d.type === "bs-saved") { state.acc = {}; }
+    if (d.type === "bs-open") { state.acc = {}; state.soll = {}; state.confirm = false; sel3d = null; closeFix(); $("results").hidden = false; parse(d.text, d.name, false); load3d(d.buffer); }
+    if (d.type === "bs-saved") { state.acc = {}; state.soll = {}; }
   });
 
   $("ver").textContent = BF.VERSION;
