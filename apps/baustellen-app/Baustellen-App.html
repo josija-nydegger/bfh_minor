@@ -38,7 +38,13 @@ iframe { border: 0; width: 100%; flex: 1; background: var(--paper); }
 .card h2 { margin: 0; font-size: 1.4rem; }
 .card p { margin: 0; color: var(--muted); font-size: .92rem; }
 .card label { font-weight: 600; font-size: .9rem; }
-.card input[type=password] { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; background: var(--paper); width: 100%; }
+.card input#pw { border: 1px solid var(--line); border-radius: 6px; padding: 10px 44px 10px 12px; background: var(--paper); width: 100%; }
+.pwbox { position: relative; }
+.eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted); padding: 6px; border-radius: 6px; cursor: pointer; display: grid; place-items: center; }
+.eye:hover { color: var(--ink); }
+.eye svg { width: 22px; height: 22px; }
+.eye .off, .eye[aria-pressed=true] .on { display: none; }
+.eye[aria-pressed=true] .off { display: block; }
 .primary { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
 .err { color: var(--bad); font-weight: 600; font-size: .9rem; }
 .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .85rem; color: var(--muted); }
@@ -67,7 +73,13 @@ iframe { border: 0; width: 100%; flex: 1; background: var(--paper); }
       <p>Das Passwort bestimmt die Rolle. Der Polier meldet Montagen, die Bauleitung prüft den Baufortschritt und setzt Abnahmen.</p>
       <div class="roles"><div style="--c:var(--polier)"><b>Polier</b><br>Montage melden</div><div style="--c:var(--bauleitung)"><b>Bauleitung</b><br>Prüfen und abnehmen</div></div>
       <label for="pw">Passwort</label>
-      <input type="password" id="pw" autocomplete="current-password" required>
+      <div class="pwbox">
+        <input type="password" id="pw" autocomplete="current-password" required>
+        <button type="button" class="eye" id="pwEye" aria-controls="pw" aria-pressed="false" aria-label="Passwort anzeigen" title="Passwort anzeigen">
+          <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.4 0-10-7-10-7a18.5 18.5 0 0 1 5.1-5.9M9.9 5.2A9.6 9.6 0 0 1 12 5c6.4 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M2 2l20 20"/></svg>
+        </button>
+      </div>
       <button class="primary" type="submit">Anmelden</button>
       <p class="err" id="loginErr" hidden>Passwort unbekannt. Bitte nochmals versuchen.</p>
     </form>
@@ -291,11 +303,19 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
   }
   function show(which) { $("login").hidden = which !== "login"; $("pick").hidden = which !== "pick"; $("view").hidden = which !== "view"; }
 
+  // Auge: Passwort ein- und ausblenden
+  function setPwVisible(on) {
+    var e = $("pwEye"); $("pw").type = on ? "text" : "password";
+    e.setAttribute("aria-pressed", on ? "true" : "false");
+    e.title = on ? "Passwort verbergen" : "Passwort anzeigen"; e.setAttribute("aria-label", e.title);
+  }
+  $("pwEye").addEventListener("click", function () { setPwVisible($("pw").type === "password"); $("pw").focus(); });
+
   $("loginForm").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var r = ROLES[sha256($("pw").value)];
     $("loginErr").hidden = !!r; if (!r) return;
-    S.role = r; $("pw").value = ""; show("pick"); bar();
+    S.role = r; $("pw").value = ""; setPwVisible(false); show("pick"); bar();
   });
 
   // Datei als Latin-1 lesen: Bytes bleiben beim Zurückschreiben unverändert
