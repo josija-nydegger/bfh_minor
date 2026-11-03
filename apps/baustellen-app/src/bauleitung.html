@@ -144,7 +144,8 @@ button, input, select { font: inherit; color: inherit; }
 .fixbox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px; }
 .fixbox h3 { font-size: 1.1rem; }
 .fixbox label { font-weight: 600; font-size: .9rem; display: flex; flex-direction: column; gap: 4px; }
-.fixbox input[type=date] { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--paper); }
+.fixbox input[type=date], .fixbox select { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--paper); }
+.fixbox select:disabled { opacity: .7; }
 .fixbox small { color: var(--muted); font-weight: 400; }
 .fixbox .err { color: var(--st-late); font-weight: 600; font-size: .88rem; }
 .fixbox .row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -349,6 +350,7 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
     <h3 id="fix-title">Daten korrigieren</h3>
     <p class="muted" id="fix-why" style="font-size:.88rem"></p>
     <label for="fix-soll">Soll-Datum (InstallationDate)<input type="date" id="fix-soll"><small id="fix-soll-old"></small></label>
+    <label for="fix-inst">Montiert (IsInstalled)<select id="fix-inst"><option value="">– bitte wählen –</option><option value="true">Ja, montiert (TRUE)</option><option value="false">Nein, nicht montiert (FALSE)</option></select><small id="fix-inst-old"></small></label>
     <label for="fix-acc">Abnahmedatum (AcceptanceDate)<input type="date" id="fix-acc"><small id="fix-acc-old"></small></label>
     <p class="err" id="fix-err" hidden></p>
     <div class="row"><button type="submit" class="btn">Übernehmen</button><button type="button" class="btn ghost" id="fix-cancel">Abbrechen</button></div>
@@ -725,7 +727,7 @@ if (typeof module !== "undefined") module.exports = BF;
   var PRIO = { ueberfaellig: 0, fehler: 1, ausstehend: 2, geplant: 3, abgenommen: 4 };
   var PAGE = 100;
   var $ = function (id) { return document.getElementById(id); };
-  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, soll: {}, confirm: false };
+  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, soll: {}, inst: {}, confirm: false };
   // Läuft nur innerhalb der Baustellen-App (Login dort); Abnahmen gehen per Nachricht an die App
   var inApp = window.parent !== window;
   var framed = false;
@@ -785,17 +787,17 @@ if (typeof module !== "undefined") module.exports = BF;
   function applyAcc() {
     state.model.elements.forEach(function (e) {
       if (!("orig" in e)) e.orig = { hasPset: e.hasPset, hasSoll: e.hasSoll, soll: e.soll, hasInst: e.hasInst, inst: e.inst, acc: e.acc };
-      var o = e.orig, fixed = e.gid in state.soll || e.gid in state.acc;
-      // Fehlt das Pset, legt die App es beim Speichern an (IsInstalled bleibt dann «fehlt»)
+      var o = e.orig, fixed = e.gid in state.soll || e.gid in state.acc || e.gid in state.inst;
+      // Fehlt das Pset, legt die App es beim Speichern an
       e.hasPset = o.hasPset || fixed;
-      e.hasInst = o.hasPset ? o.hasInst : false;
-      e.inst = o.hasPset ? o.inst : { empty: true };
+      e.hasInst = (o.hasPset && o.hasInst) || e.gid in state.inst;
+      e.inst = e.gid in state.inst ? { ok: true, val: state.inst[e.gid] } : o.hasPset ? o.inst : { empty: true };
       e.hasSoll = o.hasSoll || e.gid in state.soll;
       e.soll = e.gid in state.soll ? accDay(state.soll[e.gid]) : o.hasPset ? o.soll : { empty: true };
       e.acc = e.gid in state.acc ? (state.acc[e.gid] ? accDay(state.acc[e.gid]) : { empty: true }) : o.hasPset ? o.acc : { empty: true };
     });
   }
-  function reportSoll() { parent.postMessage({ type: "bs-soll", changes: state.soll }, "*"); }
+  function reportSoll() { parent.postMessage({ type: "bs-soll", changes: state.soll }, "*"); parent.postMessage({ type: "bs-instfix", changes: state.inst }, "*"); }
 
   // ---------- Datenfehler korrigieren (Soll-Datum, Abnahmedatum) ----------
   var fixGid = null;
@@ -808,6 +810,11 @@ if (typeof module !== "undefined") module.exports = BF;
     var sollNow = gid in state.soll ? state.soll[gid] : (o.hasPset && o.soll.ok ? o.soll.iso : "");
     var accNow = gid in state.acc ? (state.acc[gid] || "") : (o.hasPset && o.acc.ok ? o.acc.iso : "");
     $("fix-soll").value = sollNow; $("fix-acc").value = accNow;
+    // Montagestatus nur korrigierbar, wenn er fehlt oder kein Ja/Nein-Wert ist (sonst meldet ihn der Polier)
+    var instOk = o.hasPset && o.inst.ok, sel = $("fix-inst");
+    sel.disabled = instOk;
+    sel.value = gid in state.inst ? String(state.inst[gid]) : instOk ? String(o.inst.val) : "";
+    $("fix-inst-old").textContent = "Im Modell: " + (!o.hasPset || !o.hasInst || o.inst.empty ? "fehlt" : instOk ? (o.inst.val ? "TRUE" : "FALSE") + " · ändert der Polier" : o.inst.raw + " (" + o.inst.type + " statt IfcBoolean)");
     $("fix-soll-old").textContent = "Im Modell: " + (!o.hasPset ? "Pset fehlt" : o.soll.ok ? BF.fmt(o.soll.iso) : o.soll.empty ? "leer" : "«" + o.soll.raw + "» (ungültig)");
     $("fix-acc-old").textContent = "Im Modell: " + (!o.hasPset || o.acc.empty ? "leer" : o.acc.ok ? BF.fmt(o.acc.iso) : "«" + o.acc.raw + "» (ungültig)") + " · leer lassen = keine Abnahme";
     $("fix-err").hidden = true; $("fixbg").hidden = false; $("fix-soll").focus();
@@ -819,8 +826,10 @@ if (typeof module !== "undefined") module.exports = BF;
     ev.preventDefault();
     var g = fixGid, e = state.model.elements.find(function (m) { return m.gid === g; }), o = e.orig;
     var soll = $("fix-soll").value, acc = $("fix-acc").value, pruef = $("pdate").value || todayIso();
-    var montiert = o.hasPset && o.inst.ok && o.inst.val === true;
+    var instOk = o.hasPset && o.inst.ok, instSel = $("fix-inst").value;
+    var montiert = instOk ? o.inst.val === true : instSel === "true";
     var err = !soll ? "Bitte ein Soll-Datum angeben."
+      : !instOk && !instSel ? "Bitte den Montagestatus wählen (Ja oder Nein)."
       : acc && !montiert ? "Abnahme nur bei montierten Bauteilen (IsInstalled = Ja). Feld leeren oder zuerst die Montage melden lassen."
       : acc && acc > todayIso() ? "Das Abnahmedatum darf nicht nach heute liegen."
       : acc && acc > pruef ? "Das Abnahmedatum liegt nach dem Prüfdatum " + BF.fmt(pruef) + "."
@@ -830,10 +839,11 @@ if (typeof module !== "undefined") module.exports = BF;
     if (soll !== sollOrig) state.soll[g] = soll; else delete state.soll[g];
     var accOrig = o.hasPset && !o.acc.empty ? (o.acc.ok ? o.acc.iso : o.acc.raw) : "";
     if (acc !== accOrig) state.acc[g] = acc || null; else delete state.acc[g];
+    if (!instOk) state.inst[g] = instSel === "true"; else delete state.inst[g];
     reportSoll(); reportAcc(); closeFix(); run();
     toast("Korrigiert. Zum Übernehmen «Stand speichern».");
   });
-  function unfix(g) { delete state.soll[g]; delete state.acc[g]; reportSoll(); reportAcc(); run(); toast("Korrektur zurückgenommen"); }
+  function unfix(g) { delete state.soll[g]; delete state.acc[g]; delete state.inst[g]; reportSoll(); reportAcc(); run(); toast("Korrektur zurückgenommen"); }
   function setAcc(gids, on) {
     var iso = $("pdate").value || todayIso();
     if (on && iso > todayIso()) { toast("Abnahmen sind höchstens bis heute möglich. Bitte Prüfdatum anpassen."); return 0; }
@@ -1110,7 +1120,7 @@ if (typeof module !== "undefined") module.exports = BF;
       var verzug = x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + "</span>" : x.until != null ? '<span class="muted">in ' + plural(x.until, "Tag", "Tagen") + "</span>" : "";
       var why = x.reasons.map(function (t) { return '<div class="reason">' + esc(t) + "</div>"; }).join("") + x.hints.map(function (t) { return '<div class="reason hint">' + esc(t) + "</div>"; }).join("");
       if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Polier: montieren und melden</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren, dann «Abnehmen»</div>' : "";
-      if (x.gid in state.soll || (x.gid in state.acc && state.acc[x.gid] == null)) why += '<div class="reason hint">Korrigiert, nicht gespeichert</div><button type="button" class="linkbtn" data-unfix="' + esc(x.gid) + '">Korrektur zurücknehmen</button>';
+      if (x.gid in state.soll || x.gid in state.inst || (x.gid in state.acc && state.acc[x.gid] == null)) why += '<div class="reason hint">Korrigiert, nicht gespeichert</div><button type="button" class="linkbtn" data-unfix="' + esc(x.gid) + '">Korrektur zurücknehmen</button>';
       else if (x.status === "fehler") why += '<button type="button" class="linkbtn" data-fix="' + esc(x.gid) + '">Korrigieren</button>';
       var neu = x.gid in state.acc;
       var abn = neu ? '<b>' + esc(BF.fmt(x.acc)) + '</b><br><span class="muted">neu, nicht gespeichert</span><br><button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Rückgängig</button>'
@@ -1195,8 +1205,8 @@ if (typeof module !== "undefined") module.exports = BF;
   window.addEventListener("message", function (ev) {
     if (ev.source !== window.parent) return;
     var d = ev.data || {};
-    if (d.type === "bs-open") { state.acc = {}; state.soll = {}; state.confirm = false; sel3d = null; closeFix(); $("results").hidden = false; parse(d.text, d.name, false); load3d(d.buffer); }
-    if (d.type === "bs-saved") { state.acc = {}; state.soll = {}; }
+    if (d.type === "bs-open") { state.acc = {}; state.soll = {}; state.inst = {}; state.confirm = false; sel3d = null; closeFix(); $("results").hidden = false; parse(d.text, d.name, false); load3d(d.buffer); }
+    if (d.type === "bs-saved") { state.acc = {}; state.soll = {}; state.inst = {}; }
   });
 
   $("ver").textContent = BF.VERSION;

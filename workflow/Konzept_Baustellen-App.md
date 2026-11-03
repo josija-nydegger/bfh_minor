@@ -9,7 +9,7 @@ Polier-Tool und Baufortschritt-Check werden **eine** Anwendung mit zwei Rollen:
 | Rolle | Zugang | Sieht | Darf ändern |
 |---|---|---|---|
 | Polier | Passwort Polier | Polier-Ansicht: heute fällig, überfällig, montiert, 3D | `IsInstalled` (nicht bei abgenommenen Bauteilen) |
-| Bauleitung | Passwort Bauleitung | Baufortschritt-Check: Übersicht, drei Anforderungen, Pendenzen, Verzug, Bericht, 3D-Modell | `AcceptanceDate`; bei Datenfehlern auch `InstallationDate` (umgesetzt); `IsInstalled` zurücksetzen bei Fehlmeldung (offen) |
+| Bauleitung | Passwort Bauleitung | Baufortschritt-Check: Übersicht, drei Anforderungen, Pendenzen, Verzug, Bericht, 3D-Modell | `AcceptanceDate`; bei Datenfehlern auch `InstallationDate` und ungültiges `IsInstalled` (umgesetzt); `IsInstalled` zurücksetzen bei Fehlmeldung (offen) |
 | Modellautor | – (Autorensoftware) | – | `InstallationDate` (Soll-Datum), unverändert wie heute |
 
 Die **CSV-Schnittstelle fällt weg**: Polier-Export, `csv_ins_ifc.py` und das manuelle Laden des zurückgeführten Modells entfallen. Beide Rollen arbeiten auf **demselben Datenstand**. Nebenbei schliesst sich die offene Lücke: Die Bauleitung setzt `AcceptanceDate` direkt im Tool (siehe [AIA-BEP-Matrix](../requirements/aia-bep-matrix.md), Abschnitt «Werkzeuge»).

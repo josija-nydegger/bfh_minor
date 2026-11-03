@@ -27,7 +27,7 @@ Polier und Bauleitung arbeiten mit der [Baustellen-App](../apps/baustellen-app/A
 | `IsInstalled` = TRUE | Polier | Baustellen-App, Polier-Ansicht: heute fällige und überfällige Bauteile, Montage melden | umgesetzt (Prototyp) |
 | Prüfung Anforderungen 1–3 | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: Status, Pendenzen, Verzug, Bericht für `results/`; Zweitprüfung mit dem ifclite-Skript `baufortschritt.js` | umgesetzt |
 | `AcceptanceDate` | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Abnehmen» (Datum = Prüfdatum, höchstens heute) | umgesetzt (Prototyp) |
-| Korrektur `InstallationDate` / `AcceptanceDate` bei Datenfehlern | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Korrigieren» | umgesetzt (Prototyp) |
+| Korrektur `InstallationDate` / `AcceptanceDate` / ungültiges `IsInstalled` bei Datenfehlern | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Korrigieren» | umgesetzt (Prototyp) |
 
 Grenze: Der Passwortschutz im Browser verhindert Fehlbedienung, ist aber kein Zugriffsschutz. Echten Schutz bietet erst Variante B mit Server (siehe [Konzept](../workflow/Konzept_Baustellen-App.md)). Die früheren Einzeltools mit CSV-Rückführung liegen auf `main`.
 
