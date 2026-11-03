@@ -306,7 +306,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     f.src = S.role.view; show("view");
   }
   function send() {
-    var w = $("view").contentWindow; if (!w) return;
+    var w = $("view").contentWindow; if (!w || !S.role || !S.text) return; // z. B. nach Abmelden (about:blank)
     var buf = textToBytes(S.text).buffer;
     w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id }, "*", [buf]);
   }

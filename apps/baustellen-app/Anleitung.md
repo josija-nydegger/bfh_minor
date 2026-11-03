@@ -17,6 +17,7 @@ Alle drei Dateien müssen im selben Ordner liegen. Die Ansichten lassen sich nur
 2. Bauteile wie im Polier-Tool als montiert melden. Oben steht, wie viele Änderungen noch nicht gespeichert sind.
 3. **Stand speichern:** Die App speichert `<Modell>_stand_<Datum>_<Uhrzeit>.ifc` im Download-Ordner. Diese Datei in den gemeinsamen Ordner legen.
 4. **Bauleitung:** mit dem Bauleitungs-Passwort anmelden und diese neue Datei öffnen. Der Check läuft sofort.
+   Unter **Modell nach Status** zeigt ein 3D-Modell die Bauteile in den Farben der Übersicht. Geplante Bauteile sind durchscheinend, damit der Rohbau sichtbar bleibt. Der Filter der Bauteilliste (z. B. «Montage überfällig») wirkt auch im Modell. Ein Klick auf ein Bauteil zeigt Status, Soll-Datum und Abnahme. Bei offener Abnahme lässt es sich dort direkt **abnehmen**.
 5. Vor Ort kontrollieren, dann in der Bauteilliste bei «Abnahme ausstehend» auf **Abnehmen** klicken, oder **Alle … angezeigten abnehmen**. Das Abnahmedatum ist das Prüfdatum. Ein Datum nach heute ist nicht möglich. **Rückgängig** steht beim Bauteil unter «Abgenommen».
 6. **Stand speichern** und die neue Datei wieder in den gemeinsamen Ordner legen. Den Prüfbericht für `results/` speichert ihr wie bisher unter «Ergebnis sichern».
 
@@ -46,7 +47,7 @@ Den ausgegebenen Hash in `Baustellen-App.html` bei `ROLES` ersetzen.
   - Bauleitung nimmt alle 16 offenen ab → 36 abgenommen, 0 ausstehend.
   - Das Ergebnis aus dem Browser ist byte-gleich mit einem Kontrolllauf in Node. IfcOpenShell meldet keinen Befund, alle 81 Bauteile haben Geometrie.
 - Geteiltes Pset, geteilte Property und fehlendes Pset: mit einem Testmodell geprüft.
-- Modell des Dozenten (9 MB): 265 Änderungen in rund 0,1 s geschrieben.
+- Modell des Dozenten (9 MB): 265 Änderungen in rund 0,1 s geschrieben. Das 3D-Modell der Bauleitung lädt in rund 3 s.
 
 ## Grenzen
 
