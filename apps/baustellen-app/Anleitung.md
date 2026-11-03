@@ -47,6 +47,8 @@ python -c "import hashlib; print(hashlib.sha256('NEUES-PASSWORT'.encode()).hexdi
 
 Den ausgegebenen Hash in `src/app.html` bei `ROLES` ersetzen und neu bauen.
 
+**Anmelden aus einer anderen Seite:** Ist die App in einer Seite eingebettet (iframe, z. B. `pitch/Zwischenpitch.html`), kann diese Seite das Passwort mit `postMessage({ type: "bs-login", pw })` schicken. Die App prüft es mit demselben Hash wie das Login-Formular und antwortet mit `{ type: "bs-login-result", ok, role }`. Mit ungespeicherten Änderungen wechselt sie die Rolle nicht. Die Präsentation fragt das Passwort einmal pro Browser-Tab ab und speichert es nur im `sessionStorage`. Im Repository steht es nicht.
+
 **Wichtig:** Der Passwortschutz verhindert Fehlbedienung, er ist aber **kein Datenschutz**. Wer den Code öffnet, kann ihn umgehen. Für echten Schutz braucht es Variante B mit Server (siehe Konzept).
 
 ## Getestet (03.11.2026)

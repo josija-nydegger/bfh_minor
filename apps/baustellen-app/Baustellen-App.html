@@ -398,6 +398,22 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     if (pendCount()) { toast("Zuerst den Stand speichern."); return; }
     S.role = null; S.text = ""; S.name = ""; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
   };
+  // Anmelden aus einer umgebenden Seite (z. B. Pitch-Präsentation mit der App im iframe).
+  // Sie schickt das Passwort, die App prüft es mit demselben Hash-Vergleich wie das Formular. Der Schutz bleibt also gleich.
+  window.addEventListener("message", function (ev) {
+    if (window.parent === window || ev.source !== window.parent) return;
+    var d = ev.data || {};
+    if (d.type !== "bs-login") return;
+    var reply = function (ok, msg) { window.parent.postMessage({ type: "bs-login-result", ok: ok, role: ok ? S.role.id : null, msg: msg || "" }, "*"); };
+    var r = ROLES[sha256(String(d.pw || ""))];
+    if (!r) { reply(false, "Passwort unbekannt"); return; }
+    if (S.role && S.role.id === r.id) { reply(true); return; }
+    if (pendCount()) { toast("Zuerst den Stand speichern."); reply(false, "Zuerst den Stand speichern"); return; }
+    S.role = r; S.text = ""; S.name = ""; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank";
+    $("pw").value = ""; setPwVisible(false); $("loginErr").hidden = true; show("pick"); bar();
+    reply(true);
+  });
+
   window.addEventListener("beforeunload", function (e) { if (pendCount()) { e.preventDefault(); e.returnValue = ""; } });
   bar();
 })();
