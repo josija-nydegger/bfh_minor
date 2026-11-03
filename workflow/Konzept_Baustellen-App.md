@@ -86,9 +86,9 @@ Kernidee: Das IFC-Modell liefert Geometrie und Soll-Daten. Die Rückmeldungen (`
 
 | Heute | Künftig |
 |---|---|
-| – | `apps/baustellen-app/Baustellen-App.html`: Login, Modell öffnen, Stand speichern (IFC schreiben) |
-| `apps/polier-tool/Polier-Tool.html` | Polier-Ansicht `apps/baustellen-app/polier.html` (ohne CSV) |
-| `apps/baufortschritt-check/Baufortschritt-Check.html` | Bauleitungs-Ansicht `apps/baustellen-app/bauleitung.html`, neu mit «Abnehmen» |
+| – | `apps/baustellen-app/Baustellen-App.html`: **eine** Datei mit Login, beiden Ansichten und «Stand speichern» (IFC schreiben); erzeugt mit `build.js` aus `src/` |
+| `apps/polier-tool/Polier-Tool.html` | Polier-Ansicht `src/polier.html` (ohne CSV) |
+| `apps/baufortschritt-check/Baufortschritt-Check.html` | Bauleitungs-Ansicht `src/bauleitung.html`, neu mit «Abnehmen» und 3D-Modell |
 | `apps/polier-tool/csv_ins_ifc.py` | entfällt (Regeln in der App) |
 | CSV des Poliers | entfällt |
 | CSV/PDF-Bericht der Bauleitung | bleibt (für `results/`) |

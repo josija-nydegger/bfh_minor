@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baustellen-App</title>
+<style>
+/* Shell: Login, Modell, Rolle und «Stand speichern». Die Ansichten laufen im iframe darunter. */
+:root {
+  --paper: #eef0ee; --surface: #fff; --ink: #18201d; --muted: #5b6863; --line: #d3d9d5;
+  --board: #1d2a33; --on-board: #f3f5f2; --board-muted: #a9b6bd; --accent: #23529a; --on-accent: #fff;
+  --polier: #c98a06; --bauleitung: #2b8551; --bad: #c42f2f;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #121816; --surface: #1a211f; --ink: #e5ebe7; --muted: #98a59f; --line: #2f3834; --board: #0b1217; --accent: #86a9ee; --on-accent: #0f1a2c; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.45 var(--font); display: flex; flex-direction: column; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bar { background: var(--board); color: var(--on-board); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px max(14px, env(safe-area-inset-right, 0px)) 8px max(14px, env(safe-area-inset-left, 0px)); }
+.bar h1 { font-size: 1rem; margin: 0; letter-spacing: .02em; text-transform: uppercase; font-weight: 800; }
+.role { font-size: .8rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; }
+.model { color: var(--board-muted); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 8rem; }
+.btn { border: 1px solid color-mix(in srgb, var(--on-board) 35%, transparent); background: transparent; color: var(--on-board); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+.btn.go { background: var(--bauleitung); border-color: var(--bauleitung); color: #fff; }
+.btn:disabled { opacity: .45; cursor: default; }
+.pend { font-size: .85rem; color: var(--board-muted); }
+.pend b { color: #ffd166; }
+main { flex: 1; min-height: 0; display: flex; }
+iframe { border: 0; width: 100%; flex: 1; background: var(--paper); }
+.center { flex: 1; display: grid; place-items: center; padding: 24px 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 26px 28px; width: min(430px, 100%); display: flex; flex-direction: column; gap: 14px; }
+.card h2 { margin: 0; font-size: 1.4rem; }
+.card p { margin: 0; color: var(--muted); font-size: .92rem; }
+.card label { font-weight: 600; font-size: .9rem; }
+.card input[type=password] { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; background: var(--paper); width: 100%; }
+.primary { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+.err { color: var(--bad); font-weight: 600; font-size: .9rem; }
+.roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .85rem; color: var(--muted); }
+.roles div { border-left: 4px solid var(--c); padding: 4px 10px; }
+.drop { border: 2px dashed var(--line); border-radius: 8px; padding: 22px; text-align: center; cursor: pointer; }
+.drop.over { border-color: var(--accent); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: 6px; font-weight: 600; z-index: 9; max-width: 90vw; }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <h1>Baustellen-App</h1>
+  <span class="role" id="role" hidden></span>
+  <span class="model" id="model"></span>
+  <span class="pend" id="pend" hidden></span>
+  <button class="btn go" id="save" hidden disabled>Stand speichern</button>
+  <button class="btn" id="open" hidden>Modell öffnen</button>
+  <button class="btn" id="logout" hidden>Abmelden</button>
+</header>
+
+<main>
+  <section class="center" id="login">
+    <form class="card" id="loginForm">
+      <h2>Anmelden</h2>
+      <p>Das Passwort bestimmt die Rolle. Der Polier meldet Montagen, die Bauleitung prüft den Baufortschritt und setzt Abnahmen.</p>
+      <div class="roles"><div style="--c:var(--polier)"><b>Polier</b><br>Montage melden</div><div style="--c:var(--bauleitung)"><b>Bauleitung</b><br>Prüfen und abnehmen</div></div>
+      <label for="pw">Passwort</label>
+      <input type="password" id="pw" autocomplete="current-password" required>
+      <button class="primary" type="submit">Anmelden</button>
+      <p class="err" id="loginErr" hidden>Passwort unbekannt. Bitte nochmals versuchen.</p>
+    </form>
+  </section>
+
+  <section class="center" id="pick" hidden>
+    <div class="card">
+      <h2>Modell öffnen</h2>
+      <p>Den aktuellen Stand aus dem gemeinsamen Ordner öffnen. Die Datei bleibt auf diesem Computer.</p>
+      <label class="drop" id="drop" for="file"><b>IFC-Datei hierher ziehen oder klicken</b><input type="file" id="file" accept=".ifc,.IFC" hidden></label>
+      <p class="err" id="pickErr" hidden></p>
+    </div>
+  </section>
+
+  <iframe id="view" title="Ansicht" hidden></iframe>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script id="writer">
+/* Schreibt Rückmeldungen direkt in Pset_InstallationOccurrence (IFC-Text, STEP).
+   changes: { GlobalId: { IsInstalled?: true|false, AcceptanceDate?: 'JJJJ-MM-TT'|null } }
+   Regeln wie früher in csv_ins_ifc.py: nur diese zwei Properties, InstallationDate bleibt unverändert,
+   geteilte Psets/Properties werden für das Bauteil getrennt, fehlendes Pset/Property wird angelegt. */
+var IfcWriter = (function () {
+  var PSET = "pset_installationoccurrence";
+  var B64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
+  function newGid() { var s = B64[Math.floor(Math.random() * 4)]; for (var i = 0; i < 21; i++) s += B64[Math.floor(Math.random() * 64)]; return s; }
+
+  // Argumentliste "(a,b,(c,d),'x')" in Top-Level-Tokens (Rohtext) zerlegen
+  function split(raw) {
+    var s = raw.trim(), out = [], depth = 0, inStr = false, cur = "";
+    for (var i = 1; i < s.length - 1; i++) {
+      var c = s[i];
+      if (inStr) { cur += c; if (c === "'") { if (s[i + 1] === "'") { cur += "'"; i++; } else inStr = false; } continue; }
+      if (c === "'") { inStr = true; cur += c; continue; }
+      if (c === "(") depth++; else if (c === ")") depth--;
+      if (c === "," && depth === 0) { out.push(cur.trim()); cur = ""; } else cur += c;
+    }
+    if (cur.trim() || out.length) out.push(cur.trim());
+    return out;
+  }
+  var refs = function (tok) { return (tok.match(/#\d+/g) || []).map(function (r) { return +r.slice(1); }); };
+  var strOf = function (tok) { var m = /^'((?:[^']|'')*)'$/.exec(tok || ""); return m ? m[1].replace(/''/g, "'") : ""; };
+
+  function write(text, changes) {
+    var gids = Object.keys(changes);
+    var report = { gesetzt: 0, unveraendert: 0, uebersprungen: [], neu: [] };
+    if (!gids.length) return { text: text, report: report };
+    var want = new Set(gids);
+    var start = text.indexOf("DATA;"); if (start < 0) throw new Error("Keine IFC-Datei (DATA fehlt)");
+    var ents = new Map(), gidToId = new Map(), oh = null, maxId = 0, n = text.length, i = start + 5, dataEnd = -1;
+    var e2 = text.indexOf("ENDSEC;", i);
+    // Entitäten scannen (Positionen merken)
+    while (i < n) {
+      var h = text.indexOf("#", i);
+      if (e2 >= 0 && e2 < i) e2 = text.indexOf("ENDSEC;", i); // «ENDSEC;» stand in einem Text
+      if (e2 >= 0 && (h < 0 || e2 < h)) { dataEnd = e2; break; }
+      if (h < 0) break;
+      var j = h + 1, id = 0, c = text.charCodeAt(j);
+      if (c < 48 || c > 57) { i = j; continue; }
+      while (c >= 48 && c <= 57) { id = id * 10 + (c - 48); j++; c = text.charCodeAt(j); }
+      while (c === 32 || c === 9 || c === 10 || c === 13) { j++; c = text.charCodeAt(j); }
+      if (c !== 61) { i = j; continue; }
+      j++; while (/\s/.test(text[j])) j++;
+      var ts = j; while (/[A-Za-z0-9_]/.test(text[j])) j++;
+      var type = text.slice(ts, j).toUpperCase(), ap = j, inStr = false;
+      while (j < n) { c = text.charCodeAt(j); if (inStr) { if (c === 39) { if (text.charCodeAt(j + 1) === 39) { j += 2; continue; } inStr = false; } } else if (c === 39) inStr = true; else if (c === 59) break; j++; }
+      if (id > maxId) maxId = id;
+      if (type === "IFCPROPERTYSINGLEVALUE" || type === "IFCPROPERTYSET" || type === "IFCRELDEFINESBYPROPERTIES") ents.set(id, { id: id, type: type, start: h, end: j + 1, raw: text.slice(ap, j) });
+      else if (type === "IFCOWNERHISTORY" && !oh) oh = "#" + id;
+      else if (text[ap] === "(" && text[ap + 1] === "'") { var g = text.substr(ap + 2, 22); if (want.has(g) && text[ap + 24] === "'") gidToId.set(g, id); }
+      i = j + 1;
+    }
+    if (dataEnd < 0) throw new Error("Ende der DATA-Sektion nicht gefunden");
+
+    // Psets, Properties und Beziehungen auflösen
+    var psets = new Map(), props = new Map(), propRefs = new Map(), elemRels = new Map();
+    ents.forEach(function (e) {
+      if (e.type === "IFCPROPERTYSET") {
+        var t = split(e.raw); e.tok = t;
+        if (strOf(t[2]).toLowerCase() !== PSET) return;
+        e.props = refs(t[4]); psets.set(e.id, e);
+        e.props.forEach(function (p) { propRefs.set(p, (propRefs.get(p) || 0) + 1); });
+      }
+    });
+    ents.forEach(function (e) {
+      if (e.type === "IFCPROPERTYSINGLEVALUE") { e.tok = split(e.raw); e.name = strOf(e.tok[0]); props.set(e.id, e); }
+      if (e.type === "IFCRELDEFINESBYPROPERTIES") {
+        var m = /#(\d+)\s*\)\s*$/.exec(e.raw); if (!m || !psets.has(+m[1])) return;
+        e.tok = split(e.raw); e.related = refs(e.tok[4]); e.pset = +m[1];
+        e.related.forEach(function (r) { if (!elemRels.has(r)) elemRels.set(r, e); });
+      }
+    });
+
+    var dirty = new Set(), added = [];
+    function add(type, args) { var id = ++maxId; added.push("#" + id + "=" + type + "(" + args + ");"); return id; }
+    function newProp(name, val, from) {
+      var d = from ? from.tok[1] : "$", u = from ? from.tok[3] : "$";
+      var id = ++maxId, e = { id: id, type: "IFCPROPERTYSINGLEVALUE", tok: ["'" + name + "'", d, val, u], name: name, isNew: true };
+      props.set(id, e); propRefs.set(id, 1); return e;
+    }
+    function value(name, v, old) {
+      if (name === "IsInstalled") return v ? "IFCBOOLEAN(.T.)" : "IFCBOOLEAN(.F.)";
+      if (v == null) return "$";
+      var t = old && /^(IFCLABEL|IFCTEXT|IFCDATE|IFCIDENTIFIER)\(/i.exec(old);
+      return (t ? t[1].toUpperCase() : "IFCLABEL") + "('" + v + "')";
+    }
+
+    gids.forEach(function (g) {
+      var ch = changes[g], elemId = gidToId.get(g);
+      if (!elemId) { report.uebersprungen.push(g + ": GlobalId nicht im Modell"); return; }
+      var rel = elemRels.get(elemId), pset;
+      if (!rel) {
+        pset = { id: ++maxId, type: "IFCPROPERTYSET", props: [], isNew: true, tok: ["'" + newGid() + "'", oh || "$", "'Pset_InstallationOccurrence'", "$", "()"] };
+        psets.set(pset.id, pset);
+        add("IFCRELDEFINESBYPROPERTIES", "'" + newGid() + "'," + (oh || "$") + ",$,$,(#" + elemId + "),#" + pset.id);
+        report.neu.push(g + ": Pset angelegt");
+      } else {
+        pset = psets.get(rel.pset);
+        if (rel.related.length > 1) {
+          // Pset von mehreren Bauteilen geteilt: für dieses Bauteil eine Kopie anlegen
+          var copy = { id: ++maxId, type: "IFCPROPERTYSET", props: pset.props.slice(), isNew: true, tok: pset.tok.slice() };
+          copy.tok[0] = "'" + newGid() + "'";
+          copy.props.forEach(function (p) { propRefs.set(p, (propRefs.get(p) || 0) + 1); });
+          psets.set(copy.id, copy);
+          rel.related = rel.related.filter(function (r) { return r !== elemId; }); dirty.add(rel);
+          add("IFCRELDEFINESBYPROPERTIES", "'" + newGid() + "'," + (oh || "$") + ",$,$,(#" + elemId + "),#" + copy.id);
+          pset = copy;
+        }
+      }
+      var changed = false;
+      ["IsInstalled", "AcceptanceDate"].forEach(function (name) {
+        if (!(name in ch)) return;
+        var pid = pset.props.find(function (p) { return props.get(p) && props.get(p).name === name; });
+        var prop = pid != null ? props.get(pid) : null;
+        var val = value(name, ch[name], prop && prop.tok[2]);
+        if (prop && prop.tok[2] === val) return;
+        if (!prop) { prop = newProp(name, val, null); pset.props.push(prop.id); dirty.add(pset); }
+        else if ((propRefs.get(prop.id) || 0) > 1) {
+          var np = newProp(name, val, prop);
+          propRefs.set(prop.id, propRefs.get(prop.id) - 1);
+          pset.props = pset.props.map(function (p) { return p === prop.id ? np.id : p; }); dirty.add(pset); prop = np;
+        } else { prop.tok[2] = val; dirty.add(prop); }
+        if (prop.isNew) dirty.add(prop);
+        changed = true;
+      });
+      if (pset.isNew) dirty.add(pset);
+      if (changed) report.gesetzt++; else report.unveraendert++;
+    });
+
+    // Text neu zusammensetzen: geänderte Entitäten ersetzen, neue vor ENDSEC anhängen
+    var line = function (e) {
+      if (e.type === "IFCPROPERTYSET") { var t = e.tok.slice(); t[4] = "(" + e.props.map(function (p) { return "#" + p; }).join(",") + ")"; return "#" + e.id + "=IFCPROPERTYSET(" + t.join(",") + ");"; }
+      if (e.type === "IFCRELDEFINESBYPROPERTIES") { var r = e.tok.slice(); r[4] = "(" + e.related.map(function (p) { return "#" + p; }).join(",") + ")"; return "#" + e.id + "=IFCRELDEFINESBYPROPERTIES(" + r.join(",") + ");"; }
+      return "#" + e.id + "=" + e.type + "(" + e.tok.join(",") + ");";
+    };
+    var repl = [], fresh = [];
+    dirty.forEach(function (e) { if (e.isNew) fresh.push(line(e)); else repl.push(e); });
+    repl.sort(function (a, b) { return a.start - b.start; });
+    var out = [], pos = 0;
+    repl.forEach(function (e) { out.push(text.slice(pos, e.start), line(e)); pos = e.end; });
+    out.push(text.slice(pos, dataEnd), fresh.concat(added).map(function (l) { return l + "\n"; }).join(""), text.slice(dataEnd));
+    return { text: out.join(""), report: report };
+  }
+  return { write: write, split: split };
+})();
+if (typeof module !== "undefined") module.exports = IfcWriter;
+</script>
+
+<script>
+(function () {
+  // Passwörter stehen nicht im Code, nur ihre SHA-256-Hashes. Zum Ändern einen neuen Hash eintragen (Anleitung).
+  // Achtung: Im Browser ist das nur ein Schutz vor Fehlbedienung, kein echter Zugriffsschutz.
+  var ROLES = {
+    "a4d7b32421905abe32e1bf1b4b891386fc1b22ebcf607bb165c3ff4834defa5c": { id: "polier", label: "Polier", color: "var(--polier)" },
+    "4d3eb5178ada3e68f1b068401692eed3c145a64e5bd1c17d4fe5579d6f5d8a58": { id: "bauleitung", label: "Bauleitung", color: "var(--bauleitung)" }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var S = { role: null, name: "", text: "", pend: { inst: {}, acc: {} } };
+
+  function toast(t) { var el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 3200); }
+  function todayIso() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+  // SHA-256 (eigene Umsetzung, damit es auch per Doppelklick ohne sicheren Kontext läuft)
+  function sha256(str) {
+    var K = [], H = [], p = 2, n = 0;
+    function isP(x) { for (var f = 2; f * f <= x; f++) if (x % f === 0) return false; return true; }
+    function frac(x) { return (x - Math.floor(x)) * 4294967296 | 0; }
+    while (n < 64) { if (isP(p)) { if (n < 8) H[n] = frac(Math.pow(p, 1 / 2)); K[n] = frac(Math.pow(p, 1 / 3)); n++; } p++; }
+    var bytes = unescape(encodeURIComponent(str)), l = bytes.length, words = [];
+    for (var i = 0; i < l; i++) words[i >> 2] |= bytes.charCodeAt(i) << (24 - (i % 4) * 8);
+    words[l >> 2] |= 0x80 << (24 - (l % 4) * 8);
+    words[((l + 8) >> 6 << 4) + 15] = l * 8;
+    for (var b = 0; b < words.length; b += 16) {
+      var w = [], a = H.slice();
+      for (var q = 0; q < 16; q++) w[q] = words[b + q] | 0;
+      for (var t = 0; t < 64; t++) {
+        if (t >= 16) {
+          var w15 = w[t - 15], w2 = w[t - 2];
+          w[t] = (((w15 >>> 7 | w15 << 25) ^ (w15 >>> 18 | w15 << 14) ^ (w15 >>> 3)) + w[t - 16] + ((w2 >>> 17 | w2 << 15) ^ (w2 >>> 19 | w2 << 13) ^ (w2 >>> 10)) + w[t - 7]) | 0;
+        }
+        var e = a[4], x = a[0];
+        var t1 = a[7] + ((e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7)) + ((e & a[5]) ^ (~e & a[6])) + K[t] + (w[t] | 0);
+        var t2 = ((x >>> 2 | x << 30) ^ (x >>> 13 | x << 19) ^ (x >>> 22 | x << 10)) + ((x & a[1]) ^ (x & a[2]) ^ (a[1] & a[2]));
+        a = [(t1 + t2) | 0].concat(a); a[4] = (a[4] + t1) | 0; a.length = 8;
+      }
+      for (var k = 0; k < 8; k++) H[k] = (H[k] + a[k]) | 0;
+    }
+    return H.map(function (v) { return (v >>> 0).toString(16).padStart(8, "0"); }).join("");
+  }
+
+  function pendCount() { var g = new Set(Object.keys(S.pend.inst).concat(Object.keys(S.pend.acc))); return g.size; }
+  function bar() {
+    var r = S.role, n = pendCount();
+    $("role").hidden = !r; if (r) { $("role").textContent = r.label; $("role").style.setProperty("--c", r.color); }
+    $("logout").hidden = !r; $("open").hidden = !r || !S.text; $("save").hidden = !r || !S.text;
+    $("model").textContent = S.name;
+    $("pend").hidden = !S.text; $("pend").innerHTML = n ? "<b>" + n + "</b> ungespeicherte Änderung" + (n === 1 ? "" : "en") : "alles gespeichert";
+    $("save").disabled = !n;
+  }
+  function show(which) { $("login").hidden = which !== "login"; $("pick").hidden = which !== "pick"; $("view").hidden = which !== "view"; }
+
+  $("loginForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var r = ROLES[sha256($("pw").value)];
+    $("loginErr").hidden = !!r; if (!r) return;
+    S.role = r; $("pw").value = ""; show("pick"); bar();
+  });
+
+  // Datei als Latin-1 lesen: Bytes bleiben beim Zurückschreiben unverändert
+  function bytesToText(buf) { var u = new Uint8Array(buf), s = "", CH = 0x8000; for (var i = 0; i < u.length; i += CH) s += String.fromCharCode.apply(null, u.subarray(i, i + CH)); return s; }
+  function textToBytes(t) { var u = new Uint8Array(t.length); for (var i = 0; i < t.length; i++) u[i] = t.charCodeAt(i) & 255; return u; }
+
+  // Die Ansichten stecken eingebettet in dieser Datei (Base64, eingefügt von build.js)
+  function viewHtml(id) {
+    var el = document.getElementById("view-" + id);
+    if (!el) throw new Error("Ansicht «" + id + "» fehlt. Baustellen-App.html mit build.js neu erzeugen.");
+    var b = atob(el.textContent.trim()), u = new Uint8Array(b.length);
+    for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(u);
+  }
+  function loadView() {
+    var f = $("view"), html;
+    try { html = viewHtml(S.role.id); } catch (e) { $("pickErr").textContent = e.message; $("pickErr").hidden = false; show("pick"); return; }
+    f.onload = function () { send(); };
+    f.removeAttribute("src"); f.srcdoc = html; show("view");
+  }
+  function send() {
+    var w = $("view").contentWindow; if (!w || !S.role || !S.text) return; // z. B. nach Abmelden (about:blank)
+    var buf = textToBytes(S.text).buffer;
+    w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id }, "*", [buf]);
+  }
+  function openFile(file) {
+    if (!file) return;
+    if (pendCount()) { toast("Zuerst den Stand speichern, sonst gehen Änderungen verloren."); return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var t = bytesToText(fr.result);
+      if (!/ISO-10303-21/.test(t.slice(0, 2000))) { $("pickErr").textContent = "Das ist keine IFC-Datei (.ifc)."; $("pickErr").hidden = false; return; }
+      $("pickErr").hidden = true; S.text = t; S.name = file.name; S.pend = { inst: {}, acc: {} };
+      bar(); loadView();
+    };
+    fr.readAsArrayBuffer(file);
+  }
+  $("file").onchange = function () { openFile(this.files[0]); this.value = ""; };
+  var drop = $("drop");
+  ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (e) { openFile(e.dataTransfer.files[0]); });
+  $("open").onclick = function () { if (pendCount()) { toast("Zuerst den Stand speichern."); return; } show("pick"); };
+
+  // Meldungen der Ansichten (nur die zur Rolle passenden Felder werden angenommen)
+  window.addEventListener("message", function (ev) {
+    if (ev.source !== $("view").contentWindow || !S.role) return;
+    var d = ev.data || {};
+    if (d.type === "bs-inst" && S.role.id === "polier") S.pend.inst = d.changes || {};
+    if (d.type === "bs-acc" && S.role.id === "bauleitung") S.pend.acc = d.changes || {};
+    bar();
+  });
+
+  $("save").onclick = function () {
+    var ch = {};
+    Object.keys(S.pend.inst).forEach(function (g) { (ch[g] = ch[g] || {}).IsInstalled = S.pend.inst[g]; });
+    Object.keys(S.pend.acc).forEach(function (g) { (ch[g] = ch[g] || {}).AcceptanceDate = S.pend.acc[g]; });
+    var res;
+    try { res = IfcWriter.write(S.text, ch); } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
+    var base = S.name.replace(/\.ifc$/i, "").replace(/_stand_\d{4}-\d{2}-\d{2}(_\d{4})?(\s*\(\d+\))?$/, "");
+    var now = new Date(), hhmm = String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0");
+    var name = base + "_stand_" + todayIso() + "_" + hhmm + ".ifc";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([textToBytes(res.text)], { type: "application/octet-stream" }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    S.text = res.text; S.name = name; S.pend = { inst: {}, acc: {} };
+    $("view").contentWindow.postMessage({ type: "bs-saved" }, "*");
+    bar(); send();
+    var r = res.report;
+    toast("Gespeichert: " + name + " · " + r.gesetzt + " Bauteile geändert" + (r.uebersprungen.length ? " · " + r.uebersprungen.length + " übersprungen" : "") + ". Datei in den gemeinsamen Ordner legen.");
+  };
+
+  $("logout").onclick = function () {
+    if (pendCount()) { toast("Zuerst den Stand speichern."); return; }
+    S.role = null; S.text = ""; S.name = ""; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
+  };
+  window.addEventListener("beforeunload", function (e) { if (pendCount()) { e.preventDefault(); e.returnValue = ""; } });
+  bar();
+})();
+</script>
+<!--VIEWS-->
+</body>
+</html>

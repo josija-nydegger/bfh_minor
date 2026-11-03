@@ -2,14 +2,22 @@
 
 Die Baustellen-App fasst Polier-Tool und Baufortschritt-Check zusammen. Das Passwort bestimmt die Rolle. Die Rückmeldungen schreibt die App **direkt ins IFC-Modell**: Es gibt kein CSV und kein `csv_ins_ifc.py` mehr. Konzept: [Konzept_Baustellen-App.md](../../workflow/Konzept_Baustellen-App.md).
 
+**Zum Benutzen braucht es nur eine Datei:** `Baustellen-App.html`. Sie lässt sich einzeln herunterladen, weitergeben und per Doppelklick öffnen, beide Ansichten sind darin enthalten.
+
 | Datei | Inhalt |
 |---|---|
-| `Baustellen-App.html` | Login, Modell öffnen, **Stand speichern** (schreibt das IFC) |
-| `polier.html` | Polier-Ansicht, aus dem Polier-Tool ohne CSV |
-| `bauleitung.html` | Bauleitungs-Ansicht, aus dem Baufortschritt-Check mit **Abnehmen** |
+| `Baustellen-App.html` | **die App** (erzeugt, nicht direkt bearbeiten): Login, Modell öffnen, **Stand speichern** (schreibt das IFC), Polier- und Bauleitungs-Ansicht |
+| `src/app.html` | Quelle: Login, Modell öffnen, IFC-Schreiber |
+| `src/polier.html` | Quelle: Polier-Ansicht, aus dem Polier-Tool ohne CSV |
+| `src/bauleitung.html` | Quelle: Bauleitungs-Ansicht, aus dem Baufortschritt-Check, mit **Abnehmen** und 3D-Modell |
+| `build.js` | packt die Quellen zu `Baustellen-App.html` |
 | `baufortschritt.js` | Zweitprüfung als Skript in https://www.ifclite.com (Analyze → Script Editor), unabhängig von der App |
 
-Alle drei Dateien müssen im selben Ordner liegen. Die Ansichten lassen sich nur über `Baustellen-App.html` öffnen.
+**Etwas ändern:** Die Dateien in `src/` bearbeiten und danach im Repository-Ordner neu bauen (Node.js):
+
+```bash
+node apps/baustellen-app/build.js
+```
 
 ## Ablauf an einem Tag
 
@@ -36,7 +44,7 @@ Im Code stehen nur die SHA-256-Hashes. Die Passwörter selbst werden nicht im Re
 python -c "import hashlib; print(hashlib.sha256('NEUES-PASSWORT'.encode()).hexdigest())"
 ```
 
-Den ausgegebenen Hash in `Baustellen-App.html` bei `ROLES` ersetzen.
+Den ausgegebenen Hash in `src/app.html` bei `ROLES` ersetzen und neu bauen.
 
 **Wichtig:** Der Passwortschutz verhindert Fehlbedienung, er ist aber **kein Datenschutz**. Wer den Code öffnet, kann ihn umgehen. Für echten Schutz braucht es Variante B mit Server (siehe Konzept).
 
@@ -53,4 +61,4 @@ Den ausgegebenen Hash in `Baustellen-App.html` bei `ROLES` ersetzen.
 
 - Arbeiten zwei Personen gleichzeitig an derselben Datei, gewinnt die zuletzt gespeicherte. Darum pro Modell immer nur eine Person gleichzeitig.
 - Nicht gespeicherte Abnahmen gehen beim Schliessen verloren, die App warnt davor. Meldungen des Poliers bleiben im Browser zwischengespeichert.
-- Getestet über einen lokalen Webserver in Chrome. Öffnen per Doppelklick (`file://`) ist noch nicht geprüft.
+- Getestet über einen lokalen Webserver in Chrome, auch mit `Baustellen-App.html` allein in einem leeren Ordner. Öffnen per Doppelklick (`file://`) ist noch nicht vollständig geprüft.

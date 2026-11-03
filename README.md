@@ -32,7 +32,7 @@ Polier: anmelden → Montage melden → Stand speichern ──IFC──▶ Baule
 
 ### Schritt 0 · Repository herunterladen
 
-Auf GitHub den Branch `baustellen-app` wählen, dann **Code → Download ZIP** klicken und die ZIP-Datei entpacken.
+Auf GitHub den Branch `baustellen-app` wählen, dann **Code → Download ZIP** klicken und die ZIP-Datei entpacken. Wer nur die App braucht, lädt einzig [`apps/baustellen-app/Baustellen-App.html`](apps/baustellen-app/Baustellen-App.html) herunter (auf GitHub: Datei öffnen → **Download raw file**). Die eine Datei genügt.
 
 ### Schritt 1 · Polier meldet Montagen
 
