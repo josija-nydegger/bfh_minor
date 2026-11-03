@@ -10,99 +10,76 @@ Die Bauleitung erfährt direkt aus dem IFC-Modell, welche Bauteile montiert, üb
 | `IsInstalled` | `IfcBoolean` | Polier | `TRUE`, sobald das Bauteil montiert ist (projektspezifisch, nicht in IFC 4.3) |
 | `AcceptanceDate` | `IfcLabel` (`YYYY-MM-DD`) | Bauleitung | Datum der Abnahme nach der Kontrolle |
 
-Daraus leitet ein Prüfskript pro Bauteil den Status ab: geplant, Montage überfällig, Abnahme ausstehend, abgenommen oder Fehler. Details stehen im [MVP](MVP/MVP%20definitive%20Themenwahl.md).
+Daraus leitet die Baustellen-App pro Bauteil den Status ab: geplant, Montage überfällig, Abnahme ausstehend, abgenommen oder Fehler. Details stehen im [MVP](MVP/MVP%20definitive%20Themenwahl.md).
 
-## Schritt für Schritt: die drei Tools ausprobieren (Peer-Audit)
+> Dieser Branch enthält die zusammengeführte **Baustellen-App**. Die früheren Einzeltools (Polier-Tool mit CSV und `csv_ins_ifc.py`, Baufortschritt-Check) und die Peer-Audit-Anleitung vom 03.11.2026 liegen unverändert auf `main`.
 
-Ihr spielt einen Tag auf der Baustelle durch: Der **Polier** meldet montierte Bauteile, die Rückmeldung wird **ins Modell übernommen**, und die **Bauleitung** prüft den Baufortschritt.
+## Schritt für Schritt: ein Tag mit der Baustellen-App
+
+Polier und Bauleitung arbeiten mit derselben App. Das Passwort bestimmt die Rolle. **Stand speichern** schreibt die Rückmeldungen direkt ins IFC-Modell, ein CSV gibt es nicht mehr.
 
 ```
-1 Polier-Tool  ──CSV──▶  2 csv_ins_ifc.py  ──neues IFC──▶  3 Baufortschritt-Check
-  (Browser)                (Python)                          (Browser)
+Polier: anmelden → Montage melden → Stand speichern ──IFC──▶ Bauleitung: anmelden → prüfen → abnehmen → Stand speichern
 ```
 
-Übungsmodell: [`model/Mutthornhuette_Baufortschritt.ifc`](model/Mutthornhuette_Baufortschritt.ifc), eine vereinfachte Mutthornhütte mit 81 Bauteilen und absichtlich eingebauten Fehlern. **Stichtag ist der 03.11.2026.** Die erwarteten Zahlen stehen bei jedem Schritt.
+Übungsmodell: [`model/Mutthornhuette_Baufortschritt.ifc`](model/Mutthornhuette_Baufortschritt.ifc), eine vereinfachte Mutthornhütte mit 81 Bauteilen und absichtlich eingebauten Fehlern. **Stichtag ist der 03.11.2026.**
 
 ### Was ihr braucht
 
-| | Version (getestet am 02.11.2026) |
-|---|---|
-| Laptop mit Chrome oder Edge, Internetverbindung | Chrome/Edge aktuell |
-| Python | 3.12.10 |
-| IfcOpenShell (nur für Schritt 2) | 0.9.0.post1 |
+- Laptop mit Chrome oder Edge und Internet (die 3D-Ansicht lädt three.js und web-ifc von einem CDN)
+- die Passwörter für Polier und Bauleitung. Sie stehen nicht im Repository, ihr bekommt sie von Team 4.
+- Python wird nicht gebraucht.
 
-### Schritt 0 · Repository herunterladen und Python vorbereiten
+### Schritt 0 · Repository herunterladen
 
-1. Auf GitHub oben rechts **Code → Download ZIP** klicken und die ZIP-Datei entpacken. Wer Git kennt, kann stattdessen klonen: `git clone https://github.com/josija-nydegger/bfh_minor.git`
-2. Im entpackten Ordner `bfh_minor` ein Terminal öffnen. Unter Windows im Explorer in die Adresszeile `powershell` tippen und Enter drücken.
-3. IfcOpenShell installieren:
+Auf GitHub den Branch `baustellen-app` wählen, dann **Code → Download ZIP** klicken und die ZIP-Datei entpacken.
 
-   ```bash
-   python -m pip install ifcopenshell==0.9.0.post1
-   ```
+### Schritt 1 · Polier meldet Montagen
 
-   Kennt Windows `python` nicht, stattdessen `py` verwenden, also `py -m pip install …`.
+1. [`apps/baustellen-app/Baustellen-App.html`](apps/baustellen-app/Baustellen-App.html) mit Doppelklick öffnen und mit dem **Polier-Passwort** anmelden.
+2. `model/Mutthornhuette_Baufortschritt.ifc` in das Feld ziehen.
+3. Den Stichtag oben mit **›** auf **Di 3.11.** stellen. Am 03.11. selbst steht er schon dort.
+4. Kontrolle: **Überfällig 4 · Montiert 33 · Fehler 5 · Alle 81**.
+5. **Überfällig** antippen → **Alle 4 angezeigten als montiert melden …** → **Ja, alle 4 als montiert melden**. Oben steht jetzt **4 ungespeicherte Änderungen**.
+6. **Stand speichern** klicken. Im Download-Ordner liegt jetzt `Mutthornhuette_Baufortschritt_stand_<Datum>_<Uhrzeit>.ifc`. Kontrolle: **Überfällig 0 · Montiert 37**.
 
-### Schritt 1 · Polier-Tool: Montage melden
+### Schritt 2 · Bauleitung prüft und nimmt ab
 
-1. [`apps/polier-tool/Polier-Tool.html`](apps/polier-tool/Polier-Tool.html) mit Doppelklick öffnen.
-2. **IFC-Datei wählen** klicken und `model/Mutthornhuette_Baufortschritt.ifc` öffnen.
-3. Oben in der Mitte den Stichtag mit **›** auf **Di 3.11.** stellen. Am 03.11. selbst steht er schon dort.
-4. Kontrolle: Die Chips zeigen **Überfällig 4 · Montiert 33 · Fehler 5 · Alle 81**.
-5. **Überfällig** antippen. Es erscheinen 4 Bauteile mit 15, 14, 8 und 6 Tagen Verzug, darunter «Decke über EG».
-6. **Alle 4 angezeigten als montiert melden …** klicken und mit **Ja, alle 4 als montiert melden** bestätigen.
-7. **Export → CSV: nur Änderungen (4)** klicken. Im Download-Ordner liegt jetzt `Mutthornhuette_Baufortschritt_IsInstalled_aenderungen_<Stichtag>.csv`. Das Datum am Schluss ist der Stichtag, der im Tool eingestellt war, z. B. `2026-11-03`.
-8. Diese CSV-Datei in den Ordner `bfh_minor` kopieren, also dorthin, wo diese README liegt.
-
-### Schritt 2 · Rückmeldung ins Modell übernehmen
-
-Im Terminal (Ordner `bfh_minor`). Das Datum im CSV-Namen muss mit eurer Datei übereinstimmen:
-
-```bash
-python apps/polier-tool/csv_ins_ifc.py model/Mutthornhuette_Baufortschritt.ifc Mutthornhuette_Baufortschritt_IsInstalled_aenderungen_2026-11-03.csv
-```
-
-Tipp: `Mutthornhuette_Baufortschritt_IsInstalled` tippen und die **Tab**-Taste drücken. Das Terminal ergänzt dann den richtigen Dateinamen.
-
-Kontrolle: Die Ausgabe zeigt **gesetzt: 4 · unverändert: 0 · übersprungen: 0**. Im Ordner `model/` liegen danach zwei neue Dateien:
-- `Mutthornhuette_Baufortschritt_rueckgemeldet_<heute>.ifc`: das Modell mit den Rückmeldungen
-- `…_protokoll.csv`: alter und neuer Wert pro GlobalId
-
-Das Eingabemodell bleibt unverändert.
-
-### Schritt 3 · Baufortschritt-Check: Bauleitung prüft
-
-1. [`apps/baufortschritt-check/Baufortschritt-Check.html`](apps/baufortschritt-check/Baufortschritt-Check.html) mit Doppelklick öffnen. Zuerst erscheint ein Beispiel.
-2. Rechts das **Prüfdatum** auf **03.11.2026** stellen.
-3. Das **neue** Modell `model/Mutthornhuette_Baufortschritt_rueckgemeldet_<heute>.ifc` in das Feld ziehen.
+1. **Abmelden** und mit dem **Bauleitungs-Passwort** anmelden.
+2. Die gespeicherte Datei `…_stand_….ifc` aus dem Download-Ordner in das Feld ziehen.
+3. Rechts das **Prüfdatum** auf **03.11.2026** stellen.
 4. Kontrolle:
 
-   | | Originalmodell | Nach Schritt 2 |
-   |---|---|---|
-   | Montiert | 33 von 81 | **37 von 81** |
-   | Abgenommen | 20 | 20 |
-   | Abnahme ausstehend | 12 | **16** |
-   | Montage überfällig | 4 | **0** |
-   | Geplant | 39 | 39 |
-   | Daten fehlerhaft | 6 | 6 |
+   | | Originalmodell | Nach Schritt 1 | Nach Schritt 2 |
+   |---|---|---|---|
+   | Montiert | 33 von 81 | **37 von 81** | 37 von 81 |
+   | Abgenommen | 20 | 20 | **36** |
+   | Abnahme ausstehend | 12 | **16** | **0** |
+   | Montage überfällig | 4 | **0** | 0 |
+   | Geplant | 39 | 39 | 39 |
+   | Daten fehlerhaft | 6 | 6 | 6 |
 
-   Die 6 Datenfehler sind absichtlich eingebaut, zum Beispiel Wassertanks ohne Soll-Datum oder das unmögliche Datum `2026-09-31`. Die Liste steht im [Lösungsschlüssel](checks/loesung_mutthornhuette.md).
-5. Unter **Ergebnis sichern → Liste als Excel-Datei (CSV)** speichert ihr den Prüfbericht, der nach `results/` gehört.
+5. In der Bauteilliste den Filter **Abnahme ausstehend** wählen → **Alle 16 angezeigten am 03.11.2026 abnehmen …** → **Ja**. Einzelne Bauteile lassen sich mit **Abnehmen** abnehmen und unter «Abgenommen» mit **Rückgängig** zurücknehmen.
+6. **Stand speichern**. Das neue IFC enthält die Abnahmen.
+7. Unter **Ergebnis sichern → Liste als Excel-Datei (CSV)** speichert ihr den Prüfbericht für `results/`.
 
-Variante ohne HTML: Der gleiche Check läuft als Skript in https://www.ifclite.com (v5.2.2): Modell öffnen, dann **Analyze → Script Editor → Import script file** und [`apps/baufortschritt-check/baufortschritt.js`](apps/baufortschritt-check/baufortschritt.js) wählen. Oben im Skript `PRUEFDATUM = '2026-11-03'` setzen und **Run** klicken. Die Bauteile werden dann nach Status eingefärbt.
+Die 6 Datenfehler sind absichtlich eingebaut, zum Beispiel Wassertanks ohne Soll-Datum oder das unmögliche Datum `2026-09-31`. Die Liste steht im [Lösungsschlüssel](checks/loesung_mutthornhuette.md).
+
+### Zweitprüfung in ifclite
+
+Der gleiche Check läuft als Skript in https://www.ifclite.com (v5.2.2): Modell öffnen, dann **Analyze → Script Editor → Import script file** und [`apps/baustellen-app/baufortschritt.js`](apps/baustellen-app/baufortschritt.js) wählen. Oben im Skript `PRUEFDATUM = '2026-11-03'` setzen und **Run** klicken. Die Bauteile werden dann nach Status eingefärbt.
 
 ### Wenn etwas nicht klappt
 
 | Problem | Lösung |
 |---|---|
-| Polier-Tool bleibt leer oder lädt nicht | Internet prüfen, denn das Tool lädt three.js und web-ifc von einem CDN. Sonst im Ordner `bfh_minor` `python -m http.server` starten und http://localhost:8000/apps/polier-tool/Polier-Tool.html öffnen. |
-| `python` wird nicht gefunden | `py` statt `python` verwenden |
-| `No module named ifcopenshell` | Schritt 0.3 wiederholen, mit demselben `python` bzw. `py` |
-| Schritt 2: `FileNotFoundError` | Die CSV liegt nicht im Ordner `bfh_minor`, oder das Datum im Namen ist anders (Stichtag im Polier-Tool). Mit `dir *.csv` nachsehen und den Namen mit der Tab-Taste ergänzen. |
-| Andere Zahlen in Schritt 3 | Prüfdatum 03.11.2026? Das **neue** Modell aus Schritt 2 geladen? |
-| Polier-Tool zeigt alte Meldungen | **Export → Änderungen verwerfen**. Die Meldungen werden pro Browser gespeichert. |
+| «Passwort unbekannt» | Gross- und Kleinschreibung prüfen. Die Passwörter gibt Team 4 weiter. |
+| Polier-Ansicht bleibt leer | Internet prüfen. Sonst im Ordner `bfh_minor` `python -m http.server` starten und http://localhost:8000/apps/baustellen-app/Baustellen-App.html öffnen. |
+| Andere Zahlen in Schritt 2 | Prüfdatum 03.11.2026? Die **gespeicherte** Datei aus Schritt 1 geladen? |
+| Polier-Ansicht zeigt alte Meldungen | **Tabelle → Änderungen verwerfen**. Ungespeicherte Meldungen bleiben im Browser zwischengespeichert. |
+| «Zuerst den Stand speichern» | Es gibt ungespeicherte Änderungen. Erst speichern, dann ein anderes Modell öffnen oder abmelden. |
 
-Ausführliche Anleitungen: [Polier-Tool](apps/polier-tool/Anleitung.md) · [Baufortschritt-Check](apps/baufortschritt-check/Anleitung.md)
+Ausführliche Anleitung: [Baustellen-App](apps/baustellen-app/Anleitung.md) · Konzept: [Konzept_Baustellen-App.md](workflow/Konzept_Baustellen-App.md)
 
 ## Ordner
 
@@ -111,18 +88,17 @@ Ausführliche Anleitungen: [Polier-Tool](apps/polier-tool/Anleitung.md) · [Bauf
 | [`MVP/`](MVP/) | Themenwahl und MVP: Use Case, Modell und Evidenz, drei Anforderungen, Automatisierung |
 | [`requirements/`](requirements/) | [AIA-BEP-Matrix](requirements/aia-bep-matrix.md) und IDS für Anforderung 1 (`a1_baufortschritt.yaml` / `.ids`) |
 | [`model/`](model/) | IFC-Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, IFC2X3) und Lehrmodell Mutthornhütte (`Mutthornhuette_Baufortschritt.ifc`, mit eingebauten Fehlern, Lösungsschlüssel in [`checks/loesung_mutthornhuette.md`](checks/loesung_mutthornhuette.md)) |
-| [`checks/`](checks/) | Python-Skripte (IfcOpenShell), z. B. `kennzahlen.py` für die Kennzahlen des Modells |
+| [`apps/baustellen-app/`](apps/baustellen-app/) | Baustellen-App: Login pro Rolle, Polier-Ansicht, Bauleitungs-Ansicht mit Abnahme, schreibt direkt ins IFC; dazu das ifclite-Skript `baufortschritt.js` ([Anleitung](apps/baustellen-app/Anleitung.md)) |
+| [`checks/`](checks/) | Skripte: `kennzahlen.py` (IfcOpenShell), Generator und Lösungsschlüssel des Mutthorn-Modells |
 | [`results/`](results/) | Prüfresultate (ifclite-Reports) |
-| [`apps/polier-tool/`](apps/polier-tool/) | Polier-Tool: IFC im Browser laden, heute fällige und überfällige Bauteile anzeigen, `IsInstalled` setzen, CSV-Export und Skript `csv_ins_ifc.py` für die Rückführung ins IFC ([Anleitung](apps/polier-tool/Anleitung.md)) |
-| [`apps/baufortschritt-check/`](apps/baufortschritt-check/) | Baufortschritt-Check für die Bauleitung: prüft die drei Anforderungen, zeigt Status, Pendenzen und Verzug; als HTML oder ifclite-Skript ([Anleitung](apps/baufortschritt-check/Anleitung.md)) |
-| [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) |
+| [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) und [Konzept der Baustellen-App](workflow/Konzept_Baustellen-App.md) |
 | [`poster/`](poster/) | Poster (folgt) |
 
 Die `archiv/`-Unterordner enthalten den abgelösten Stand vom 18.10.2026 (altes IDS, Testmodell, Lösungsschlüssel). Eine Übersicht steht im [Archiv-README](requirements/archiv/README.md).
 
 ## Weitere Prüfungen
 
-Kennzahlen eines Modells ausgeben (Anzahl Bauteile, Klassen, mit und ohne Pset):
+Kennzahlen eines Modells ausgeben (Python mit IfcOpenShell 0.9.0.post1: `python -m pip install ifcopenshell==0.9.0.post1`):
 
 ```bash
 python checks/kennzahlen.py model/Mutthornhuette_Baufortschritt.ifc
@@ -132,14 +108,14 @@ Ohne Argument liest das Skript `model/Team_4_Snowdon_Baufortschritt_IsInstalled.
 
 IDS prüfen (Anforderung 1): `requirements/a1_baufortschritt.ids` und das Modell in https://www.ifclite.com laden. Das IDS wird aus der YAML-Datei in https://www.idslight.com erzeugt.
 
-Mit dem Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`) zeigt der Baufortschritt-Check 1446 Bauteile: 1061 «Abnahme ausstehend» und 385 «Daten fehlerhaft» (Soll-Datum leer).
+Mit dem Modell des Dozenten (Stand 03.11.2026) und Prüfdatum 03.11.2026 zeigt die Bauleitungs-Ansicht 1446 Bauteile: 842 abgenommen, 219 Abnahme ausstehend, 46 Montage überfällig, 339 geplant, 0 Daten fehlerhaft.
 
 ## Stand
 
-- Anforderungen, IDS und Soll-Prozess sind auf den aktuellen Prozess mit `IsInstalled` umgestellt.
-- Im aktuellen Modell fehlt bei den 385 nicht montierten Bauteilen das `InstallationDate`. Der Dozent liefert ein korrigiertes Modell; danach folgt der IDS-Test in ifclite.
-- Die Prüflogik für die Anforderungen 1–3 ist im Baufortschritt-Check umgesetzt (JavaScript statt Python).
-- Offen: Kein Werkzeug setzt bisher `AcceptanceDate` (Abnahme durch die Bauleitung).
+- Anforderungen, IDS und Soll-Prozess sind auf den Prozess mit `IsInstalled` umgestellt.
+- Polier-Tool und Baufortschritt-Check sind in der Baustellen-App zusammengeführt (Prototyp Variante A). Die CSV-Schnittstelle entfällt.
+- Die Bauleitung setzt `AcceptanceDate` jetzt in der App.
+- Offen: Soll-Prozess (`workflow/prozess_ist_soll.drawio`) und AIA-BEP-Matrix an die App anpassen. Variante B (Server mit echtem Login) ist ein Ausblick.
 
 ## KI-Einsatz
 

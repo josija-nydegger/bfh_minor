@@ -19,19 +19,16 @@ Hinweis zu Anforderung 3: Weil `InstallationDate` das Soll-Datum ist und nicht �
 
 ## Werkzeuge
 
-Pro Rolle gibt es ein Werkzeug. Beide lesen dasselbe Modell und wenden dieselbe Statustabelle an.
+Polier und Bauleitung arbeiten mit der [Baustellen-App](../apps/baustellen-app/Anleitung.md). Das Passwort bestimmt die Rolle. Beide Ansichten wenden dieselbe Statustabelle an, und «Stand speichern» schreibt die Werte direkt ins IFC (ohne CSV).
 
 | Property | Gesetzt von | Werkzeug | Stand |
 |---|---|---|---|
-| `InstallationDate`, `IsInstalled` = FALSE | Modellautor | Autorensoftware | im Modell des Dozenten vorhanden (`InstallationDate` noch unvollständig, siehe unten) |
-| `IsInstalled` = TRUE | Polier | [Polier-Tool](../apps/polier-tool/Anleitung.md) (Josija): heute fällige und überfällige Bauteile anzeigen, Montage melden, CSV-Export; Rückführung ins IFC mit `csv_ins_ifc.py` | umgesetzt |
-| Prüfung Anforderungen 1–3 | Bauleitung | [Baufortschritt-Check](../apps/baufortschritt-check/Anleitung.md) (Matthias): Baukontrolle als HTML oder ifclite-Skript, Status, Pendenzen nach Rolle, Verzug, CSV / PDF für `results/` | umgesetzt, liest nur |
-| `AcceptanceDate` | Bauleitung | – | **offen** |
+| `InstallationDate`, `IsInstalled` = FALSE | Modellautor | Autorensoftware | im Modell des Dozenten vorhanden |
+| `IsInstalled` = TRUE | Polier | Baustellen-App, Polier-Ansicht: heute fällige und überfällige Bauteile, Montage melden | umgesetzt (Prototyp) |
+| Prüfung Anforderungen 1–3 | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: Status, Pendenzen, Verzug, Bericht für `results/`; Zweitprüfung mit dem ifclite-Skript `baufortschritt.js` | umgesetzt |
+| `AcceptanceDate` | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Abnehmen» (Datum = Prüfdatum, höchstens heute) | umgesetzt (Prototyp) |
 
-Offen / ungelöst: Kein Werkzeug setzt bisher `AcceptanceDate`. Das Polier-Tool zeigt Abnahmen nur an und sperrt abgenommene Bauteile. Der Baufortschritt-Check listet die offenen Abnahmen, schreibt aber nicht ins Modell. Mögliche Lösungen:
-- Eintrag von Hand in der Autorensoftware bzw. einem IFC-Editor
-- Abnahme-Funktion im Baufortschritt-Check mit CSV-Export und Rückführung analog zu `csv_ins_ifc.py`
-- Erweiterung von `csv_ins_ifc.py` um `AcceptanceDate`
+Grenze: Der Passwortschutz im Browser verhindert Fehlbedienung, ist aber kein Zugriffsschutz. Echten Schutz bietet erst Variante B mit Server (siehe [Konzept](../workflow/Konzept_Baustellen-App.md)). Die früheren Einzeltools mit CSV-Rückführung liegen auf `main`.
 
 Bis dahin lässt sich Anforderung 2 nur mit Testdaten prüfen (im Modell des Dozenten ist `AcceptanceDate` überall leer).
 

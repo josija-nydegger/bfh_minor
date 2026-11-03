@@ -81,4 +81,4 @@ Ein Bauteil, das vor seinem Soll-Datum montiert wurde, lässt sich nur über das
 ## Prüfung des Modells
 
 - IfcOpenShell 0.9.0: Schema-Validierung ohne Befund, 257 GlobalIds ohne Duplikate, Geometrie für alle 81 Bauteile erzeugt.
-- Baufortschritt-Check (Prüflogik der HTML-Datei in [`apps/baufortschritt-check/`](../apps/baufortschritt-check/)): Ergebnis wie oben.
+- Prüflogik der Bauleitungs-Ansicht in [`apps/baustellen-app/`](../apps/baustellen-app/) (gleich wie im früheren Baufortschritt-Check): Ergebnis wie oben.

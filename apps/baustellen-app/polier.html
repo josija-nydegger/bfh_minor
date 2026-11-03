@@ -189,10 +189,10 @@ code { font-size: 12px; background: var(--soft); padding: 2px 6px; border-radius
       <button class="day-pill" id="dPill" aria-label="Zurück zu heute"><b id="dMain"></b><small id="dSub"></small></button>
       <button class="icon-btn" id="dNext" aria-label="Nächster Tag">›</button>
     </div>
-    <button class="tabbtn" id="tblBtn" aria-pressed="false" hidden>Export</button>
+    <button class="tabbtn" id="tblBtn" aria-pressed="false" hidden>Tabelle</button>
     <button class="tabbtn" id="openBtn" hidden>Datei</button>
   </header>
-  <div class="note">Die IFC-Datei wird nur lokal im Browser gelesen und nicht hochgeladen. Rückmeldungen bleiben in diesem Browser gespeichert, bis sie als CSV exportiert werden.</div>
+  <div class="note">Meldungen werden in diesem Browser zwischengespeichert. Oben auf «Stand speichern» klicken: Dann stehen sie im IFC-Modell.</div>
   <main class="stage">
     <canvas id="cv"></canvas>
     <div class="overlay" id="ovList" hidden>
@@ -259,7 +259,10 @@ let modelFile = '';
 const S = { day: TODAY, filter: 'heute', storey: 'alle', sel: null, iso: true, open: true, table: false, confirm: null, limit: LIST_STEP };
 
 const loadChanges = () => { try { changes = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (e) { changes = {}; } };
-const saveChanges = () => { try { localStorage.setItem(storeKey, JSON.stringify(changes)); } catch (e) {} };
+// Baustellen-App: jede Änderung an die App melden; sie schreibt sie beim Speichern ins IFC
+const EMBED = window.parent !== window;
+const report = () => { if (EMBED) parent.postMessage({ type: 'bs-inst', changes }, '*'); };
+const saveChanges = () => { try { localStorage.setItem(storeKey, JSON.stringify(changes)); } catch (e) {} report(); };
 
 // Wirksamer Wert: Rückmeldung des Poliers vor Modellwert
 const isInst = el => el.g in changes ? changes[el.g] : el.isInst;
@@ -565,27 +568,12 @@ function detailView(r, L) {
   return h + '</div>';
 }
 
-// ── CSV-Export: eine Zeile pro GlobalId, Werte gemäss Workflow ──
-const CSV_HEAD = ['GlobalId', 'IfcKlasse', 'Name', 'Geschoss', 'InstallationDate', 'IsInstalled', 'AcceptanceDate', 'Status', 'VerzugTage', 'Stichtag', 'GeaendertDurchPolier'];
-function csvText(R) {
-  const q = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-  const b = x => x === true ? 'TRUE' : x === false ? 'FALSE' : '';
-  return '﻿' + [CSV_HEAD.join(';')].concat(R.map(r => {
-    const verzug = (r.c === 'ueberfaellig' || r.c === 'heute') ? daysBetween(r.el.inst, S.day) : '';
-    return [r.el.g, r.el.t, r.el.n, r.el.s, r.el.inst, b(isInst(r.el)), r.el.acc, MVP_STATUS[r.c], verzug, S.day, r.el.g in changes ? 'ja' : 'nein'].map(q).join(';');
-  })).join('\r\n') + '\r\n';
-}
-function download(R, suffix) {
-  const base = modelFile.replace(/\.ifc$/i, '');
-  const blob = new Blob([csvText(R)], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${base}_IsInstalled_${suffix}_${S.day}.csv`;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
+// ── Tabelle: eine Zeile pro GlobalId (ohne CSV; gespeichert wird über «Stand speichern» in der App) ──
 function tableView(R) {
   const changed = R.filter(r => r.el.g in changes);
-  let h = `<div class="head inner" style="cursor:default"><h2>Export<span class="muted"> · ${R.length} Bauteile, ${changed.length} geändert</span></h2>
-    <p class="muted" style="margin:6px 0 10px;font-size:13px">Eine Zeile pro GlobalId. Grün = IsInstalled vom Polier geändert. Status und Verzug beziehen sich auf den Stichtag ${ch(S.day)}.</p>
-    <div class="tbl-actions"><button class="btn2 go" data-a="csvChanged" ${changed.length ? '' : 'disabled'}>CSV: nur Änderungen (${changed.length})</button><button class="btn2" data-a="csvAll">CSV: alle Bauteile</button>
+  let h = `<div class="head inner" style="cursor:default"><h2>Tabelle<span class="muted"> · ${R.length} Bauteile, ${changed.length} geändert</span></h2>
+    <p class="muted" style="margin:6px 0 10px;font-size:13px">Eine Zeile pro GlobalId. Grün = vom Polier geändert, noch nicht gespeichert. Status beziehen sich auf den Stichtag ${ch(S.day)}.</p>
+    <div class="tbl-actions">
     ${S.confirm === 'reset' ? `<button class="btn2 danger" data-a="resetYes">Wirklich alle Änderungen verwerfen</button><button class="btn2" data-a="resetNo">Abbrechen</button>` : `<button class="btn2 danger" data-a="reset" ${changed.length ? '' : 'disabled'}>Änderungen verwerfen</button>`}</div></div>`;
   h += `<div class="tablewrap"><table class="gt"><thead><tr><th>GlobalId</th><th>Name</th><th>Status</th><th>InstallationDate</th><th>IsInstalled</th><th>AcceptanceDate</th></tr></thead><tbody>`;
   const b = x => x === true ? 'TRUE' : x === false ? 'FALSE' : '';
@@ -611,8 +599,6 @@ document.addEventListener('click', e => {
   else if (a === 'bulkYes') { S.confirm = null; const n = setInstalled(L.map(r => r.k), true); toast(`${n} Bauteile als montiert gemeldet`); }
   else if (a === 'prev' || a === 'next') { const i = L.findIndex(x => x.k === S.sel); const n = L[(i + (a === 'next' ? 1 : -1) + L.length) % L.length]; if (n) select(n.k); }
   else if (a === 'more') { S.limit += LIST_STEP; render(); }
-  else if (a === 'csvAll') { download(R, 'alle'); toast('CSV gespeichert'); }
-  else if (a === 'csvChanged') { download(R.filter(r => r.el.g in changes), 'aenderungen'); toast('CSV gespeichert'); }
   else if (a === 'reset') { S.confirm = 'reset'; render(); }
   else if (a === 'resetNo') { S.confirm = null; render(); }
   else if (a === 'resetYes') { changes = {}; saveChanges(); S.confirm = null; render(); toast('Alle Änderungen verworfen'); }
@@ -643,6 +629,7 @@ async function openModel(buffer, name) {
   if (!res.list.some(e => e.inst || e.isInst != null)) { showStart(`Kein Bauteil hat ${PSET} mit InstallationDate oder IsInstalled.`); return; }
   els = res.list; modelFile = name; storeKey = `polier-tool:${name}:${buffer.byteLength}`; loadChanges();
   const known = new Set(els.map(e => e.g)); Object.keys(changes).forEach(g => { if (!known.has(g)) delete changes[g]; });
+  report();
   buildScene(res.geo);
   const storeys = [...new Set(els.map(e => e.s))].sort((a, b) => a.localeCompare(b, 'de', { numeric: true }));
   $('storey').innerHTML = ['alle', ...storeys].map(s => `<option value="${esc(s)}">${s === 'alle' ? 'Alle Geschosse' : esc(s)}</option>`).join('');
@@ -657,12 +644,22 @@ $('file').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => openFile(e.dataTransfer.files[0]));
 
-// Optional: Modell per URL-Parameter (?ifc=pfad/zur/datei.ifc), wenn das Tool über einen Webserver läuft
-const urlIfc = new URLSearchParams(location.search).get('ifc');
-if (urlIfc) fetch(urlIfc).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-  .then(buf => openModel(buf, decodeURIComponent(urlIfc.split('/').pop())), e => showStart(`Modell konnte nicht geladen werden (${e.message}).`));
+// Modell kommt von der Baustellen-App (Login und Speichern dort)
+window.addEventListener('message', ev => {
+  if (ev.source !== window.parent) return;
+  const d = ev.data || {};
+  if (d.type === 'bs-open') openModel(d.buffer, d.name);
+  if (d.type === 'bs-saved') { try { localStorage.removeItem(storeKey); } catch (e) {} changes = {}; }
+});
+if (!EMBED) {
+  showStart('Diese Ansicht ist Teil der Baustellen-App. Bitte Baustellen-App.html öffnen und als Polier anmelden.');
+  document.querySelector('.filebtn').hidden = true;
+} else {
+  document.querySelector('.filebtn').hidden = true;
+  $('openBtn').style.setProperty('display', 'none', 'important');
+  $('startIdle').hidden = true; $('startBusy').hidden = false;
+}
 render();
 </script>
 </body>

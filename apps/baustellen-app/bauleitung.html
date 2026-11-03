@@ -211,7 +211,7 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
     <div>
       <div class="eyebrow">Team 4 · MVP Digitale Baufortschrittsüberwachung</div>
       <h1>Baufortschritt&shy;-Check</h1>
-      <p class="lead">Zeigt pro Bauteil, was montiert, abgenommen oder im Verzug ist. Gelesen wird aus dem IFC-Modell (Pset_InstallationOccurrence).</p>
+      <p class="lead">Bauleitung: prüfen, kontrollieren und Abnahmen setzen. Mit «Stand speichern» oben gelangen die Abnahmen ins IFC-Modell.</p>
     </div>
     <dl class="fields">
       <dt>Bauvorhaben</dt><dd id="f-project">–</dd>
@@ -221,8 +221,8 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
     </dl>
   </header>
 
-  <section class="load no-print" aria-label="Modell laden">
-    <label class="drop" id="drop" for="file">
+  <section class="load no-print" aria-label="Prüfdatum">
+    <label class="drop" id="drop" for="file" hidden>
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M8 34V6h16l8 8v20H8z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 6v8h8" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M20 30V19m0 0-4.5 4.5M20 19l4.5 4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div><strong>IFC-Datei hierher ziehen oder klicken</strong><span>Die Datei bleibt auf deinem Computer. Es wird nichts hochgeladen.</span></div>
       <input type="file" id="file" accept=".ifc,.IFC" hidden>
@@ -268,6 +268,7 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
 
       <section aria-labelledby="h-list">
         <div class="section-head"><h2 id="h-list">Bauteilliste</h2><p id="list-sub"></p></div>
+        <div class="no-print" id="bulk" style="margin-bottom:10px"></div>
         <div class="filters no-print" id="filters">
           <input class="search" id="search" type="search" placeholder="Suchen: Name, Geschoss, GlobalId …" aria-label="Bauteile durchsuchen">
         </div>
@@ -584,8 +585,35 @@ if (typeof module !== "undefined") module.exports = BF;
   var PRIO = { ueberfaellig: 0, fehler: 1, ausstehend: 2, geplant: 3, abgenommen: 4 };
   var PAGE = 100;
   var $ = function (id) { return document.getElementById(id); };
-  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null };
-  var framed = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
+  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, confirm: false };
+  // Läuft nur innerhalb der Baustellen-App (Login dort); Abnahmen gehen per Nachricht an die App
+  var inApp = window.parent !== window;
+  var framed = false;
+  if (!inApp) {
+    document.querySelector(".wrap").innerHTML = '<div class="notice warn" role="status"><div><b>Diese Ansicht ist Teil der Baustellen-App.</b> Bitte <span class="mono">Baustellen-App.html</span> öffnen und als Bauleitung anmelden.</div></div>';
+    return;
+  }
+  function reportAcc() { parent.postMessage({ type: "bs-acc", changes: state.acc }, "*"); }
+  function accDay(iso) { return { ok: true, iso: iso, day: BF.isoToDay(iso) }; }
+  // Abnahmen dieser Sitzung über die Modellwerte legen (ohne das Modell selbst zu verändern)
+  function applyAcc() {
+    state.model.elements.forEach(function (e) {
+      if (!e.hasPset) return;
+      if (!("accOrig" in e)) e.accOrig = e.acc;
+      e.acc = e.gid in state.acc ? (state.acc[e.gid] ? accDay(state.acc[e.gid]) : { empty: true }) : e.accOrig;
+    });
+  }
+  function setAcc(gids, on) {
+    var iso = $("pdate").value || todayIso();
+    if (on && iso > todayIso()) { toast("Abnahmen sind höchstens bis heute möglich. Bitte Prüfdatum anpassen."); return 0; }
+    var n = 0;
+    gids.forEach(function (g) {
+      if (on) state.acc[g] = iso; else delete state.acc[g];
+      n++;
+    });
+    reportAcc(); state.confirm = false; run();
+    return n;
+  }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function nf(n) { return n.toLocaleString("de-CH"); }
@@ -687,6 +715,7 @@ if (typeof module !== "undefined") module.exports = BF;
   /* ---------- Rendering ---------- */
   function run() {
     var iso = $("pdate").value || todayIso();
+    applyAcc();
     state.result = BF.evaluate(state.model, iso);
     render();
   }
@@ -834,15 +863,25 @@ if (typeof module !== "undefined") module.exports = BF;
   function renderTable() {
     var rows = filtered(), shown = rows.slice(0, state.shown);
     var label = state.filter === "alle" ? "Alle Bauteile" : STATUS[state.filter].label;
+    var offen = rows.filter(function (x) { return x.status === "ausstehend"; });
+    var dt = BF.fmt($("pdate").value || todayIso());
+    $("bulk").innerHTML = state.filter === "ausstehend" && offen.length > 1
+      ? (state.confirm ? '<button type="button" class="btn" data-bulk="yes">Ja, ' + offen.length + " Bauteile am " + dt + ' abnehmen</button> <button type="button" class="btn ghost" data-bulk="no">Abbrechen</button>'
+        : '<button type="button" class="btn ghost" data-bulk="ask">Alle ' + offen.length + " angezeigten am " + dt + " abnehmen …</button>")
+      : "";
     $("list-sub").textContent = label + " · " + plural(rows.length, "Eintrag", "Einträge") + (state.filter === "alle" ? " · dringendste zuerst" : "");
     if (!rows.length) { $("tbody").innerHTML = '<tr><td colspan="9" class="empty">Keine Bauteile in dieser Auswahl.</td></tr>'; $("more").innerHTML = ""; return; }
     $("tbody").innerHTML = shown.map(function (x) {
       var st = STATUS[x.status];
       var verzug = x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + "</span>" : x.until != null ? '<span class="muted">in ' + plural(x.until, "Tag", "Tagen") + "</span>" : "";
       var why = x.reasons.map(function (t) { return '<div class="reason">' + esc(t) + "</div>"; }).join("") + x.hints.map(function (t) { return '<div class="reason hint">' + esc(t) + "</div>"; }).join("");
-      if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Montieren, dann IsInstalled auf Ja setzen</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren und Abnahmedatum setzen</div>' : "";
+      if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Polier: montieren und melden</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren, dann «Abnehmen»</div>' : "";
+      var neu = x.gid in state.acc;
+      var abn = neu ? '<b>' + esc(BF.fmt(x.acc)) + '</b><br><span class="muted">neu, nicht gespeichert</span><br><button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Rückgängig</button>'
+        : x.status === "ausstehend" ? '<button type="button" class="linkbtn" data-acc="' + esc(x.gid) + '">Abnehmen</button>'
+        : esc(/^\d{4}-/.test(x.acc) ? BF.fmt(x.acc) : x.acc || "–");
       return "<tr><td><span class=\"pill\" style=\"--c:" + st.c + "\">" + st.label + "</span></td><td>" + esc(x.name) + '<span class="cls">' + esc(x.cls) + "</span></td><td>" + esc(x.storey || "–") + '</td><td class="num">' + esc(/^\d{4}-/.test(x.soll) ? BF.fmt(x.soll) : x.soll || "–") +
-        "</td><td>" + esc(x.inst || "–") + '</td><td class="num">' + esc(/^\d{4}-/.test(x.acc) ? BF.fmt(x.acc) : x.acc || "–") + '</td><td class="num">' + verzug + "</td><td>" + why + '</td><td><button type="button" class="gid" data-gid="' + esc(x.gid) + '" title="Klicken zum Kopieren">' + esc(x.gid) + "</button></td></tr>";
+        "</td><td>" + esc(x.inst || "–") + '</td><td class="num">' + abn + '</td><td class="num">' + verzug + "</td><td>" + why + '</td><td><button type="button" class="gid" data-gid="' + esc(x.gid) + '" title="Klicken zum Kopieren">' + esc(x.gid) + "</button></td></tr>";
     }).join("");
     $("more").innerHTML = rows.length > shown.length ? "<span>" + nf(shown.length) + " von " + nf(rows.length) + ' angezeigt</span><button type="button" class="linkbtn" id="more-btn">Weitere ' + Math.min(PAGE, rows.length - shown.length) + ' anzeigen</button><button type="button" class="linkbtn" id="all-btn">Alle anzeigen</button>' : "";
   }
@@ -875,9 +914,18 @@ if (typeof module !== "undefined") module.exports = BF;
   /* ---------- Events ---------- */
   document.addEventListener("click", function (ev) {
     var f = ev.target.closest("[data-filter]");
-    if (f) { state.filter = f.dataset.filter; state.shown = PAGE; renderFilters(); renderTable(); if (!f.classList.contains("chip")) $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (f) { state.filter = f.dataset.filter; state.shown = PAGE; state.confirm = false; renderFilters(); renderTable(); if (!f.classList.contains("chip")) $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
     var g = ev.target.closest(".gid");
     if (g) { copy(g.dataset.gid, "GlobalId kopiert"); return; }
+    var t = ev.target.closest("[data-acc],[data-unacc],[data-bulk]");
+    if (t && t.dataset.acc) { if (setAcc([t.dataset.acc], true)) toast("Abnahme gesetzt. Zum Übernehmen «Stand speichern»."); return; }
+    if (t && t.dataset.unacc) { setAcc([t.dataset.unacc], false); toast("Abnahme zurückgenommen"); return; }
+    if (t && t.dataset.bulk === "ask") { state.confirm = true; renderTable(); return; }
+    if (t && t.dataset.bulk === "no") { state.confirm = false; renderTable(); return; }
+    if (t && t.dataset.bulk === "yes") {
+      var ids = filtered().filter(function (x) { return x.status === "ausstehend"; }).map(function (x) { return x.gid; });
+      var n = setAcc(ids, true); if (n) toast(n + " Abnahmen gesetzt. Zum Übernehmen «Stand speichern»."); return;
+    }
     if (ev.target.id === "more-btn") { state.shown += PAGE; renderTable(); }
     if (ev.target.id === "all-btn") { state.shown = Infinity; renderTable(); }
   });
@@ -900,13 +948,18 @@ if (typeof module !== "undefined") module.exports = BF;
   if (framed) { $("csv-btn").hidden = true; $("print-btn").hidden = true; $("copy-btn").classList.remove("ghost"); }
   window.addEventListener("beforeprint", function () { state.shown = Infinity; renderTable(); });
 
-  var drop = $("drop"), depth = 0;
-  ["dragenter", "dragover"].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
-  document.addEventListener("dragleave", function (e) { if (!e.relatedTarget) drop.classList.remove("over"); });
-  document.addEventListener("drop", function (e) { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files.length) readFile(e.dataTransfer.files[0]); });
+  // Modell kommt von der Baustellen-App; Dateien direkt hineinziehen ist hier abgeschaltet
+  ["dragover", "drop"].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }); });
+  window.addEventListener("message", function (ev) {
+    if (ev.source !== window.parent) return;
+    var d = ev.data || {};
+    if (d.type === "bs-open") { state.acc = {}; state.confirm = false; $("results").hidden = false; parse(d.text, d.name, false); }
+    if (d.type === "bs-saved") { state.acc = {}; }
+  });
 
   $("ver").textContent = BF.VERSION;
   $("pdate").value = todayIso();
-  parse(sampleIfc(), "Beispiel_Wohnhaus.ifc", true);
+  $("results").hidden = true;
+  $("progress").hidden = false; $("progress-t").textContent = "Modell wird geladen …";
 })();
 </script>
