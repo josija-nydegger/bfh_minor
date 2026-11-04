@@ -1,0 +1,727 @@
+{
+  "version": 2,
+  "exportedAt": "2026-11-04T10:41:39.220Z",
+  "status": {
+    "validation": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {
+        "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82": "saved"
+      }
+    },
+    "comparison": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "document": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "assistant": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "clashGroups": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "bcfDrafts": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "bcfOutbox": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "modelChanges": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "clashGroupApplications": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "reviewWorkspaces": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "clashReports": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "semanticReviews": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "assistantRecipes": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "assistantPreferences": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    },
+    "analysisRuns": {
+      "phase": "ready",
+      "recovered": false,
+      "items": {}
+    }
+  },
+  "libraries": {
+    "lists": [
+      {
+        "id": "preset-door-schedule",
+        "name": "Door Schedule",
+        "description": "All doors with dimensions",
+        "createdAt": 0,
+        "updatedAt": 1790674460307,
+        "entityTypes": [
+          12
+        ],
+        "columns": [
+          {
+            "id": "attr-name",
+            "source": "attribute",
+            "propertyName": "Name"
+          },
+          {
+            "id": "attr-class",
+            "source": "attribute",
+            "propertyName": "Class"
+          },
+          {
+            "id": "attr-objecttype",
+            "source": "attribute",
+            "propertyName": "ObjectType"
+          },
+          {
+            "id": "prop-pset_doorcommon-firerating",
+            "source": "property",
+            "psetName": "Pset_DoorCommon",
+            "propertyName": "FireRating",
+            "label": "FireRating"
+          },
+          {
+            "id": "prop-pset_doorcommon-isexternal",
+            "source": "property",
+            "psetName": "Pset_FireRatingProperties",
+            "propertyName": "FireResistanceRating",
+            "label": "FireResistanceRating"
+          },
+          {
+            "id": "prop-pset_doorcommon-acousticrating",
+            "source": "property",
+            "psetName": "Pset_DoorCommon",
+            "propertyName": "AcousticRating",
+            "label": "AcousticRating"
+          },
+          {
+            "id": "quant-qto_doorbasequantities-width",
+            "source": "quantity",
+            "psetName": "Qto_DoorBaseQuantities",
+            "propertyName": "Width",
+            "label": "Width"
+          },
+          {
+            "id": "quant-qto_doorbasequantities-height",
+            "source": "quantity",
+            "psetName": "Qto_DoorBaseQuantities",
+            "propertyName": "Height",
+            "label": "Height"
+          },
+          {
+            "id": "quant-qto_doorbasequantities-area",
+            "source": "quantity",
+            "psetName": "Qto_DoorBaseQuantities",
+            "propertyName": "Area",
+            "label": "Area"
+          }
+        ],
+        "groups": [
+          {
+            "rules": [],
+            "combinator": "AND"
+          }
+        ],
+        "unreadableConditions": []
+      }
+    ],
+    "lenses": [
+      {
+        "id": "lens-by-class",
+        "name": "By IFC Class",
+        "rules": [],
+        "autoColor": {
+          "source": "ifcType"
+        },
+        "builtin": false
+      },
+      {
+        "id": "lens-structural",
+        "name": "Structural",
+        "rules": [
+          {
+            "id": "col",
+            "name": "Columns",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#E53935",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcColumn",
+                      "IfcColumnStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "beam",
+            "name": "Beams",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#1E88E5",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcBeam",
+                      "IfcBeamStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "slab",
+            "name": "Slabs",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#FDD835",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcSlab",
+                      "IfcSlabStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "footing",
+            "name": "Footings",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#43A047",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcFooting"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          }
+        ],
+        "builtin": false
+      },
+      {
+        "id": "lens-envelope",
+        "name": "Building Envelope",
+        "rules": [
+          {
+            "id": "roof",
+            "name": "Roofs",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#C62828",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcRoof"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "curtwall",
+            "name": "Curtain Walls",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#0277BD",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcCurtainWall"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "window",
+            "name": "Windows",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#4FC3F7",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcWindow",
+                      "IfcWindowStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "door",
+            "name": "Doors",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#00695C",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcDoor",
+                      "IfcDoorStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "wall",
+            "name": "Walls",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#8D6E63",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcWall",
+                      "IfcWallStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          }
+        ],
+        "builtin": false
+      },
+      {
+        "id": "lens-openings",
+        "name": "Openings & Circulation",
+        "rules": [
+          {
+            "id": "door",
+            "name": "Doors",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#00897B",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcDoor",
+                      "IfcDoorStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "window",
+            "name": "Windows",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#42A5F5",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcWindow",
+                      "IfcWindowStandardCase"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "stair",
+            "name": "Stairs",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#FF8F00",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcStairFlight"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "ramp",
+            "name": "Ramps",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#7CB342",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcRamp",
+                      "IfcRampFlight"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          },
+          {
+            "id": "railing",
+            "name": "Railings",
+            "enabled": true,
+            "action": "colorize",
+            "color": "#78909C",
+            "groups": [
+              {
+                "rules": [
+                  {
+                    "kind": "ifcType",
+                    "op": "in",
+                    "values": [
+                      "IfcRailing"
+                    ]
+                  }
+                ],
+                "combinator": "AND"
+              }
+            ]
+          }
+        ],
+        "builtin": false
+      },
+      {
+        "id": "lens-by-stage",
+        "name": "By Stage",
+        "rules": [],
+        "autoColor": {
+          "source": "property",
+          "psetName": "CESIUM",
+          "propertyName": "Stage"
+        },
+        "builtin": false
+      },
+      {
+        "id": "lens-auto-material",
+        "name": "By Material",
+        "rules": [],
+        "autoColor": {
+          "source": "material"
+        },
+        "builtin": false
+      },
+      {
+        "id": "lens-by-model",
+        "name": "By Model",
+        "rules": [],
+        "autoColor": {
+          "source": "model"
+        },
+        "builtin": false
+      },
+      {
+        "id": "lens-by-zone",
+        "name": "By Zone",
+        "rules": [],
+        "autoColor": {
+          "source": "group"
+        },
+        "builtin": false
+      }
+    ],
+    "validation": [
+      {
+        "id": "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82",
+        "name": "Baufortschritt - Soll-Installationsdatum, Montagestatus und Abnahmedatum",
+        "snapshot": {
+          "kind": "ids-report",
+          "id": "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82",
+          "sourceKind": "ids",
+          "sourceName": "Baufortschritt - Soll-Installationsdatum, Montagestatus und Abnahmedatum",
+          "generatedAt": "2026-11-04T10:37:08.263Z",
+          "summary": {
+            "checked": 243,
+            "passed": 239,
+            "failed": 4,
+            "passRate": 98
+          },
+          "checks": [
+            {
+              "id": "spec-0",
+              "shortDescription": "A1 InstallationDate",
+              "longDescription": "Soll-Datum gemäss Terminplan bei jedem Bauteil",
+              "checked": 81,
+              "passed": 78,
+              "failed": 3,
+              "passRate": 96,
+              "rules": [
+                {
+                  "id": "req-0",
+                  "name": "InstallationDate",
+                  "shortDescription": "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+                  "longDescription": "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+                  "checked": 81,
+                  "passed": 78,
+                  "failed": 3,
+                  "passRate": 96
+                }
+              ]
+            },
+            {
+              "id": "spec-1",
+              "shortDescription": "A1 IsInstalled",
+              "longDescription": "Montagestatus bei jedem Bauteil",
+              "checked": 81,
+              "passed": 80,
+              "failed": 1,
+              "passRate": 98,
+              "rules": [
+                {
+                  "id": "req-0",
+                  "name": "IsInstalled",
+                  "shortDescription": "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist",
+                  "longDescription": "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist",
+                  "checked": 81,
+                  "passed": 80,
+                  "failed": 1,
+                  "passRate": 98
+                }
+              ]
+            },
+            {
+              "id": "spec-2",
+              "shortDescription": "A2 AcceptanceDate",
+              "longDescription": "Abnahmedatum, falls gesetzt, im Format YYYY-MM-DD",
+              "checked": 81,
+              "passed": 81,
+              "failed": 0,
+              "passRate": 100,
+              "rules": [
+                {
+                  "id": "req-0",
+                  "name": "AcceptanceDate",
+                  "shortDescription": "Property \"Pset_InstallationOccurrence.AcceptanceDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+                  "longDescription": "Property \"Pset_InstallationOccurrence.AcceptanceDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+                  "checked": 81,
+                  "passed": 81,
+                  "failed": 0,
+                  "passRate": 100
+                }
+              ]
+            }
+          ],
+          "elementEvidence": {
+            "version": 1,
+            "rows": [
+              {
+                "id": "failure-0",
+                "specificationId": "spec-0",
+                "GlobalId": "11QiS8gHllgXAgn2d6$9hM",
+                "modelName": "Mutthornhuette_Baufortschritt.ifc",
+                "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+                "ifcType": "IfcEnergyConversionDevice",
+                "Name": "PV-Fassade West",
+                "title": "A1 InstallationDate",
+                "nativeStatus": "failed",
+                "detail": [
+                  "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" is \"24.11.2026\", expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · actual 24.11.2026 · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+                ],
+                "signature": "xxh64:b37f48cdfd09b26b"
+              },
+              {
+                "id": "failure-1",
+                "specificationId": "spec-0",
+                "GlobalId": "0YoDRe$5vuQ0vtGGKlgxcM",
+                "modelName": "Mutthornhuette_Baufortschritt.ifc",
+                "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+                "ifcType": "IfcFlowStorageDevice",
+                "Name": "Wassertank 2",
+                "title": "A1 InstallationDate",
+                "nativeStatus": "failed",
+                "detail": [
+                  "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" has no value · actual (empty) · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+                ],
+                "signature": "xxh64:94d98b20a96286ca"
+              },
+              {
+                "id": "failure-2",
+                "specificationId": "spec-0",
+                "GlobalId": "0POtwNONii4J46o7qXjdfw",
+                "modelName": "Mutthornhuette_Baufortschritt.ifc",
+                "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+                "ifcType": "IfcFlowStorageDevice",
+                "Name": "Wassertank 4",
+                "title": "A1 InstallationDate",
+                "nativeStatus": "failed",
+                "detail": [
+                  "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" has no value · actual (empty) · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+                ],
+                "signature": "xxh64:94d98b20a96286ca"
+              },
+              {
+                "id": "failure-3",
+                "specificationId": "spec-1",
+                "GlobalId": "3ogzU7APuubcAsHw19O1kV",
+                "modelName": "Mutthornhuette_Baufortschritt.ifc",
+                "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+                "ifcType": "IfcWall",
+                "Name": "Zimmerwand OG Nord 2",
+                "title": "A1 IsInstalled",
+                "nativeStatus": "failed",
+                "detail": [
+                  "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist · Property \"Pset_InstallationOccurrence.IsInstalled\" data type is \"IFCLABEL\", expected \"IFCBOOLEAN\" · actual Pset_InstallationOccurrence.IsInstalled (IFCLABEL) · expected dataType \"IFCBOOLEAN\""
+                ],
+                "signature": "xxh64:a02df5db900a154f"
+              }
+            ],
+            "observed": 4,
+            "omitted": 0,
+            "gaps": [],
+            "definition": {
+              "source": "xxh64:079d4558e7e525a3",
+              "checks": [
+                {
+                  "id": "spec-0",
+                  "digest": "xxh64:20ab3587a2294857"
+                },
+                {
+                  "id": "spec-1",
+                  "digest": "xxh64:07ef9b9cfef1f521"
+                },
+                {
+                  "id": "spec-2",
+                  "digest": "xxh64:a0257564c64923e1"
+                }
+              ]
+            }
+          },
+          "reportModels": [
+            {
+              "name": "Mutthornhuette_Baufortschritt.ifc",
+              "fingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351"
+            }
+          ],
+          "savedReportId": "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82"
+        }
+      }
+    ],
+    "comparison": [],
+    "document": [],
+    "assistant": [],
+    "clashGroups": [],
+    "bcfDrafts": [],
+    "bcfOutbox": [],
+    "modelChanges": [],
+    "clashGroupApplications": [],
+    "reviewWorkspaces": [],
+    "clashReports": [],
+    "semanticReviews": [],
+    "assistantRecipes": [],
+    "assistantPreferences": [],
+    "analysisRuns": []
+  },
+  "drafts": []
+}

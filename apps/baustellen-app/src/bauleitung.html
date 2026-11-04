@@ -129,6 +129,26 @@ button, input, select { font: inherit; color: inherit; }
 
 /* Timeline */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; min-width: 0; }
+/* 3D-Modell nach Status */
+.view3d { position: relative; height: clamp(320px, 55vh, 560px); border-radius: var(--r); overflow: hidden; background: var(--sunk); }
+.view3d canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.view3d .state { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .95rem; text-align: center; padding: 20px; }
+.legend3d { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: .85rem; color: var(--muted); }
+.legend3d i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--c); margin-right: 6px; }
+.sel3d { position: absolute; left: 12px; bottom: 12px; max-width: min(360px, calc(100% - 24px)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; box-shadow: 0 4px 18px rgba(0,0,0,.12); font-size: .88rem; display: flex; flex-direction: column; gap: 6px; }
+.sel3d .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sel3d .x { position: absolute; top: 6px; right: 8px; background: none; border: 0; cursor: pointer; font-size: 1.1rem; color: var(--muted); }
+.hint3d { font-size: .8rem; color: var(--muted); margin-top: 6px; }
+/* Korrektur-Dialog für Datenfehler */
+.fixbg { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); display: grid; place-items: center; z-index: 25; padding: 16px; }
+.fixbox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px; }
+.fixbox h3 { font-size: 1.1rem; }
+.fixbox label { font-weight: 600; font-size: .9rem; display: flex; flex-direction: column; gap: 4px; }
+.fixbox input[type=date], .fixbox select { border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--paper); }
+.fixbox select:disabled { opacity: .7; }
+.fixbox small { color: var(--muted); font-weight: 400; }
+.fixbox .err { color: var(--st-late); font-weight: 600; font-size: .88rem; }
+.fixbox .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .chart { width: 100%; overflow-x: auto; }
 .chart svg { display: block; width: 100%; min-width: 560px; height: auto; }
 .chart text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
@@ -211,7 +231,7 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
     <div>
       <div class="eyebrow">Team 4 · MVP Digitale Baufortschrittsüberwachung</div>
       <h1>Baufortschritt&shy;-Check</h1>
-      <p class="lead">Zeigt pro Bauteil, was montiert, abgenommen oder im Verzug ist. Gelesen wird aus dem IFC-Modell (Pset_InstallationOccurrence).</p>
+      <p class="lead">Bauleitung: prüfen, kontrollieren und Abnahmen setzen. Mit «Stand speichern» oben gelangen die Abnahmen ins IFC-Modell.</p>
     </div>
     <dl class="fields">
       <dt>Bauvorhaben</dt><dd id="f-project">–</dd>
@@ -221,8 +241,8 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
     </dl>
   </header>
 
-  <section class="load no-print" aria-label="Modell laden">
-    <label class="drop" id="drop" for="file">
+  <section class="load no-print" aria-label="Prüfdatum">
+    <label class="drop" id="drop" for="file" hidden>
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M8 34V6h16l8 8v20H8z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 6v8h8" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M20 30V19m0 0-4.5 4.5M20 19l4.5 4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div><strong>IFC-Datei hierher ziehen oder klicken</strong><span>Die Datei bleibt auf deinem Computer. Es wird nichts hochgeladen.</span></div>
       <input type="file" id="file" accept=".ifc,.IFC" hidden>
@@ -242,6 +262,17 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
         <p class="headline" id="headline"></p>
         <div class="bigbar" id="bigbar" role="img"></div>
         <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="panel no-print" aria-labelledby="h-3d">
+        <div class="section-head"><h2 id="h-3d">Modell nach Status</h2><p id="sub3d">Gefärbt wie die Übersicht, «Geplant» durchscheinend. Der Filter der Bauteilliste wirkt auch hier.</p></div>
+        <div class="view3d">
+          <canvas id="cv3d"></canvas>
+          <div class="state" id="state3d">3D-Modell wird geladen …</div>
+          <div class="sel3d" id="sel3d" hidden></div>
+        </div>
+        <div class="legend3d" id="legend3d"></div>
+        <p class="hint3d">Drehen: ziehen · Zoomen: Mausrad · Verschieben: rechte Maustaste · Bauteil anklicken für Details</p>
       </section>
 
       <section aria-labelledby="h-tasks">
@@ -268,6 +299,7 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
 
       <section aria-labelledby="h-list">
         <div class="section-head"><h2 id="h-list">Bauteilliste</h2><p id="list-sub"></p></div>
+        <div class="no-print" id="bulk" style="margin-bottom:10px"></div>
         <div class="filters no-print" id="filters">
           <input class="search" id="search" type="search" placeholder="Suchen: Name, Geschoss, GlobalId …" aria-label="Bauteile durchsuchen">
         </div>
@@ -313,9 +345,120 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
   <footer>Baufortschritt-Check <span id="ver"></span> · Team 4 · BFH Architektur, Holz und Bau · läuft lokal im Browser</footer>
 </div>
 
+<div class="fixbg" id="fixbg" hidden>
+  <form class="fixbox" id="fixform" novalidate>
+    <h3 id="fix-title">Daten korrigieren</h3>
+    <p class="muted" id="fix-why" style="font-size:.88rem"></p>
+    <label for="fix-soll">Soll-Datum (InstallationDate)<input type="date" id="fix-soll"><small id="fix-soll-old"></small></label>
+    <label for="fix-inst">Montiert (IsInstalled)<select id="fix-inst"><option value="">– bitte wählen –</option><option value="true">Ja, montiert (TRUE)</option><option value="false">Nein, nicht montiert (FALSE)</option></select><small id="fix-inst-old"></small></label>
+    <label for="fix-acc">Abnahmedatum (AcceptanceDate)<input type="date" id="fix-acc"><small id="fix-acc-old"></small></label>
+    <p class="err" id="fix-err" hidden></p>
+    <div class="row"><button type="submit" class="btn">Übernehmen</button><button type="button" class="btn ghost" id="fix-cancel">Abbrechen</button></div>
+    <small>Die Korrektur gelangt erst mit «Stand speichern» ins IFC-Modell.</small>
+  </form>
+</div>
 <div class="progress" id="progress" hidden><div class="box"><strong id="progress-t">Modell wird gelesen …</strong><div class="track"><div class="fill" id="progress-f"></div></div><span class="muted" id="progress-s" style="font-size:.85rem"></span></div></div>
 <div class="toast" id="toast" hidden></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="module">
+/* 3D-Ansicht der Bauleitung: Geometrie mit web-ifc (wie in der Polier-Ansicht), Farben setzt die Prüfung. */
+import * as WebIFC from 'https://cdn.jsdelivr.net/npm/web-ifc@0.0.77/web-ifc-api.js';
+const ifc = new WebIFC.IfcAPI();
+ifc.SetWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.77/', true);
+let ready = null;
+const cv = document.getElementById('cv3d');
+const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, logarithmicDepthBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 5000);
+const controls = new THREE.OrbitControls(camera, cv);
+controls.enableDamping = true; controls.dampingFactor = 0.12;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c0c8, 1.0));
+const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(40, 80, 30); scene.add(sun);
+let meshes = new Map(), box = new THREE.Box3();
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function bg() { scene.background = new THREE.Color(css('--sunk') || '#e3e7e4'); }
+bg(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg);
+
+function resize() { const p = cv.parentElement, w = p.clientWidth, h = p.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(cv.parentElement);
+function fit() {
+  if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()), r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, .5);
+  const dist = r * 1.05 / Math.sin(THREE.MathUtils.degToRad(camera.fov) / 2);
+  camera.near = Math.max(dist / 1000, .01); camera.far = dist * 20; camera.updateProjectionMatrix();
+  camera.position.copy(c.clone().add(new THREE.Vector3(-1, .8, -1.2).normalize().multiplyScalar(dist)));
+  controls.target.copy(c); controls.update();
+}
+(function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); })();
+
+async function load(buffer) {
+  ready = ready || ifc.Init(undefined, true);
+  await ready;
+  meshes.forEach(m => { scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
+  meshes = new Map(); box = new THREE.Box3();
+  const mid = ifc.OpenModel(new Uint8Array(buffer), { COORDINATE_TO_ORIGIN: true });
+  try {
+    const gidOf = new Map(), ids = ifc.GetLineIDsWithType(mid, WebIFC.IFCELEMENT, true);
+    for (let i = 0; i < ids.size(); i++) {
+      const id = ids.get(i), l = ifc.GetLine(mid, id);
+      if (l && l.GlobalId) gidOf.set(id, l.GlobalId.value);
+    }
+    const m4 = new THREE.Matrix4(), v = new THREE.Vector3();
+    ifc.StreamAllMeshes(mid, mesh => {
+      const gid = gidOf.get(mesh.expressID); if (!gid) return;
+      const pos = [], idx = [];
+      for (let j = 0; j < mesh.geometries.size(); j++) {
+        const pg = mesh.geometries.get(j), g = ifc.GetGeometry(mid, pg.geometryExpressID);
+        const va = ifc.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize()), ia = ifc.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
+        m4.fromArray(pg.flatTransformation);
+        const base = pos.length / 3;
+        for (let q = 0; q < va.length; q += 6) { v.set(va[q], va[q + 1], va[q + 2]).applyMatrix4(m4); pos.push(v.x, v.y, v.z); }
+        for (let q = 0; q < ia.length; q++) idx.push(ia[q] + base);
+        g.delete && g.delete();
+      }
+      if (!pos.length) return;
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3)); geo.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
+      geo.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({ roughness: .85, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+      const m = new THREE.Mesh(geo, mat); m.userData.gid = gid;
+      scene.add(m); meshes.set(gid, m); box.expandByObject(m);
+    });
+  } finally { ifc.CloseModel(mid); }
+  resize(); fit();
+  return meshes.size;
+}
+// look(gid) → { color: '#rrggbb', op?: Deckkraft } oder { ghost: true } oder { sel: true }
+function paint(look) {
+  meshes.forEach((m, gid) => {
+    const l = look(gid) || { ghost: true }, mat = m.material;
+    mat.emissive.setRGB(0, 0, 0);
+    let op = 1;
+    if (l.sel) { mat.color.set('#1c7ed6'); mat.emissive.set('#1c7ed6').multiplyScalar(.25); }
+    else if (l.ghost) { mat.color.set('#9aa3ad'); op = .08; }
+    else { mat.color.set(l.color); op = l.op || 1; }
+    m.userData.ghost = !!l.ghost; m.renderOrder = l.sel ? 2 : l.ghost ? 1 : 0;
+    const tr = op < 1; if (mat.transparent !== tr) mat.needsUpdate = true;
+    mat.transparent = tr; mat.opacity = op; mat.depthWrite = !tr;
+  });
+}
+const ray = new THREE.Raycaster(); let down = null;
+cv.addEventListener('pointerdown', e => { down = e.isPrimary ? { x: e.clientX, y: e.clientY } : null; });
+cv.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+  const r = cv.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  // Deckende Bauteile vor durchscheinenden (geplanten) wählen
+  const hits = ray.intersectObjects([...meshes.values()].filter(m => !m.userData.ghost), false);
+  const hit = hits.find(h => !h.object.material.transparent) || hits[0];
+  if (window.Viewer.onPick) window.Viewer.onPick(hit ? hit.object.userData.gid : null);
+});
+window.Viewer = { load, paint, fit, onPick: null };
+window.dispatchEvent(new Event('viewer-ready'));
+</script>
 <script id="engine">
 /* IFC reader and checking rules. Runs in a Web Worker and, as a fallback, on the page. */
 var BF = (function () {
@@ -584,8 +727,134 @@ if (typeof module !== "undefined") module.exports = BF;
   var PRIO = { ueberfaellig: 0, fehler: 1, ausstehend: 2, geplant: 3, abgenommen: 4 };
   var PAGE = 100;
   var $ = function (id) { return document.getElementById(id); };
-  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null };
-  var framed = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
+  var state = { model: null, file: "", sample: true, result: null, filter: "alle", q: "", shown: PAGE, readAt: null, acc: {}, soll: {}, inst: {}, confirm: false };
+  // Läuft nur innerhalb der Baustellen-App (Login dort); Abnahmen gehen per Nachricht an die App
+  var inApp = window.parent !== window;
+  var framed = false;
+  if (!inApp) {
+    document.querySelector(".wrap").innerHTML = '<div class="notice warn" role="status"><div><b>Diese Ansicht ist Teil der Baustellen-App.</b> Bitte <span class="mono">Baustellen-App.html</span> öffnen und als Bauleitung anmelden.</div></div>';
+    return;
+  }
+  function reportAcc() { parent.postMessage({ type: "bs-acc", changes: state.acc }, "*"); }
+
+  // ---------- 3D-Ansicht (Modul oben: window.Viewer) ----------
+  var pendingBuf = null, sel3d = null;
+  function load3d(buf) {
+    if (!buf) return;
+    if (!window.Viewer) { pendingBuf = buf; return; }
+    pendingBuf = null; $("state3d").hidden = false; $("state3d").textContent = "3D-Modell wird geladen …";
+    window.Viewer.load(buf).then(function (n) {
+      if (!n) { $("state3d").textContent = "Das Modell enthält keine darstellbare Geometrie."; return; }
+      $("state3d").hidden = true; paint3d();
+    }, function (e) { $("state3d").textContent = "3D-Ansicht nicht verfügbar (" + (e && e.message || e) + "). Internetverbindung prüfen."; });
+  }
+  window.addEventListener("viewer-ready", function () {
+    window.Viewer.onPick = function (gid) { sel3d = gid; showSel(); paint3d(); };
+    if (pendingBuf) load3d(pendingBuf);
+  });
+  setTimeout(function () { if (!window.Viewer && !$("state3d").hidden) $("state3d").textContent = "3D-Ansicht nicht verfügbar. Sie braucht eine Internetverbindung (three.js und web-ifc)."; }, 20000);
+  function colorOf(k) { var v = /var\((--[\w-]+)\)/.exec(STATUS[k].c); return v ? getComputedStyle(document.documentElement).getPropertyValue(v[1]).trim() : STATUS[k].c; }
+  function paint3d() {
+    if (!window.Viewer || !state.result) return;
+    var by = new Map(state.result.rows.map(function (x) { return [x.gid, x]; })), col = {};
+    ORDER.forEach(function (k) { col[k] = colorOf(k); });
+    window.Viewer.paint(function (gid) {
+      var x = by.get(gid);
+      if (!x) return { ghost: true };
+      if (gid === sel3d) return { sel: true };
+      if (state.filter !== "alle" && x.status !== state.filter) return { ghost: true };
+      // Noch nicht Gebautes durchscheinend, damit der Rohbau sichtbar bleibt
+      return { color: col[x.status], op: x.status === "geplant" && state.filter === "alle" ? 0.22 : 1 };
+    });
+  }
+  function showSel() {
+    var box = $("sel3d"), x = sel3d && state.result && state.result.rows.find(function (r) { return r.gid === sel3d; });
+    if (!x) { box.hidden = true; return; }
+    var st = STATUS[x.status], fmt = function (v) { return /^\d{4}-/.test(v) ? BF.fmt(v) : v || "–"; };
+    var act = x.gid in state.acc ? '<button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Abnahme rückgängig</button>'
+      : x.status === "ausstehend" ? '<button type="button" class="btn" data-acc="' + esc(x.gid) + '">Abnehmen</button>'
+      : x.status === "fehler" ? '<button type="button" class="btn" data-fix="' + esc(x.gid) + '">Korrigieren</button>' : "";
+    box.innerHTML = '<button type="button" class="x" data-close3d aria-label="Schliessen">×</button>' +
+      '<b>' + esc(x.name) + '</b><span class="muted">' + esc(x.cls) + " · " + esc(x.storey || "–") + "</span>" +
+      '<div class="row"><span class="pill" style="--c:' + st.c + '">' + st.label + "</span>" + (x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + " Verzug</span>" : "") + "</div>" +
+      "<span>Soll " + esc(fmt(x.soll)) + " · Montiert " + esc(x.inst || "–") + " · Abnahme " + esc(fmt(x.acc)) + "</span>" +
+      x.reasons.concat(x.hints).map(function (t) { return '<span class="muted">' + esc(t) + "</span>"; }).join("") +
+      '<div class="row">' + act + '<button type="button" class="linkbtn" data-show="' + esc(x.gid) + '">In Liste zeigen</button></div>';
+    box.hidden = false;
+  }
+  function accDay(iso) { return { ok: true, iso: iso, day: BF.isoToDay(iso) }; }
+  // Abnahmen dieser Sitzung über die Modellwerte legen (ohne das Modell selbst zu verändern)
+  function applyAcc() {
+    state.model.elements.forEach(function (e) {
+      if (!("orig" in e)) e.orig = { hasPset: e.hasPset, hasSoll: e.hasSoll, soll: e.soll, hasInst: e.hasInst, inst: e.inst, acc: e.acc };
+      var o = e.orig, fixed = e.gid in state.soll || e.gid in state.acc || e.gid in state.inst;
+      // Fehlt das Pset, legt die App es beim Speichern an
+      e.hasPset = o.hasPset || fixed;
+      e.hasInst = (o.hasPset && o.hasInst) || e.gid in state.inst;
+      e.inst = e.gid in state.inst ? { ok: true, val: state.inst[e.gid] } : o.hasPset ? o.inst : { empty: true };
+      e.hasSoll = o.hasSoll || e.gid in state.soll;
+      e.soll = e.gid in state.soll ? accDay(state.soll[e.gid]) : o.hasPset ? o.soll : { empty: true };
+      e.acc = e.gid in state.acc ? (state.acc[e.gid] ? accDay(state.acc[e.gid]) : { empty: true }) : o.hasPset ? o.acc : { empty: true };
+    });
+  }
+  function reportSoll() { parent.postMessage({ type: "bs-soll", changes: state.soll }, "*"); parent.postMessage({ type: "bs-instfix", changes: state.inst }, "*"); }
+
+  // ---------- Datenfehler korrigieren (Soll-Datum, Abnahmedatum) ----------
+  var fixGid = null;
+  function openFix(gid) {
+    var x = state.result.rows.find(function (r) { return r.gid === gid; }); if (!x) return;
+    var e = state.model.elements.find(function (m) { return m.gid === gid; }), o = e.orig;
+    fixGid = gid;
+    $("fix-title").textContent = x.name;
+    $("fix-why").textContent = x.reasons.join(" · ") || "Keine Datenfehler.";
+    var sollNow = gid in state.soll ? state.soll[gid] : (o.hasPset && o.soll.ok ? o.soll.iso : "");
+    var accNow = gid in state.acc ? (state.acc[gid] || "") : (o.hasPset && o.acc.ok ? o.acc.iso : "");
+    $("fix-soll").value = sollNow; $("fix-acc").value = accNow;
+    // Montagestatus nur korrigierbar, wenn er fehlt oder kein Ja/Nein-Wert ist (sonst meldet ihn der Polier)
+    var instOk = o.hasPset && o.inst.ok, sel = $("fix-inst");
+    sel.disabled = instOk;
+    sel.value = gid in state.inst ? String(state.inst[gid]) : instOk ? String(o.inst.val) : "";
+    $("fix-inst-old").textContent = "Im Modell: " + (!o.hasPset || !o.hasInst || o.inst.empty ? "fehlt" : instOk ? (o.inst.val ? "TRUE" : "FALSE") + " · ändert der Polier" : o.inst.raw + " (" + o.inst.type + " statt IfcBoolean)");
+    $("fix-soll-old").textContent = "Im Modell: " + (!o.hasPset ? "Pset fehlt" : o.soll.ok ? BF.fmt(o.soll.iso) : o.soll.empty ? "leer" : "«" + o.soll.raw + "» (ungültig)");
+    $("fix-acc-old").textContent = "Im Modell: " + (!o.hasPset || o.acc.empty ? "leer" : o.acc.ok ? BF.fmt(o.acc.iso) : "«" + o.acc.raw + "» (ungültig)") + " · leer lassen = keine Abnahme";
+    $("fix-err").hidden = true; $("fixbg").hidden = false; $("fix-soll").focus();
+  }
+  function closeFix() { fixGid = null; $("fixbg").hidden = true; }
+  $("fix-cancel").addEventListener("click", closeFix);
+  $("fixbg").addEventListener("click", function (ev) { if (ev.target === this) closeFix(); });
+  $("fixform").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var g = fixGid, e = state.model.elements.find(function (m) { return m.gid === g; }), o = e.orig;
+    var soll = $("fix-soll").value, acc = $("fix-acc").value, pruef = $("pdate").value || todayIso();
+    var instOk = o.hasPset && o.inst.ok, instSel = $("fix-inst").value;
+    var montiert = instOk ? o.inst.val === true : instSel === "true";
+    var err = !soll ? "Bitte ein Soll-Datum angeben."
+      : !instOk && !instSel ? "Bitte den Montagestatus wählen (Ja oder Nein)."
+      : acc && !montiert ? "Abnahme nur bei montierten Bauteilen (IsInstalled = Ja). Feld leeren oder zuerst die Montage melden lassen."
+      : acc && acc > todayIso() ? "Das Abnahmedatum darf nicht nach heute liegen."
+      : acc && acc > pruef ? "Das Abnahmedatum liegt nach dem Prüfdatum " + BF.fmt(pruef) + "."
+      : "";
+    if (err) { $("fix-err").textContent = err; $("fix-err").hidden = false; return; }
+    var sollOrig = o.hasPset && o.soll.ok ? o.soll.iso : null;
+    if (soll !== sollOrig) state.soll[g] = soll; else delete state.soll[g];
+    var accOrig = o.hasPset && !o.acc.empty ? (o.acc.ok ? o.acc.iso : o.acc.raw) : "";
+    if (acc !== accOrig) state.acc[g] = acc || null; else delete state.acc[g];
+    if (!instOk) state.inst[g] = instSel === "true"; else delete state.inst[g];
+    reportSoll(); reportAcc(); closeFix(); run();
+    toast("Korrigiert. Zum Übernehmen «Stand speichern».");
+  });
+  function unfix(g) { delete state.soll[g]; delete state.acc[g]; delete state.inst[g]; reportSoll(); reportAcc(); run(); toast("Korrektur zurückgenommen"); }
+  function setAcc(gids, on) {
+    var iso = $("pdate").value || todayIso();
+    if (on && iso > todayIso()) { toast("Abnahmen sind höchstens bis heute möglich. Bitte Prüfdatum anpassen."); return 0; }
+    var n = 0;
+    gids.forEach(function (g) {
+      if (on) state.acc[g] = iso; else delete state.acc[g];
+      n++;
+    });
+    reportAcc(); state.confirm = false; run();
+    return n;
+  }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function nf(n) { return n.toLocaleString("de-CH"); }
@@ -687,6 +956,7 @@ if (typeof module !== "undefined") module.exports = BF;
   /* ---------- Rendering ---------- */
   function run() {
     var iso = $("pdate").value || todayIso();
+    applyAcc();
     state.result = BF.evaluate(state.model, iso);
     render();
   }
@@ -732,6 +1002,8 @@ if (typeof module !== "undefined") module.exports = BF;
     }).join("");
 
     renderTimeline(); renderReqs(); renderFloors(); renderFilters(); renderTable(); renderProtocol();
+    $("legend3d").innerHTML = ORDER.map(function (k) { return '<span style="--c:' + STATUS[k].c + '"><i></i>' + STATUS[k].label + " " + nf(c[k]) + "</span>"; }).join("");
+    showSel();
   }
 
   function renderTimeline() {
@@ -832,17 +1104,30 @@ if (typeof module !== "undefined") module.exports = BF;
   }
 
   function renderTable() {
+    paint3d();
     var rows = filtered(), shown = rows.slice(0, state.shown);
     var label = state.filter === "alle" ? "Alle Bauteile" : STATUS[state.filter].label;
+    var offen = rows.filter(function (x) { return x.status === "ausstehend"; });
+    var dt = BF.fmt($("pdate").value || todayIso());
+    $("bulk").innerHTML = state.filter === "ausstehend" && offen.length > 1
+      ? (state.confirm ? '<button type="button" class="btn" data-bulk="yes">Ja, ' + offen.length + " Bauteile am " + dt + ' abnehmen</button> <button type="button" class="btn ghost" data-bulk="no">Abbrechen</button>'
+        : '<button type="button" class="btn ghost" data-bulk="ask">Alle ' + offen.length + " angezeigten am " + dt + " abnehmen …</button>")
+      : "";
     $("list-sub").textContent = label + " · " + plural(rows.length, "Eintrag", "Einträge") + (state.filter === "alle" ? " · dringendste zuerst" : "");
     if (!rows.length) { $("tbody").innerHTML = '<tr><td colspan="9" class="empty">Keine Bauteile in dieser Auswahl.</td></tr>'; $("more").innerHTML = ""; return; }
     $("tbody").innerHTML = shown.map(function (x) {
       var st = STATUS[x.status];
       var verzug = x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + "</span>" : x.until != null ? '<span class="muted">in ' + plural(x.until, "Tag", "Tagen") + "</span>" : "";
       var why = x.reasons.map(function (t) { return '<div class="reason">' + esc(t) + "</div>"; }).join("") + x.hints.map(function (t) { return '<div class="reason hint">' + esc(t) + "</div>"; }).join("");
-      if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Montieren, dann IsInstalled auf Ja setzen</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren und Abnahmedatum setzen</div>' : "";
+      if (!why) why = x.status === "ueberfaellig" ? '<div class="reason">Polier: montieren und melden</div>' : x.status === "ausstehend" ? '<div class="reason">Kontrollieren, dann «Abnehmen»</div>' : "";
+      if (x.gid in state.soll || x.gid in state.inst || (x.gid in state.acc && state.acc[x.gid] == null)) why += '<div class="reason hint">Korrigiert, nicht gespeichert</div><button type="button" class="linkbtn" data-unfix="' + esc(x.gid) + '">Korrektur zurücknehmen</button>';
+      else if (x.status === "fehler") why += '<button type="button" class="linkbtn" data-fix="' + esc(x.gid) + '">Korrigieren</button>';
+      var neu = x.gid in state.acc;
+      var abn = neu ? '<b>' + esc(BF.fmt(x.acc)) + '</b><br><span class="muted">neu, nicht gespeichert</span><br><button type="button" class="linkbtn" data-unacc="' + esc(x.gid) + '">Rückgängig</button>'
+        : x.status === "ausstehend" ? '<button type="button" class="linkbtn" data-acc="' + esc(x.gid) + '">Abnehmen</button>'
+        : esc(/^\d{4}-/.test(x.acc) ? BF.fmt(x.acc) : x.acc || "–");
       return "<tr><td><span class=\"pill\" style=\"--c:" + st.c + "\">" + st.label + "</span></td><td>" + esc(x.name) + '<span class="cls">' + esc(x.cls) + "</span></td><td>" + esc(x.storey || "–") + '</td><td class="num">' + esc(/^\d{4}-/.test(x.soll) ? BF.fmt(x.soll) : x.soll || "–") +
-        "</td><td>" + esc(x.inst || "–") + '</td><td class="num">' + esc(/^\d{4}-/.test(x.acc) ? BF.fmt(x.acc) : x.acc || "–") + '</td><td class="num">' + verzug + "</td><td>" + why + '</td><td><button type="button" class="gid" data-gid="' + esc(x.gid) + '" title="Klicken zum Kopieren">' + esc(x.gid) + "</button></td></tr>";
+        "</td><td>" + esc(x.inst || "–") + '</td><td class="num">' + abn + '</td><td class="num">' + verzug + "</td><td>" + why + '</td><td><button type="button" class="gid" data-gid="' + esc(x.gid) + '" title="Klicken zum Kopieren">' + esc(x.gid) + "</button></td></tr>";
     }).join("");
     $("more").innerHTML = rows.length > shown.length ? "<span>" + nf(shown.length) + " von " + nf(rows.length) + ' angezeigt</span><button type="button" class="linkbtn" id="more-btn">Weitere ' + Math.min(PAGE, rows.length - shown.length) + ' anzeigen</button><button type="button" class="linkbtn" id="all-btn">Alle anzeigen</button>' : "";
   }
@@ -875,9 +1160,24 @@ if (typeof module !== "undefined") module.exports = BF;
   /* ---------- Events ---------- */
   document.addEventListener("click", function (ev) {
     var f = ev.target.closest("[data-filter]");
-    if (f) { state.filter = f.dataset.filter; state.shown = PAGE; renderFilters(); renderTable(); if (!f.classList.contains("chip")) $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (f) { state.filter = f.dataset.filter; state.shown = PAGE; state.confirm = false; renderFilters(); renderTable(); if (!f.classList.contains("chip")) $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
     var g = ev.target.closest(".gid");
     if (g) { copy(g.dataset.gid, "GlobalId kopiert"); return; }
+    var s3 = ev.target.closest("[data-show],[data-close3d]");
+    if (s3 && s3.dataset.show) { state.filter = "alle"; state.q = s3.dataset.show; $("search").value = state.q; state.shown = PAGE; renderFilters(); renderTable(); $("h-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (s3) { sel3d = null; showSel(); paint3d(); return; }
+    var fx = ev.target.closest("[data-fix],[data-unfix]");
+    if (fx && fx.dataset.fix) { openFix(fx.dataset.fix); return; }
+    if (fx) { unfix(fx.dataset.unfix); return; }
+    var t = ev.target.closest("[data-acc],[data-unacc],[data-bulk]");
+    if (t && t.dataset.acc) { if (setAcc([t.dataset.acc], true)) toast("Abnahme gesetzt. Zum Übernehmen «Stand speichern»."); return; }
+    if (t && t.dataset.unacc) { setAcc([t.dataset.unacc], false); toast("Abnahme zurückgenommen"); return; }
+    if (t && t.dataset.bulk === "ask") { state.confirm = true; renderTable(); return; }
+    if (t && t.dataset.bulk === "no") { state.confirm = false; renderTable(); return; }
+    if (t && t.dataset.bulk === "yes") {
+      var ids = filtered().filter(function (x) { return x.status === "ausstehend"; }).map(function (x) { return x.gid; });
+      var n = setAcc(ids, true); if (n) toast(n + " Abnahmen gesetzt. Zum Übernehmen «Stand speichern»."); return;
+    }
     if (ev.target.id === "more-btn") { state.shown += PAGE; renderTable(); }
     if (ev.target.id === "all-btn") { state.shown = Infinity; renderTable(); }
   });
@@ -900,13 +1200,18 @@ if (typeof module !== "undefined") module.exports = BF;
   if (framed) { $("csv-btn").hidden = true; $("print-btn").hidden = true; $("copy-btn").classList.remove("ghost"); }
   window.addEventListener("beforeprint", function () { state.shown = Infinity; renderTable(); });
 
-  var drop = $("drop"), depth = 0;
-  ["dragenter", "dragover"].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
-  document.addEventListener("dragleave", function (e) { if (!e.relatedTarget) drop.classList.remove("over"); });
-  document.addEventListener("drop", function (e) { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files.length) readFile(e.dataTransfer.files[0]); });
+  // Modell kommt von der Baustellen-App; Dateien direkt hineinziehen ist hier abgeschaltet
+  ["dragover", "drop"].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }); });
+  window.addEventListener("message", function (ev) {
+    if (ev.source !== window.parent) return;
+    var d = ev.data || {};
+    if (d.type === "bs-open") { state.acc = {}; state.soll = {}; state.inst = {}; state.confirm = false; sel3d = null; closeFix(); $("results").hidden = false; parse(d.text, d.name, false); load3d(d.buffer); }
+    if (d.type === "bs-saved") { state.acc = {}; state.soll = {}; state.inst = {}; }
+  });
 
   $("ver").textContent = BF.VERSION;
   $("pdate").value = todayIso();
-  parse(sampleIfc(), "Beispiel_Wohnhaus.ifc", true);
+  $("results").hidden = true;
+  $("progress").hidden = false; $("progress-t").textContent = "Modell wird geladen …";
 })();
 </script>
