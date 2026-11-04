@@ -29,7 +29,7 @@ Polier und Bauleitung arbeiten mit der [Baustellen-App](../apps/baustellen-app/A
 | `AcceptanceDate` | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Abnehmen» (Datum = Prüfdatum, höchstens heute) | umgesetzt (Prototyp) |
 | Korrektur `InstallationDate` / `AcceptanceDate` / ungültiges `IsInstalled` bei Datenfehlern | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Korrigieren» | umgesetzt (Prototyp) |
 
-Grenze: Der Passwortschutz im Browser verhindert Fehlbedienung, ist aber kein Zugriffsschutz. Echten Schutz bietet erst Variante B mit Server (siehe [Konzept](../workflow/Konzept_Baustellen-App.md)). Die früheren Einzeltools mit CSV-Rückführung liegen auf `main`.
+Grenze: Der Passwortschutz im Browser verhindert Fehlbedienung, ist aber kein Zugriffsschutz. Echten Schutz bietet erst Variante B mit Server (siehe [Konzept](../workflow/Konzept_Baustellen-App.md)). Die früheren Einzeltools mit CSV-Rückführung stehen in der Git-Historie (Commit `aa46e8b`).
 
 Bis dahin lässt sich Anforderung 2 nur mit Testdaten prüfen (im Modell des Dozenten ist `AcceptanceDate` überall leer).
 

@@ -94,7 +94,7 @@ Kernidee: Das IFC-Modell liefert Geometrie und Soll-Daten. Die Rückmeldungen (`
 | CSV/PDF-Bericht der Bauleitung | bleibt (für `results/`) |
 | `apps/baufortschritt-check/baufortschritt.js` (ifclite) | bleibt als unabhängige Zweitprüfung, neu in `apps/baustellen-app/` |
 
-Auf dem Branch `baustellen-app` sind die alten Tools gelöscht. Sie bleiben auf `main` erhalten, damit das Peer-Audit vom 03.11. nachvollziehbar bleibt.
+Die alten Tools sind gelöscht. Damit das Peer-Audit vom 03.11. nachvollziehbar bleibt, stehen sie in der Git-Historie (Commit `aa46e8b`, 02.11.2026).
 
 ## Grenzen und Risiken
 

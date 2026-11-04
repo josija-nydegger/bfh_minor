@@ -64,4 +64,4 @@ Den ausgegebenen Hash in `src/app.html` bei `ROLES` ersetzen und neu bauen.
 
 - Arbeiten zwei Personen gleichzeitig an derselben Datei, gewinnt die zuletzt gespeicherte. Darum pro Modell immer nur eine Person gleichzeitig.
 - Nicht gespeicherte Abnahmen gehen beim Schliessen verloren, die App warnt davor. Meldungen des Poliers bleiben im Browser zwischengespeichert.
-- Getestet über einen lokalen Webserver in Chrome, auch mit `Baustellen-App.html` allein in einem leeren Ordner. Öffnen per Doppelklick (`file://`) ist noch nicht vollständig geprüft.
+- Getestet über einen lokalen Webserver in Chrome, auch mit `Baustellen-App.html` allein in einem leeren Ordner. Öffnen per Doppelklick (`file://`) funktioniert (Test Josija, 04.11.2026). Die Polier-Ansicht und das 3D-Modell brauchen Internet.

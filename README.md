@@ -12,7 +12,7 @@ Die Bauleitung erfährt direkt aus dem IFC-Modell, welche Bauteile montiert, üb
 
 Daraus leitet die Baustellen-App pro Bauteil den Status ab: geplant, Montage überfällig, Abnahme ausstehend, abgenommen oder Fehler. Details stehen im [MVP](MVP/MVP%20definitive%20Themenwahl.md).
 
-> Dieser Branch enthält die zusammengeführte **Baustellen-App**. Die früheren Einzeltools (Polier-Tool mit CSV und `csv_ins_ifc.py`, Baufortschritt-Check) und die Peer-Audit-Anleitung vom 03.11.2026 liegen unverändert auf `main`.
+> Die früheren Einzeltools (Polier-Tool mit CSV und `csv_ins_ifc.py`, Baufortschritt-Check) und die Peer-Audit-Anleitung vom 03.11.2026 sind durch die **Baustellen-App** ersetzt. Sie stehen in der Git-Historie: Commit [`aa46e8b`](https://github.com/josija-nydegger/bfh_minor/tree/aa46e8b) (02.11.2026).
 
 ## Schritt für Schritt: ein Tag mit der Baustellen-App
 
@@ -32,7 +32,7 @@ Polier: anmelden → Montage melden → Stand speichern ──IFC──▶ Baule
 
 ### Schritt 0 · Repository herunterladen
 
-Auf GitHub den Branch `baustellen-app` wählen, dann **Code → Download ZIP** klicken und die ZIP-Datei entpacken. Wer nur die App braucht, lädt einzig [`apps/baustellen-app/Baustellen-App.html`](apps/baustellen-app/Baustellen-App.html) herunter (auf GitHub: Datei öffnen → **Download raw file**). Die eine Datei genügt.
+Auf GitHub **Code → Download ZIP** klicken und die ZIP-Datei entpacken. Wer nur die App braucht, lädt einzig [`apps/baustellen-app/Baustellen-App.html`](apps/baustellen-app/Baustellen-App.html) herunter (auf GitHub: Datei öffnen → **Download raw file**). Die eine Datei genügt.
 
 ### Schritt 1 · Polier meldet Montagen
 
@@ -89,6 +89,7 @@ Ausführliche Anleitung: [Baustellen-App](apps/baustellen-app/Anleitung.md) · K
 | [`requirements/`](requirements/) | [AIA-BEP-Matrix](requirements/aia-bep-matrix.md) und IDS für Anforderung 1 (`a1_baufortschritt.ids`, erzeugt mit `erzeuge_ids.js`) |
 | [`model/`](model/) | IFC-Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, IFC2X3) und Lehrmodell Mutthornhütte (`Mutthornhuette_Baufortschritt.ifc`, mit eingebauten Fehlern, Lösungsschlüssel in [`checks/loesung_mutthornhuette.md`](checks/loesung_mutthornhuette.md)) |
 | [`apps/baustellen-app/`](apps/baustellen-app/) | Baustellen-App: Login pro Rolle, Polier-Ansicht, Bauleitungs-Ansicht mit Abnahme, schreibt direkt ins IFC; dazu das ifclite-Skript `baufortschritt.js` ([Anleitung](apps/baustellen-app/Anleitung.md)) |
+| [`pitch/`](pitch/) | Zwischenpitch als HTML-Präsentation mit Live-Demo der App (`Zwischenpitch.html`, per Doppelklick öffnen) |
 | [`checks/`](checks/) | Skripte: `kennzahlen.py` (IfcOpenShell), Generator und Lösungsschlüssel des Mutthorn-Modells |
 | [`results/`](results/) | Prüfresultate (ifclite-Reports) |
 | [`workflow/`](workflow/) | Ist- und Soll-Prozess als BPMN-Swimlane (draw.io, PNG, PDF) und [Konzept der Baustellen-App](workflow/Konzept_Baustellen-App.md) |
@@ -112,10 +113,11 @@ Mit dem Modell des Dozenten (Stand 03.11.2026) und Prüfdatum 03.11.2026 zeigt d
 
 ## Stand
 
-- Anforderungen, IDS und Soll-Prozess sind auf den Prozess mit `IsInstalled` umgestellt.
+- Anforderungen, IDS und Soll-Prozess sind auf den Prozess mit `IsInstalled` umgestellt. Das IDS gilt für alle Bauteilklassen von IFC2X3.
 - Polier-Tool und Baufortschritt-Check sind in der Baustellen-App zusammengeführt (Prototyp Variante A). Die CSV-Schnittstelle entfällt.
 - Die Bauleitung setzt `AcceptanceDate` jetzt in der App.
-- Offen: Soll-Prozess (`workflow/prozess_ist_soll.drawio`) und AIA-BEP-Matrix an die App anpassen. Variante B (Server mit echtem Login) ist ein Ausblick.
+- Die AIA-BEP-Matrix ist an die App angepasst.
+- Offen: Soll-Prozess (`workflow/prozess_ist_soll.drawio`) an die App anpassen. Variante B (Server mit echtem Login) ist ein Ausblick.
 
 ## KI-Einsatz
 
