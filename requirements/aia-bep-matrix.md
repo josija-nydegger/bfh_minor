@@ -45,7 +45,7 @@ Bis dahin lässt sich Anforderung 2 nur mit Testdaten prüfen (im Modell des Doz
 - Positiver Testfall (muss bestehen): GlobalId `0B2YGPanTBc9mM6oEg4jTv` (IfcFooting, Snowdon).
 - Negativer Testfall (fällt durch): GlobalId `0YoDRe$5vuQ0vtGGKlgxcM` (IfcFlowStorageDevice, Mutthornhütte), `InstallationDate` leer.
 - Lauf in ifclite 5.5.0 (Data validation → IDS validation) durch Matthias am 04.11.2026, Mutthornhütte: 243 Prüfungen, 4 durchgefallen, dieselben 4 Bauteile wie bei ifctester; ifclite versteht die Klassenliste. Report: [`results/a1_ids_mutthornhuette_ifclite_2026-11-04.json`](../results/a1_ids_mutthornhuette_ifclite_2026-11-04.json).
-- Ausstehend: ifclite-Lauf mit dem Modell des Dozenten.
+- Lauf in ifclite 5.5.0 durch Matthias am 04.11.2026, Modell des Dozenten: alle 3 Regeln bestanden, 1446 Bauteile je Regel (4338 Prüfungen, 0 durchgefallen). Report: [`results/a1_ids_snowdon_ifclite_2026-11-04.json`](../results/a1_ids_snowdon_ifclite_2026-11-04.json).
 - Hinweis Validator: `Pset_InstallationOccurrence` existiert erst in IFC 4.3 (ifclite warnte beim alten Lauf `W_IFC_PSET_RESERVED_PREFIX`). `IsInstalled` ist zusätzlich keine Standard-Property dieses Psets; der Name entspricht der Vorgabe im Modell.
 - Was die Regel nicht prüft:
   - Ob das Datum im Kalender existiert: das Pattern lässt z. B. `2026-09-31` durch.
