@@ -15,6 +15,7 @@
 | 03.11.2026 | Claude Code (Opus 5.5) | Konzept `workflow/Konzept_Baustellen-App.md` und Prototyp Variante A `apps/baustellen-app/` (Login pro Rolle, IFC direkt schreiben, ohne CSV, 3D-Modell nach Status für die Bauleitung, als eine Datei gebaut mit `build.js`, Korrektur von Datum und Montagestatus bei Datenfehlern). | Konzept und Code übernommen; Vorgaben (Rollen, Passwort, kein CSV) von Matthias. |  Alle Funktionen der App getestet, neues IFC gespeichert und die Änderungen analysiert: 100% übereinstimmung. |
 
 ___
+| 04.11.2026 | Claude Code (Opus 5.5) | IDS auf alle 45 Bauteilklassen von IFC2X3 erweitert (3 Regeln mit Klassenliste statt 27), Generator `requirements/erzeuge_ids.js`. | Anstoss von Matthias, Klassenliste als Vorschlag. | Agent: ifctester 0.9.0, Snowdon 3/3 bestanden, Mutthornhütte 4 Fehler wie im Lösungsschlüssel; ifclite 5.5.0 (Lauf Matthias) gleich. |
 
 ## Josija
 

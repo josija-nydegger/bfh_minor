@@ -86,7 +86,7 @@ Ausführliche Anleitung: [Baustellen-App](apps/baustellen-app/Anleitung.md) · K
 | Ordner | Inhalt |
 |---|---|
 | [`MVP/`](MVP/) | Themenwahl und MVP: Use Case, Modell und Evidenz, drei Anforderungen, Automatisierung |
-| [`requirements/`](requirements/) | [AIA-BEP-Matrix](requirements/aia-bep-matrix.md) und IDS für Anforderung 1 (`a1_baufortschritt.yaml` / `.ids`) |
+| [`requirements/`](requirements/) | [AIA-BEP-Matrix](requirements/aia-bep-matrix.md) und IDS für Anforderung 1 (`a1_baufortschritt.ids`, erzeugt mit `erzeuge_ids.js`) |
 | [`model/`](model/) | IFC-Modell des Dozenten (`Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`, IFC2X3) und Lehrmodell Mutthornhütte (`Mutthornhuette_Baufortschritt.ifc`, mit eingebauten Fehlern, Lösungsschlüssel in [`checks/loesung_mutthornhuette.md`](checks/loesung_mutthornhuette.md)) |
 | [`apps/baustellen-app/`](apps/baustellen-app/) | Baustellen-App: Login pro Rolle, Polier-Ansicht, Bauleitungs-Ansicht mit Abnahme, schreibt direkt ins IFC; dazu das ifclite-Skript `baufortschritt.js` ([Anleitung](apps/baustellen-app/Anleitung.md)) |
 | [`checks/`](checks/) | Skripte: `kennzahlen.py` (IfcOpenShell), Generator und Lösungsschlüssel des Mutthorn-Modells |
@@ -106,7 +106,7 @@ python checks/kennzahlen.py model/Mutthornhuette_Baufortschritt.ifc
 
 Ohne Argument liest das Skript `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`.
 
-IDS prüfen (Anforderung 1): `requirements/a1_baufortschritt.ids` und das Modell in https://www.ifclite.com laden. Das IDS wird aus der YAML-Datei in https://www.idslight.com erzeugt.
+IDS prüfen (Anforderung 1): `requirements/a1_baufortschritt.ids` und das Modell in https://www.ifclite.com laden. Das IDS gilt für alle 45 Bauteilklassen von IFC2X3 und wird mit `node requirements/erzeuge_ids.js` erzeugt (schreibt auch die YAML-Fassung).
 
 Mit dem Modell des Dozenten (Stand 03.11.2026) und Prüfdatum 03.11.2026 zeigt die Bauleitungs-Ansicht 1446 Bauteile: 842 abgenommen, 219 Abnahme ausstehend, 46 Montage überfällig, 339 geplant, 0 Daten fehlerhaft.
 

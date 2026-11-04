@@ -1,0 +1,170 @@
+{
+  "kind": "ids-report",
+  "id": "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82",
+  "sourceKind": "ids",
+  "sourceName": "Baufortschritt - Soll-Installationsdatum, Montagestatus und Abnahmedatum",
+  "generatedAt": "2026-11-04T10:37:08.263Z",
+  "summary": {
+    "checked": 243,
+    "passed": 239,
+    "failed": 4,
+    "passRate": 98
+  },
+  "checks": [
+    {
+      "id": "spec-0",
+      "shortDescription": "A1 InstallationDate",
+      "longDescription": "Soll-Datum gemäss Terminplan bei jedem Bauteil",
+      "checked": 81,
+      "passed": 78,
+      "failed": 3,
+      "passRate": 96,
+      "rules": [
+        {
+          "id": "req-0",
+          "name": "InstallationDate",
+          "shortDescription": "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+          "longDescription": "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+          "checked": 81,
+          "passed": 78,
+          "failed": 3,
+          "passRate": 96
+        }
+      ]
+    },
+    {
+      "id": "spec-1",
+      "shortDescription": "A1 IsInstalled",
+      "longDescription": "Montagestatus bei jedem Bauteil",
+      "checked": 81,
+      "passed": 80,
+      "failed": 1,
+      "passRate": 98,
+      "rules": [
+        {
+          "id": "req-0",
+          "name": "IsInstalled",
+          "shortDescription": "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist",
+          "longDescription": "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist",
+          "checked": 81,
+          "passed": 80,
+          "failed": 1,
+          "passRate": 98
+        }
+      ]
+    },
+    {
+      "id": "spec-2",
+      "shortDescription": "A2 AcceptanceDate",
+      "longDescription": "Abnahmedatum, falls gesetzt, im Format YYYY-MM-DD",
+      "checked": 81,
+      "passed": 81,
+      "failed": 0,
+      "passRate": 100,
+      "rules": [
+        {
+          "id": "req-0",
+          "name": "AcceptanceDate",
+          "shortDescription": "Property \"Pset_InstallationOccurrence.AcceptanceDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+          "longDescription": "Property \"Pset_InstallationOccurrence.AcceptanceDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\"",
+          "checked": 81,
+          "passed": 81,
+          "failed": 0,
+          "passRate": 100
+        }
+      ]
+    }
+  ],
+  "elementEvidence": {
+    "version": 1,
+    "rows": [
+      {
+        "id": "failure-0",
+        "specificationId": "spec-0",
+        "GlobalId": "11QiS8gHllgXAgn2d6$9hM",
+        "modelName": "Mutthornhuette_Baufortschritt.ifc",
+        "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+        "ifcType": "IfcEnergyConversionDevice",
+        "Name": "PV-Fassade West",
+        "title": "A1 InstallationDate",
+        "nativeStatus": "failed",
+        "detail": [
+          "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" is \"24.11.2026\", expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · actual 24.11.2026 · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+        ],
+        "signature": "xxh64:b37f48cdfd09b26b"
+      },
+      {
+        "id": "failure-1",
+        "specificationId": "spec-0",
+        "GlobalId": "0YoDRe$5vuQ0vtGGKlgxcM",
+        "modelName": "Mutthornhuette_Baufortschritt.ifc",
+        "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+        "ifcType": "IfcFlowStorageDevice",
+        "Name": "Wassertank 2",
+        "title": "A1 InstallationDate",
+        "nativeStatus": "failed",
+        "detail": [
+          "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" has no value · actual (empty) · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+        ],
+        "signature": "xxh64:94d98b20a96286ca"
+      },
+      {
+        "id": "failure-2",
+        "specificationId": "spec-0",
+        "GlobalId": "0POtwNONii4J46o7qXjdfw",
+        "modelName": "Mutthornhuette_Baufortschritt.ifc",
+        "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+        "ifcType": "IfcFlowStorageDevice",
+        "Name": "Wassertank 4",
+        "title": "A1 InstallationDate",
+        "nativeStatus": "failed",
+        "detail": [
+          "Property \"Pset_InstallationOccurrence.InstallationDate\" must match matching pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\" · Property \"Pset_InstallationOccurrence.InstallationDate\" has no value · actual (empty) · expected pattern \"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])\""
+        ],
+        "signature": "xxh64:94d98b20a96286ca"
+      },
+      {
+        "id": "failure-3",
+        "specificationId": "spec-1",
+        "GlobalId": "3ogzU7APuubcAsHw19O1kV",
+        "modelName": "Mutthornhuette_Baufortschritt.ifc",
+        "modelFingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351",
+        "ifcType": "IfcWall",
+        "Name": "Zimmerwand OG Nord 2",
+        "title": "A1 IsInstalled",
+        "nativeStatus": "failed",
+        "detail": [
+          "Property \"Pset_InstallationOccurrence.IsInstalled\" must exist · Property \"Pset_InstallationOccurrence.IsInstalled\" data type is \"IFCLABEL\", expected \"IFCBOOLEAN\" · actual Pset_InstallationOccurrence.IsInstalled (IFCLABEL) · expected dataType \"IFCBOOLEAN\""
+        ],
+        "signature": "xxh64:a02df5db900a154f"
+      }
+    ],
+    "observed": 4,
+    "omitted": 0,
+    "gaps": [],
+    "definition": {
+      "source": "xxh64:079d4558e7e525a3",
+      "checks": [
+        {
+          "id": "spec-0",
+          "digest": "xxh64:20ab3587a2294857"
+        },
+        {
+          "id": "spec-1",
+          "digest": "xxh64:07ef9b9cfef1f521"
+        },
+        {
+          "id": "spec-2",
+          "digest": "xxh64:a0257564c64923e1"
+        }
+      ]
+    }
+  },
+  "reportModels": [
+    {
+      "name": "Mutthornhuette_Baufortschritt.ifc",
+      "fingerprint": "Mutthornhuette_Baufortschritt.ifc:544dd4b1d2c4f351"
+    }
+  ],
+  "savedReportId": "validation-report-4b3b3857-4a7d-46e3-af0a-fff9ff8abd82"
+}

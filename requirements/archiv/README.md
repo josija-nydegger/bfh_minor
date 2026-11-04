@@ -1,6 +1,6 @@
 # Archiv – nicht mehr gültig
 
-Nur als Referenz. Gültig sind `requirements/a1_baufortschritt.yaml` / `.ids` (siehe `requirements/aia-bep-matrix.md`) und das Modell `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`.
+Nur als Referenz. Gültig sind `requirements/a1_baufortschritt.ids` (erzeugt mit `requirements/erzeuge_ids.js`) (siehe `requirements/aia-bep-matrix.md`) und das Modell `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc`.
 
 Stand 18.10.2026: ohne `IsInstalled`; `InstallationDate` war bis zur Montage Plandatum und danach Ist-Datum. Das Testmodell wurde per Skript ergänzt und mit dem alten IDS in ifclite geprüft.
 
