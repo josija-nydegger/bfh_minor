@@ -63,7 +63,7 @@ Nach Geschoss:
 | F5 | Zimmerwand OG Nord 2 | IfcWall | `3ogzU7APuubcAsHw19O1kV` | `IsInstalled` = IfcLabel `'FALSE'` | kein Ja/Nein-Wert (IfcLabel statt IfcBoolean) | 1 |
 | F6 | Hauseingangstür | IfcDoor | `0fNpFhOGYfqCYLXat$muz9` | `IsInstalled` = FALSE, `AcceptanceDate` = 2026-10-28 | Abnahme erfasst, aber Bauteil ist nicht montiert | 2 |
 
-F4 ist ein guter Prüfstein: Das IDS-Pattern `\d{4}-\d{2}-\d{2}` lässt `2026-09-31` durch, der Baufortschritt-Check nicht.
+Das IDS (`requirements/a1_baufortschritt.ids`, alle Bauteilklassen) findet F1, F2, F3 und F5. F4 ist ein guter Prüfstein: Das IDS-Pattern `\d{4}-\d{2}-\d{2}` lässt `2026-09-31` durch, der Baufortschritt-Check nicht.
 
 ## Weitere Prüffälle (keine Datenfehler)
 
@@ -81,4 +81,4 @@ Ein Bauteil, das vor seinem Soll-Datum montiert wurde, lässt sich nur über das
 ## Prüfung des Modells
 
 - IfcOpenShell 0.9.0: Schema-Validierung ohne Befund, 257 GlobalIds ohne Duplikate, Geometrie für alle 81 Bauteile erzeugt.
-- Baufortschritt-Check (Prüflogik der HTML-Datei in [`apps/baufortschritt-check/`](../apps/baufortschritt-check/)): Ergebnis wie oben.
+- Prüflogik der Bauleitungs-Ansicht in [`apps/baustellen-app/`](../apps/baustellen-app/) (gleich wie im früheren Baufortschritt-Check): Ergebnis wie oben.
