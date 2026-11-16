@@ -40,7 +40,7 @@ Bis dahin lässt sich Anforderung 2 nur mit Testdaten prüfen (im Modell des Doz
 - Modell des Dozenten: `model/Team_4_Snowdon_Baufortschritt_IsInstalled.ifc` (IFC2X3), 1446 Elemente (1585 `IfcElement` − 139 `IfcOpeningElement`), alle mit `Pset_InstallationOccurrence`, `AcceptanceDate` überall leer.
 - Test des Agents am 04.11.2026 mit ifctester 0.9.0 (IfcOpenShell 0.9.0.post1), IDS gegen das IDS-1.0-Schema validiert:
   - Modell des Dozenten: alle 3 Regeln bestanden, 1446 Bauteile geprüft.
-  - Mutthornhütte: 81 Bauteile geprüft, 4 durchgefallen. Das sind die Fehler F1, F2, F3 und F5 aus dem [Lösungsschlüssel](../checks/loesung_mutthornhuette.md) (Wassertank 2 und 4 ohne Datum, PV-Fassade West mit `24.11.2026`, Zimmerwand OG Nord 2 mit `IsInstalled` als Text).
+  - Mutthornhütte: 81 Bauteile geprüft, 4 durchgefallen. Das sind die Fehler F1, F2, F3 und F5 aus dem [Lösungsschlüssel](../checks/loesung_mutthornhuette.md) (Wassertank 2 und 4 ohne Datum, PV-Fassade West mit `08.12.2026`, Zimmerwand OG Nord 2 mit `IsInstalled` als Text).
   - Nicht gefunden: F4 (`2026-09-31` passt zum Pattern) und F6 (Abnahme ohne Montage). Beides findet nur die Prüflogik der App.
 - Positiver Testfall (muss bestehen): GlobalId `0B2YGPanTBc9mM6oEg4jTv` (IfcFooting, Snowdon).
 - Negativer Testfall (fällt durch): GlobalId `0YoDRe$5vuQ0vtGGKlgxcM` (IfcFlowStorageDevice, Mutthornhütte), `InstallationDate` leer.

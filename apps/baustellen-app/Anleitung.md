@@ -53,7 +53,7 @@ Den ausgegebenen Hash in `src/app.html` bei `ROLES` ersetzen und neu bauen.
 
 ## Getestet (03.11.2026)
 
-- Mit dem Mutthorn-Modell (Stichtag 03.11.2026):
+- Mit dem Mutthorn-Modell (Stichtag 03.11.2026; seit 16.11. sind alle Daten um 14 Tage verschoben, am Stichtag 17.11.2026 gilt dasselbe Ergebnis):
   - Polier meldet 4 überfällige Bauteile → gespeichertes IFC hat 37 montierte Bauteile.
   - Bauleitung nimmt alle 16 offenen ab → 36 abgenommen, 0 ausstehend.
   - Das Ergebnis aus dem Browser ist byte-gleich mit einem Kontrolllauf in Node. IfcOpenShell meldet keinen Befund, alle 81 Bauteile haben Geometrie.
