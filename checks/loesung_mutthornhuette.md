@@ -20,7 +20,8 @@ Jedes Bauteil trägt `Pset_InstallationOccurrence` mit `InstallationDate` (IfcLa
 |---|---|---|
 | 28.09.–08.10. | Fundamente, Betonsockel, Bodenplatte und Wände UG | montiert und abgenommen (Ausnahme: Betonsockel 4) |
 | 13.10.–03.11. | Boden EG, Wände, Stützen und Unterzug EG, Wassertanks, Treppe UG–EG | montiert, teils abgenommen |
-| 02.–11.11. | Innenwände EG Nord, Decke über EG, Treppe EG–OG | **im Verzug** |
+| 02.–03.11. | Innenwände EG Nord | **im Verzug** |
+| 17.11. | Decke über EG, Treppe EG–OG | **heute fällig** (Polier: «Heute», Bauleitung: überfällig mit 0 Tagen) |
 | 18.–20.11. | Fenster EG, Hauseingangstür | geplant |
 | 23.11.–03.12. | Obergeschoss: Wände, Decke, Fenster; Fensterbänder West und Ost | geplant |
 | 01.–02.12. | Dachflächen | geplant |
@@ -73,8 +74,8 @@ Das IDS (`requirements/a1_baufortschritt.ids`, alle Bauteilklassen) findet F1, F
 | Fenster EG Süd 3 | `2dV8jK1dSfJaDA_RedMxe7` | Soll-Datum 19.11., schon montiert und am 13.11. abgenommen | Abgenommen, mit Hinweis «vorzeitig montiert» |
 | Innenwand EG Nord 1 | `3dhB2dWoi$fZhkojEyxWPJ` | Soll-Datum 02.11., nicht montiert | Montage überfällig, 15 Tage |
 | Innenwand EG Nord 2 | `3z$SS0wVm1E2YNE7ON3ZM9` | Soll-Datum 03.11., nicht montiert | Montage überfällig, 14 Tage |
-| Decke über EG | `1sTThlokqIzGFA81PRYp7C` | Soll-Datum 09.11., nicht montiert | Montage überfällig, 8 Tage |
-| Treppe EG–OG | `0$IC$gQZoTgxqwIHNqeu1_` | Soll-Datum 11.11., nicht montiert | Montage überfällig, 6 Tage |
+| Decke über EG | `1sTThlokqIzGFA81PRYp7C` | Soll-Datum 17.11., nicht montiert | Montage überfällig, 0 Tage (beim Polier «Heute fällig») |
+| Treppe EG–OG | `0$IC$gQZoTgxqwIHNqeu1_` | Soll-Datum 17.11., nicht montiert | Montage überfällig, 0 Tage (beim Polier «Heute fällig») |
 
 Ein Bauteil, das vor seinem Soll-Datum montiert wurde, lässt sich nur über das Abnahmedatum erkennen, denn das Modell hat kein Ist-Datum der Montage. Darum ist Fenster EG Süd 3 schon abgenommen. Bei der Hauseingangstür (F6) erscheint derselbe Hinweis zusätzlich zum Fehler.
 

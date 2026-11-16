@@ -39,8 +39,8 @@ Auf GitHub **Code → Download ZIP** klicken und die ZIP-Datei entpacken. Wer nu
 1. [`apps/baustellen-app/Baustellen-App.html`](apps/baustellen-app/Baustellen-App.html) mit Doppelklick öffnen und mit dem **Polier-Passwort** anmelden.
 2. `model/Mutthornhuette_Baufortschritt.ifc` in das Feld ziehen.
 3. Den Stichtag oben mit **›** auf **Di 17.11.** stellen. Am 17.11. selbst steht er schon dort.
-4. Kontrolle: **Überfällig 4 · Montiert 33 · Fehler 5 · Alle 81**.
-5. **Überfällig** antippen → **Alle 4 angezeigten als montiert melden …** → **Ja, alle 4 als montiert melden**. Oben steht jetzt **4 ungespeicherte Änderungen**.
+4. Kontrolle: **Heute 2 · Überfällig 2 · Montiert 33 · Fehler 5 · Alle 81**.
+5. **Heute** antippen → **Alle 2 angezeigten als montiert melden …** → **Ja**. Dann **Überfällig** antippen und die 2 überfälligen gleich melden. Oben steht jetzt **4 ungespeicherte Änderungen**.
 6. **Stand speichern** klicken. Im Download-Ordner liegt jetzt `Mutthornhuette_Baufortschritt_stand_<Datum>_<Uhrzeit>.ifc`. Kontrolle: **Überfällig 0 · Montiert 37**.
 
 ### Schritt 2 · Bauleitung prüft und nimmt ab

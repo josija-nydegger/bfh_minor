@@ -151,8 +151,8 @@ bauteil("IFCBEAM", "Unterzug Korridor EG", eg, t, 5.95, 2.5, L - 2 * t, 0.3, 0.3
 W("Innenwand EG Gaststube/Küche", eg, 13.0, t, 0, 0.15, 5.0 - t, 2.8, "holz", ["2026-11-02", true, null]);
 W("Innenwand EG Nord 1", eg, 6.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-11-02", false, null]);
 W("Innenwand EG Nord 2", eg, 15.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-11-03", false, null]);
-bauteil("IFCSLAB", "Decke über EG", eg, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-09", false, null]);
-bauteil("IFCSTAIR", "Treppe EG–OG", eg, 19.6, 5.15, 0, 2.6, 2.05, 2.8, ".STRAIGHT_RUN_STAIR.", "holz", ["2026-11-11", false, null]);
+bauteil("IFCSLAB", "Decke über EG", eg, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-17", false, null]);
+bauteil("IFCSTAIR", "Treppe EG–OG", eg, 19.6, 5.15, 0, 2.6, 2.05, 2.8, ".STRAIGHT_RUN_STAIR.", "holz", ["2026-11-17", false, null]);
 
 // Obergeschoss
 const og = "Obergeschoss";
