@@ -4,7 +4,7 @@
 - IFC2X3, 81 Bauteile, 4 Geschosse (Untergeschoss −2.72, Erdgeschoss 0.00, Obergeschoss +3.10, Dach +6.20)
 - Erzeugt mit [`checks/erzeuge_mutthornhuette.js`](erzeuge_mutthornhuette.js), Aufruf `node checks/erzeuge_mutthornhuette.js` im Repository-Ordner (Node.js). Gleiches Script, gleiche Datei, also auch gleiche GlobalIds.
 
-**Stichtag (Prüfdatum):** 03.11.2026
+**Stichtag (Prüfdatum):** 17.11.2026 (Zwischenpitch). Bis 16.11.2026 lag der Stichtag beim 03.11.2026; alle Daten wurden um 14 Tage verschoben, der Status jedes Bauteils ist gleich geblieben.
 
 Das Modell ist vereinfacht, nach den Plänen und Fotos der Mutthornhütte: ein Baukörper von 22.80 × 11.50 m mit Satteldach (Blech mit Falzen), ein Untergeschoss nur im Westteil, Wände und Decken als einfache Volumen. Die Fassade folgt den Fotos:
 - **Lärchenschalung** mit vertikalen Brettern rundum
@@ -16,19 +16,20 @@ Jedes Bauteil trägt `Pset_InstallationOccurrence` mit `InstallationDate` (IfcLa
 
 ## Bauablauf (Soll)
 
-| Zeitraum | Arbeiten | Stand am 03.11.2026 |
+| Zeitraum | Arbeiten | Stand am 17.11.2026 |
 |---|---|---|
-| 14.–24.09. | Fundamente, Betonsockel, Bodenplatte und Wände UG | montiert und abgenommen (Ausnahme: Betonsockel 4) |
-| 29.09.–20.10. | Boden EG, Wände, Stützen und Unterzug EG, Wassertanks, Treppe UG–EG | montiert, teils abgenommen |
-| 19.–28.10. | Innenwände EG Nord, Decke über EG, Treppe EG–OG | **im Verzug** |
-| 04.–06.11. | Fenster EG, Hauseingangstür | geplant |
-| 09.–19.11. | Obergeschoss: Wände, Decke, Fenster; Fensterbänder West und Ost | geplant |
-| 17.–18.11. | Dachflächen | geplant |
-| 20.–26.11. | Lärchenschalung Süd, Nord, Ost; PV-Fassade Süd und West; Terrasse | geplant |
+| 28.09.–08.10. | Fundamente, Betonsockel, Bodenplatte und Wände UG | montiert und abgenommen (Ausnahme: Betonsockel 4) |
+| 13.10.–03.11. | Boden EG, Wände, Stützen und Unterzug EG, Wassertanks, Treppe UG–EG | montiert, teils abgenommen |
+| 02.–03.11. | Innenwände EG Nord | **im Verzug** |
+| 17.11. | Decke über EG, Treppe EG–OG | **heute fällig** (Polier: «Heute», Bauleitung: überfällig mit 0 Tagen) |
+| 18.–20.11. | Fenster EG, Hauseingangstür | geplant |
+| 23.11.–03.12. | Obergeschoss: Wände, Decke, Fenster; Fensterbänder West und Ost | geplant |
+| 01.–02.12. | Dachflächen | geplant |
+| 04.–10.12. | Lärchenschalung Süd, Nord, Ost; PV-Fassade Süd und West; Terrasse | geplant |
 
 Damit ist am Stichtag etwa die Hälfte gebaut: Fundament und UG sind fertig, das EG ist im Rohbau. Dach und Fassade fehlen noch.
 
-## Erwartetes Ergebnis im Baufortschritt-Check (Prüfdatum 03.11.2026)
+## Erwartetes Ergebnis im Baufortschritt-Check (Prüfdatum 17.11.2026)
 
 | Kennzahl | Wert |
 |---|---|
@@ -58,7 +59,7 @@ Nach Geschoss:
 |---|---|---|---|---|---|---|
 | F1 | Wassertank 2 | IfcFlowStorageDevice | `0YoDRe$5vuQ0vtGGKlgxcM` | `InstallationDate` leer | Soll-Datum ist leer | 1 |
 | F2 | Wassertank 4 | IfcFlowStorageDevice | `0POtwNONii4J46o7qXjdfw` | `InstallationDate` leer | Soll-Datum ist leer | 1 |
-| F3 | PV-Fassade West | IfcEnergyConversionDevice | `11QiS8gHllgXAgn2d6$9hM` | `InstallationDate` = `24.11.2026` | kein gültiges Datum (falsches Format) | 1 |
+| F3 | PV-Fassade West | IfcEnergyConversionDevice | `11QiS8gHllgXAgn2d6$9hM` | `InstallationDate` = `08.12.2026` | kein gültiges Datum (falsches Format) | 1 |
 | F4 | Stütze Korridor EG 3 | IfcColumn | `05slm1_p8XRKGQZASBcbP$` | `InstallationDate` = `2026-09-31` | kein gültiges Datum (den 31. September gibt es nicht) | 1 |
 | F5 | Zimmerwand OG Nord 2 | IfcWall | `3ogzU7APuubcAsHw19O1kV` | `IsInstalled` = IfcLabel `'FALSE'` | kein Ja/Nein-Wert (IfcLabel statt IfcBoolean) | 1 |
 | F6 | Hauseingangstür | IfcDoor | `0fNpFhOGYfqCYLXat$muz9` | `IsInstalled` = FALSE, `AcceptanceDate` = 2026-10-28 | Abnahme erfasst, aber Bauteil ist nicht montiert | 2 |
@@ -69,12 +70,12 @@ Das IDS (`requirements/a1_baufortschritt.ids`, alle Bauteilklassen) findet F1, F
 
 | Bauteil | GlobalId | Werte | Erwarteter Status |
 |---|---|---|---|
-| Betonsockel 4 | `273EuNfk2JDWRG36A9XG2N` | montiert am Soll-Datum 17.09., keine Abnahme (die anderen 5 Sockel sind abgenommen) | Abnahme ausstehend |
-| Fenster EG Süd 3 | `2dV8jK1dSfJaDA_RedMxe7` | Soll-Datum 05.11., schon montiert und am 30.10. abgenommen | Abgenommen, mit Hinweis «vorzeitig montiert» |
-| Innenwand EG Nord 1 | `3dhB2dWoi$fZhkojEyxWPJ` | Soll-Datum 19.10., nicht montiert | Montage überfällig, 15 Tage |
-| Innenwand EG Nord 2 | `3z$SS0wVm1E2YNE7ON3ZM9` | Soll-Datum 20.10., nicht montiert | Montage überfällig, 14 Tage |
-| Decke über EG | `1sTThlokqIzGFA81PRYp7C` | Soll-Datum 26.10., nicht montiert | Montage überfällig, 8 Tage |
-| Treppe EG–OG | `0$IC$gQZoTgxqwIHNqeu1_` | Soll-Datum 28.10., nicht montiert | Montage überfällig, 6 Tage |
+| Betonsockel 4 | `273EuNfk2JDWRG36A9XG2N` | montiert am Soll-Datum 01.10., keine Abnahme (die anderen 5 Sockel sind abgenommen) | Abnahme ausstehend |
+| Fenster EG Süd 3 | `2dV8jK1dSfJaDA_RedMxe7` | Soll-Datum 19.11., schon montiert und am 13.11. abgenommen | Abgenommen, mit Hinweis «vorzeitig montiert» |
+| Innenwand EG Nord 1 | `3dhB2dWoi$fZhkojEyxWPJ` | Soll-Datum 02.11., nicht montiert | Montage überfällig, 15 Tage |
+| Innenwand EG Nord 2 | `3z$SS0wVm1E2YNE7ON3ZM9` | Soll-Datum 03.11., nicht montiert | Montage überfällig, 14 Tage |
+| Decke über EG | `1sTThlokqIzGFA81PRYp7C` | Soll-Datum 17.11., nicht montiert | Montage überfällig, 0 Tage (beim Polier «Heute fällig») |
+| Treppe EG–OG | `0$IC$gQZoTgxqwIHNqeu1_` | Soll-Datum 17.11., nicht montiert | Montage überfällig, 0 Tage (beim Polier «Heute fällig») |
 
 Ein Bauteil, das vor seinem Soll-Datum montiert wurde, lässt sich nur über das Abnahmedatum erkennen, denn das Modell hat kein Ist-Datum der Montage. Darum ist Fenster EG Süd 3 schon abgenommen. Bei der Hauseingangstür (F6) erscheint derselbe Hinweis zusätzlich zum Fehler.
 

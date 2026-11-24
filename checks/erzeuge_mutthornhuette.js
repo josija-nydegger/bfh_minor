@@ -2,7 +2,7 @@
 // (Pset_InstallationOccurrence: InstallationDate, IsInstalled, AcceptanceDate).
 // Aufruf (im Repository-Ordner): node checks/erzeuge_mutthornhuette.js [Ausgabedatei.ifc]
 // Ohne Argument wird model/Mutthornhuette_Baufortschritt.ifc geschrieben.
-// Stichtag für den Lösungsschlüssel (checks/loesung_mutthornhuette.md): 03.11.2026
+// Stichtag für den Lösungsschlüssel (checks/loesung_mutthornhuette.md): 17.11.2026 (Zwischenpitch)
 
 const fs = require("fs");
 const OUT = process.argv[2] || "model/Mutthornhuette_Baufortschritt.ifc";
@@ -120,53 +120,53 @@ const L = 22.8, B = 11.5, t = 0.3;
 // Untergeschoss (nur Westteil, x 0–8.16)
 const ug = "Untergeschoss";
 [["Süd", 0, 1.5, 8.16, 0.6], ["Nord", 0, 9.4, 8.16, 0.6], ["West", 0, 2.1, 0.6, 7.3], ["Ost", 7.56, 2.1, 0.6, 7.3]].forEach(([n, x, y, dx, dy]) =>
-  bauteil("IFCFOOTING", `Streifenfundament ${n}`, ug, x, y, -0.4, dx, dy, 0.4, ".STRIP_FOOTING.", "beton", ["2026-09-14", true, "2026-09-18"]));
-bauteil("IFCSLAB", "Bodenplatte UG", ug, 0, 1.5, 0, 8.16, 8.5, 0.25, ".BASESLAB.", "beton", ["2026-09-16", true, "2026-09-18"]);
+  bauteil("IFCFOOTING", `Streifenfundament ${n}`, ug, x, y, -0.4, dx, dy, 0.4, ".STRIP_FOOTING.", "beton", ["2026-09-28", true, "2026-10-02"]));
+bauteil("IFCSLAB", "Bodenplatte UG", ug, 0, 1.5, 0, 8.16, 8.5, 0.25, ".BASESLAB.", "beton", ["2026-09-30", true, "2026-10-02"]);
 [[10.5, 0.4], [16.5, 0.4], [22.2, 0.4], [10.5, 10.5], [16.5, 10.5], [22.2, 10.5]].forEach(([x, y], i) =>
   bauteil("IFCFOOTING", `Betonsockel ${i + 1}`, ug, x - 0.3, y, 1.92, 0.6, 0.6, 0.8, ".PAD_FOOTING.", "beton",
-    i === 3 ? ["2026-09-17", true, null] : ["2026-09-17", true, "2026-09-23"]));
-W("Wand UG Süd", ug, 0, 1.5, 0.25, 8.16, t, 2.17, "beton", ["2026-09-22", true, "2026-09-30"]);
-W("Wand UG Nord", ug, 0, 9.7, 0.25, 8.16, t, 2.17, "beton", ["2026-09-22", true, "2026-09-30"]);
-W("Wand UG West", ug, 0, 1.8, 0.25, t, 7.9, 2.17, "beton", ["2026-09-23", true, "2026-09-30"]);
-W("Wand UG Ost", ug, 7.86, 1.8, 0.25, t, 7.9, 2.17, "beton", ["2026-09-23", true, "2026-09-30"]);
-W("Innenwand UG Technik", ug, 0.3, 5.6, 0.25, 7.56, 0.2, 2.17, "beton", ["2026-09-24", true, "2026-09-30"]);
-bauteil("IFCSTAIR", "Treppe UG–EG", ug, 5.4, 1.8, 0.25, 2.2, 1.1, 2.17, ".STRAIGHT_RUN_STAIR.", "beton", ["2026-10-14", true, null]);
+    i === 3 ? ["2026-10-01", true, null] : ["2026-10-01", true, "2026-10-07"]));
+W("Wand UG Süd", ug, 0, 1.5, 0.25, 8.16, t, 2.17, "beton", ["2026-10-06", true, "2026-10-14"]);
+W("Wand UG Nord", ug, 0, 9.7, 0.25, 8.16, t, 2.17, "beton", ["2026-10-06", true, "2026-10-14"]);
+W("Wand UG West", ug, 0, 1.8, 0.25, t, 7.9, 2.17, "beton", ["2026-10-07", true, "2026-10-14"]);
+W("Wand UG Ost", ug, 7.86, 1.8, 0.25, t, 7.9, 2.17, "beton", ["2026-10-07", true, "2026-10-14"]);
+W("Innenwand UG Technik", ug, 0.3, 5.6, 0.25, 7.56, 0.2, 2.17, "beton", ["2026-10-08", true, "2026-10-14"]);
+bauteil("IFCSTAIR", "Treppe UG–EG", ug, 5.4, 1.8, 0.25, 2.2, 1.1, 2.17, ".STRAIGHT_RUN_STAIR.", "beton", ["2026-10-28", true, null]);
 for (let i = 0; i < 5; i++)
   bauteil("IFCFLOWSTORAGEDEVICE", `Wassertank ${i + 1}`, ug, 0.6 + i * 1.45, 7.6, 0.25, 1.2, 1.8, 1.6, "", "tank",
-    i === 1 || i === 3 ? [null, false, null] : ["2026-10-07", true, null]);
+    i === 1 || i === 3 ? [null, false, null] : ["2026-10-21", true, null]);
 
 // Erdgeschoss
 const eg = "Erdgeschoss";
-bauteil("IFCSLAB", "Boden EG (Holzelement)", eg, 0, 0, -0.3, L, B, 0.3, ".FLOOR.", "holz", ["2026-09-29", true, "2026-10-02"]);
-W("Aussenwand EG Süd", eg, 0, 0, 0, L, t, 2.8, "holz", ["2026-10-05", true, "2026-10-14"]);
-W("Aussenwand EG Nord", eg, 0, B - t, 0, L, t, 2.8, "holz", ["2026-10-05", true, null]);
-W("Aussenwand EG West", eg, 0, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-10-06", true, "2026-10-14"]);
-W("Aussenwand EG Ost", eg, L - t, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-10-07", true, null]);
-W("Korridorwand EG Süd", eg, t, 5.0, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-10-12", true, null]);
-W("Korridorwand EG Nord", eg, t, 7.2, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-10-12", true, null]);
+bauteil("IFCSLAB", "Boden EG (Holzelement)", eg, 0, 0, -0.3, L, B, 0.3, ".FLOOR.", "holz", ["2026-10-13", true, "2026-10-16"]);
+W("Aussenwand EG Süd", eg, 0, 0, 0, L, t, 2.8, "holz", ["2026-10-19", true, "2026-10-28"]);
+W("Aussenwand EG Nord", eg, 0, B - t, 0, L, t, 2.8, "holz", ["2026-10-19", true, null]);
+W("Aussenwand EG West", eg, 0, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-10-20", true, "2026-10-28"]);
+W("Aussenwand EG Ost", eg, L - t, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-10-21", true, null]);
+W("Korridorwand EG Süd", eg, t, 5.0, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-10-26", true, null]);
+W("Korridorwand EG Nord", eg, t, 7.2, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-10-26", true, null]);
 [6, 11, 16].forEach((x, i) =>
   bauteil("IFCCOLUMN", `Stütze Korridor EG ${i + 1}`, eg, x - 0.1, 6.0, 0, 0.2, 0.2, 2.8, "", "holz",
-    i === 0 ? ["2026-10-08", true, "2026-10-14"] : i === 1 ? ["2026-10-08", true, null] : ["2026-09-31", true, null]));
-bauteil("IFCBEAM", "Unterzug Korridor EG", eg, t, 5.95, 2.5, L - 2 * t, 0.3, 0.3, "", "holz", ["2026-10-15", true, null]);
-W("Innenwand EG Gaststube/Küche", eg, 13.0, t, 0, 0.15, 5.0 - t, 2.8, "holz", ["2026-10-19", true, null]);
-W("Innenwand EG Nord 1", eg, 6.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-10-19", false, null]);
-W("Innenwand EG Nord 2", eg, 15.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-10-20", false, null]);
-bauteil("IFCSLAB", "Decke über EG", eg, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-10-26", false, null]);
-bauteil("IFCSTAIR", "Treppe EG–OG", eg, 19.6, 5.15, 0, 2.6, 2.05, 2.8, ".STRAIGHT_RUN_STAIR.", "holz", ["2026-10-28", false, null]);
+    i === 0 ? ["2026-10-22", true, "2026-10-28"] : i === 1 ? ["2026-10-22", true, null] : ["2026-09-31", true, null]));
+bauteil("IFCBEAM", "Unterzug Korridor EG", eg, t, 5.95, 2.5, L - 2 * t, 0.3, 0.3, "", "holz", ["2026-10-29", true, null]);
+W("Innenwand EG Gaststube/Küche", eg, 13.0, t, 0, 0.15, 5.0 - t, 2.8, "holz", ["2026-11-02", true, null]);
+W("Innenwand EG Nord 1", eg, 6.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-11-02", false, null]);
+W("Innenwand EG Nord 2", eg, 15.0, 7.35, 0, 0.15, B - t - 7.35, 2.8, "holz", ["2026-11-03", false, null]);
+bauteil("IFCSLAB", "Decke über EG", eg, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-17", false, null]);
+bauteil("IFCSTAIR", "Treppe EG–OG", eg, 19.6, 5.15, 0, 2.6, 2.05, 2.8, ".STRAIGHT_RUN_STAIR.", "holz", ["2026-11-17", false, null]);
 
 // Obergeschoss
 const og = "Obergeschoss";
-W("Aussenwand OG Süd", og, 0, 0, 0, L, t, 2.8, "holz", ["2026-11-09", false, null]);
-W("Aussenwand OG Nord", og, 0, B - t, 0, L, t, 2.8, "holz", ["2026-11-09", false, null]);
-W("Aussenwand OG West", og, 0, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-11-10", false, null]);
-W("Aussenwand OG Ost", og, L - t, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-11-10", false, null]);
-W("Korridorwand OG Süd", og, t, 5.0, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-11-11", false, null]);
-W("Korridorwand OG Nord", og, t, 7.2, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-11-11", false, null]);
+W("Aussenwand OG Süd", og, 0, 0, 0, L, t, 2.8, "holz", ["2026-11-23", false, null]);
+W("Aussenwand OG Nord", og, 0, B - t, 0, L, t, 2.8, "holz", ["2026-11-23", false, null]);
+W("Aussenwand OG West", og, 0, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-11-24", false, null]);
+W("Aussenwand OG Ost", og, L - t, t, 0, t, B - 2 * t, 2.8, "holz", ["2026-11-24", false, null]);
+W("Korridorwand OG Süd", og, t, 5.0, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-11-25", false, null]);
+W("Korridorwand OG Nord", og, t, 7.2, 0, L - 2 * t, 0.15, 2.8, "holz", ["2026-11-25", false, null]);
 [4.6, 8.9, 13.2, 17.5].forEach((x, i) =>
-  W(`Zimmerwand OG Süd ${i + 1}`, og, x, t, 0, 0.12, 5.0 - t, 2.8, "holz", ["2026-11-12", false, null]));
+  W(`Zimmerwand OG Süd ${i + 1}`, og, x, t, 0, 0.12, 5.0 - t, 2.8, "holz", ["2026-11-26", false, null]));
 [5.8, 11.4, 17.0].forEach((x, i) =>
-  W(`Zimmerwand OG Nord ${i + 1}`, og, x, 7.35, 0, 0.12, B - t - 7.35, 2.8, "holz", ["2026-11-12", i === 1 ? "FALSE" : false, null]));
-bauteil("IFCSLAB", "Decke über OG", og, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-16", false, null]);
+  W(`Zimmerwand OG Nord ${i + 1}`, og, x, 7.35, 0, 0.12, B - t - 7.35, 2.8, "holz", ["2026-11-26", i === 1 ? "FALSE" : false, null]));
+bauteil("IFCSLAB", "Decke über OG", og, 0, 0, 2.8, L, B, 0.3, ".FLOOR.", "holz", ["2026-11-30", false, null]);
 // Dach: zwei geneigte Blech-Dachflächen mit Falzrippen (Satteldach, First 1.5 m über Traufe)
 const dach = "Dach", ov = 0.3, rise = 1.5, half = B / 2 + ov;
 const len = Math.hypot(half, rise), ca = half / len, sa = rise / len;
@@ -176,8 +176,8 @@ function dachflaeche(name, x0, y0, lx, ny, nz, axis, ref, plan) {
     s.push(quader(x0 + u * lx, y0 + 0.25 * ny, 0.25 * nz, 0.03, len, 0.035, "dach", axis, ref));
   element("IFCSLAB", name, dach, s, ".ROOF.", plan);
 }
-dachflaeche("Dachfläche Süd", -ov, -ov, 1, -sa, ca, dir(0, -sa, ca), xDir, ["2026-11-17", false, null]);
-dachflaeche("Dachfläche Nord", L + ov, B + ov, -1, sa, ca, dir(0, sa, ca), dir(-1, 0, 0), ["2026-11-18", false, null]);
+dachflaeche("Dachfläche Süd", -ov, -ov, 1, -sa, ca, dir(0, -sa, ca), xDir, ["2026-12-01", false, null]);
+dachflaeche("Dachfläche Nord", L + ov, B + ov, -1, sa, ca, dir(0, sa, ca), dir(-1, 0, 0), ["2026-12-02", false, null]);
 
 // ---------- Fassade nach den Fotos der Hütte ----------
 // Lärchenschalung (vertikale Bretter), PV-Module im OG-Band Süd und am ganzen Westgiebel,
@@ -252,27 +252,27 @@ const fOGNord = [3, 8.5, 14, 19.5].map((u) => [u, 4.1, u + 0.9, 5.2]);
 const bandWest = [4.75, 0.3, 6.75, 6.9], bandOst = [5.4, 0.5, 6.1, 6.8];
 
 fEGSued.forEach((r, i) => element("IFCWINDOW", `Fenster EG Süd ${i + 1}`, eg, fenster("sued", eg, r, "rahmenWeiss"), "1.4,1.6",
-  i === 2 ? ["2026-11-05", true, "2026-10-30"] : [`2026-11-0${4 + (i % 3)}`, false, null]));
-element("IFCDOOR", "Hauseingangstür", eg, [q("sued", eg, "tuer", tuerSued[0], 0, 1.1, 2.2, 0, 0.05)], "2.2,1.1", ["2026-11-05", false, "2026-10-28"]);
-fEGNord.forEach((r, i) => element("IFCWINDOW", `Fenster EG Nord ${i + 1}`, eg, fenster("nord", eg, r, "rahmenWeiss"), "1.1,1.", ["2026-11-06", false, null]));
-fOGSued.forEach((r, i) => element("IFCWINDOW", `Fenster OG Süd ${i + 1}`, og, fenster("sued", og, r, "rahmenSchwarz"), "1.1,0.9", ["2026-11-18", false, null]));
-fOGNord.forEach((r, i) => element("IFCWINDOW", `Fenster OG Nord ${i + 1}`, og, fenster("nord", og, r, "rahmenWeiss"), "1.1,0.9", ["2026-11-19", false, null]));
-element("IFCWINDOW", "Fensterband West", eg, fenster("west", eg, bandWest, "alu", 5), "6.6,2.", ["2026-11-18", false, null]);
-element("IFCWINDOW", "Fensterband Ost", eg, fenster("ost", eg, bandOst, "alu", 6), "6.3,0.7", ["2026-11-19", false, null]);
+  i === 2 ? ["2026-11-19", true, "2026-11-13"] : [`2026-11-${18 + (i % 3)}`, false, null]));
+element("IFCDOOR", "Hauseingangstür", eg, [q("sued", eg, "tuer", tuerSued[0], 0, 1.1, 2.2, 0, 0.05)], "2.2,1.1", ["2026-11-19", false, "2026-11-11"]);
+fEGNord.forEach((r, i) => element("IFCWINDOW", `Fenster EG Nord ${i + 1}`, eg, fenster("nord", eg, r, "rahmenWeiss"), "1.1,1.", ["2026-11-20", false, null]));
+fOGSued.forEach((r, i) => element("IFCWINDOW", `Fenster OG Süd ${i + 1}`, og, fenster("sued", og, r, "rahmenSchwarz"), "1.1,0.9", ["2026-12-02", false, null]));
+fOGNord.forEach((r, i) => element("IFCWINDOW", `Fenster OG Nord ${i + 1}`, og, fenster("nord", og, r, "rahmenWeiss"), "1.1,0.9", ["2026-12-03", false, null]));
+element("IFCWINDOW", "Fensterband West", eg, fenster("west", eg, bandWest, "alu", 5), "6.6,2.", ["2026-12-02", false, null]);
+element("IFCWINDOW", "Fensterband Ost", eg, fenster("ost", eg, bandOst, "alu", 6), "6.3,0.7", ["2026-12-03", false, null]);
 
 const ridge = 6.2 + rise;
-element("IFCCOVERING", "Lärchenschalung Süd", eg, schalung("sued", eg, [0, 0, L, 3.1], [...fEGSued, tuerSued]), ".CLADDING.", ["2026-11-20", false, null]);
-element("IFCCOVERING", "Lärchenschalung Nord", eg, schalung("nord", eg, [0, 0, L, 6.2], [...fEGNord, ...fOGNord]), ".CLADDING.", ["2026-11-23", false, null]);
-element("IFCCOVERING", "Lärchenschalung Ost", eg, schalung("ost", eg, [0, 0, B, ridge], [bandOst], giebel), ".CLADDING.", ["2026-11-24", false, null]);
-element("IFCENERGYCONVERSIONDEVICE", "PV-Fassade Süd", eg, pvModule("sued", eg, [0, 3.1, L, 6.2], fOGSued, L / 20, 3.1 / 3), "", ["2026-11-25", false, null]);
+element("IFCCOVERING", "Lärchenschalung Süd", eg, schalung("sued", eg, [0, 0, L, 3.1], [...fEGSued, tuerSued]), ".CLADDING.", ["2026-12-04", false, null]);
+element("IFCCOVERING", "Lärchenschalung Nord", eg, schalung("nord", eg, [0, 0, L, 6.2], [...fEGNord, ...fOGNord]), ".CLADDING.", ["2026-12-07", false, null]);
+element("IFCCOVERING", "Lärchenschalung Ost", eg, schalung("ost", eg, [0, 0, B, ridge], [bandOst], giebel), ".CLADDING.", ["2026-12-08", false, null]);
+element("IFCENERGYCONVERSIONDEVICE", "PV-Fassade Süd", eg, pvModule("sued", eg, [0, 3.1, L, 6.2], fOGSued, L / 20, 3.1 / 3), "", ["2026-12-09", false, null]);
 element("IFCENERGYCONVERSIONDEVICE", "PV-Fassade West", eg,
   [...pvModule("west", eg, [0, 0, B, ridge], [bandWest], B / 10, 1.0, giebel), ...pvModule("west", eg, [1.5, -2.72, 10, 0], [], 8.5 / 7, 2.72 / 3)],
-  "", ["24.11.2026", false, null]);
+  "", ["08.12.2026", false, null]);
 
 // Terrasse Süd: Gitterrost auf Betonstützen
 element("IFCSLAB", "Terrasse Süd (Gitterrost)", eg,
   [quader(8.6, -2.4, -0.42, 14.2, 2.3, 0.06, "stahl"), ...[9, 13, 17, 21.5].map((x) => quader(x, -1.6, -1.3, 0.3, 0.3, 0.88, "beton"))],
-  ".NOTDEFINED.", ["2026-11-26", false, null]);
+  ".NOTDEFINED.", ["2026-12-10", false, null]);
 
 // ---------- Beziehungen und Psets ----------
 for (const s of Object.values(storey))
