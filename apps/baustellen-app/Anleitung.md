@@ -30,11 +30,24 @@ node apps/baustellen-app/build.js
 5. Vor Ort kontrollieren, dann in der Bauteilliste bei «Abnahme ausstehend» auf **Abnehmen** klicken, oder **Alle … angezeigten abnehmen**. Das Abnahmedatum ist das Prüfdatum. Ein Datum nach heute ist nicht möglich. **Rückgängig** steht beim Bauteil unter «Abgenommen».
 6. **Stand speichern** und die neue Datei wieder in den gemeinsamen Ordner legen. Den Prüfbericht für `results/` speichert ihr wie bisher unter «Ergebnis sichern».
 
+## Wetter am Standort
+
+Damit ein Verzug begründet werden kann, speichert die App das Wetter am Standort im IFC.
+
+- **Standort:** aus `IfcSite` (`RefLatitude`, `RefLongitude`, `RefElevation`). Fehlen die Koordinaten, zeigt die App kein Wetter. Die Mutthornhütte steht auf 46.48700 N, 7.81672 O, 2788 m ü. M. (neue Hütte, Wikipedia).
+- **Quelle:** [Open-Meteo](https://open-meteo.com), Archiv (ERA5), Tageswerte in der Zeitzone Europe/Zurich. Gesendet werden nur die Koordinaten. Es braucht Internet.
+- **Zeitraum:** vom frühesten Datum im Modell bis gestern, höchstens 400 Tage. Beim Öffnen holt die App nur die Tage, die noch nicht im IFC stehen. Gespeicherte Tage bleiben unverändert, sie sind der Beleg.
+- **Speichern:** Mit «Stand speichern» schreibt die App die Tage als Pset `Baufortschritt_Wetter` an `IfcSite`: `Datum`, `Niederschlag_mm`, `Schnee_cm`, `Wind_max_kmh`, `Boeen_max_kmh`, `Temp_max_C`, `Temp_min_C` (je eine Liste, `IfcPropertyListValue`) sowie `Quelle` und `Abgerufen`. Neue Wettertage allein blockieren Öffnen und Abmelden nicht.
+- **Schlechtwettertag:** Niederschlag ≥ 5 mm, Schnee ≥ 2 cm oder Böen ≥ 60 km/h. Das ist ein Richtwert für die Begründung, keine vertragliche Regel.
+- **Bauleitung:** Grafik «Wetter am Standort» mit Niederschlag pro Tag und markierten Schlechtwettertagen. Bei überfälligen Bauteilen steht in der Liste, in der 3D-Detailkarte und im CSV-Bericht das Wetter vom Soll-Datum bis zum Prüfdatum.
+- **Polier:** Bei «Heute» und «Überfällig» zeigt ein Streifen das Wetter der letzten 7 Tage vor dem Stichtag. Überfällige Bauteile zeigen die Zahl der Schlechtwettertage seit dem Soll-Datum, die Detailansicht die Summe.
+
 ## Regeln beim Speichern
 
 - Geändert werden nur Werte in `Pset_InstallationOccurrence`: `IsInstalled` (Polier), `AcceptanceDate` (Bauleitung) und `InstallationDate`. Das Soll-Datum ändert nur die Bauleitung, und nur bei Datenfehlern. Ebenso korrigiert sie `IsInstalled` nur, wenn der Wert fehlt oder ungültig ist.
 - Abgenommene Bauteile kann der Polier nicht zurücksetzen.
 - Ist ein Pset oder eine Property für mehrere Bauteile gemeinsam, trennt die App sie für das geänderte Bauteil. Fehlt das Pset oder die Property, wird sie angelegt.
+- Neue Wettertage kommen ins Pset `Baufortschritt_Wetter` an `IfcSite` (siehe oben).
 - Alle übrigen Zeilen der IFC-Datei bleiben byte-gleich.
 
 ## Passwörter
@@ -64,4 +77,4 @@ Den ausgegebenen Hash in `src/app.html` bei `ROLES` ersetzen und neu bauen.
 
 - Arbeiten zwei Personen gleichzeitig an derselben Datei, gewinnt die zuletzt gespeicherte. Darum pro Modell immer nur eine Person gleichzeitig.
 - Nicht gespeicherte Abnahmen gehen beim Schliessen verloren, die App warnt davor. Meldungen des Poliers bleiben im Browser zwischengespeichert.
-- Getestet über einen lokalen Webserver in Chrome, auch mit `Baustellen-App.html` allein in einem leeren Ordner. Öffnen per Doppelklick (`file://`) funktioniert (Test Josija, 04.11.2026). Die Polier-Ansicht und das 3D-Modell brauchen Internet.
+- Getestet über einen lokalen Webserver in Chrome, auch mit `Baustellen-App.html` allein in einem leeren Ordner. Öffnen per Doppelklick (`file://`) funktioniert (Test Josija, 04.11.2026). Die Polier-Ansicht, das 3D-Modell und das Wetter brauchen Internet.

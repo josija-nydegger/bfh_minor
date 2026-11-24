@@ -112,6 +112,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .prog { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--ok); transition: width .3s; }
+.wx { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.wx div { background: var(--soft); border-radius: 8px; padding: 5px 2px; text-align: center; font-size: 11px; color: var(--muted); line-height: 1.25; }
+.wx div.bad { background: color-mix(in srgb, #d62828 14%, var(--soft)); color: var(--ink); }
+.wx b { display: block; font-size: 16px; line-height: 1.2; }
+.wx-note { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
 .prog small { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bulk { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .list { list-style: none; margin: 0; padding: 0 8px 8px; overflow-y: auto; border-top: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
@@ -249,6 +254,27 @@ const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / 864e5);
 const short = s => { if (!s) return '–'; const d = fromIso(s); return `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`; };
 const ch = s => { if (!s) return '–'; const d = fromIso(s); return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`; };
 const TODAY = toIso(new Date());
+// Wetter am Standort (Tageswerte aus dem IFC bzw. von Open-Meteo, kommt von der App)
+let WX = null;
+const wxBad = v => (v.p || 0) >= 5 || (v.s || 0) >= 2 || (v.g || 0) >= 60;
+const wxIcon = v => (v.s || 0) >= 1 ? '❄' : (v.p || 0) >= 1 ? '🌧' : (v.g || 0) >= 60 ? '💨' : '☀';
+function wxSince(from, to) {
+  if (!WX || !WX.days || !from || !to || from > to) return null;
+  const r = { n: 0, bad: 0, p: 0, s: 0 };
+  Object.keys(WX.days).forEach(d => { if (d < from || d > to) return; const v = WX.days[d]; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; r.s += v.s || 0; });
+  return r.n ? r : null;
+}
+const wxText = r => r ? `${r.bad} von ${r.n} Tagen Schlechtwetter (${Math.round(r.p)} mm${r.s >= 1 ? `, ${Math.round(r.s)} cm Schnee` : ''})` : '';
+function wxStrip(day) {
+  if (!WX) return '';
+  const cells = [];
+  for (let i = 7; i >= 1; i--) {
+    const b = fromIso(day), d = toIso(new Date(b.getFullYear(), b.getMonth(), b.getDate() - i)), v = WX.days && WX.days[d];
+    const wd = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][fromIso(d).getDay()];
+    cells.push(v ? `<div class="${wxBad(v) ? 'bad' : ''}" title="${short(d)}: ${v.p || 0} mm${v.s ? `, ${v.s} cm Schnee` : ''}, Böen ${v.g || 0} km/h">${wd}<b>${wxIcon(v)}</b>${Math.round(v.p || 0)} mm</div>` : `<div>${wd}<b>–</b>&nbsp;</div>`);
+  }
+  return `<div class="wx" aria-label="Wetter der letzten 7 Tage">${cells.join('')}</div>${WX.state ? `<p class="wx-note">${esc(WX.state)}</p>` : ''}`;
+}
 
 // ── Zustand ──
 let els = [];            // Bauteile aus dem Modell
@@ -522,6 +548,7 @@ function listView(L, cnt, isToday, R) {
   const pct = cnt.dayAll ? Math.round(cnt.dayDone / cnt.dayAll * 100) : 0;
   let h = `<div class="head inner" data-a="toggle"><h2>${titles[S.filter]}<span class="muted"> · ${L.length}</span></h2>`;
   if (S.filter === 'heute') h += `<div class="prog"><div class="bar"><span style="width:${pct}%"></span></div><small>${cnt.dayDone} von ${cnt.dayAll} mit Soll-Datum ${short(S.day)} montiert</small></div>`;
+  if (S.filter === 'heute' || S.filter === 'ueberfaellig') h += wxStrip(S.day);
   if (S.filter === 'fehler') h += `<p class="muted" style="margin:6px 0 0;font-size:13px">Diese Bauteile kann das Tool nicht einordnen. Bitte dem Modellautor bzw. der Bauleitung melden.</p>`;
   if ((S.filter === 'heute' || S.filter === 'ueberfaellig') && L.length > 1) {
     h += `<div class="bulk">${S.confirm === 'bulk'
@@ -540,7 +567,9 @@ function listView(L, cnt, isToday, R) {
     const meta = r.c === 'montiert' ? '✓ montiert' : r.c === 'abgenommen' ? `✓ abgen. ${short(r.el.acc)}` : r.c === 'fehler' ? fehlerKurz(r.el)
       : r.c === 'ueberfaellig' ? `${daysBetween(r.el.inst, S.day)} T. Verzug` : short(r.el.inst);
     const changed = r.el.g in changes ? ' · geändert' : '';
-    h += `<li><button class="row" data-k="${r.k}"><span class="dot" style="background:${COLORS[r.c]}"></span><span class="rm"><b>${esc(r.el.n)}</b><small>${esc(typ(r.el.t))} · ${esc(r.el.s)}${changed}</small></span><span class="meta c-${r.c}">${meta}</span></button></li>`;
+    const wxr = r.c === 'ueberfaellig' ? wxSince(r.el.inst, S.day) : null;
+    const wxs = wxr && wxr.bad ? ` · ${wxr.bad}× Schlechtwetter` : '';
+    h += `<li><button class="row" data-k="${r.k}"><span class="dot" style="background:${COLORS[r.c]}"></span><span class="rm"><b>${esc(r.el.n)}</b><small>${esc(typ(r.el.t))} · ${esc(r.el.s)}${changed}${wxs}</small></span><span class="meta c-${r.c}">${meta}</span></button></li>`;
   });
   if (L.length > S.limit) h += `<li><button class="btn2 more-rows" data-a="more">Weitere ${Math.min(LIST_STEP, L.length - S.limit)} von ${L.length - S.limit} anzeigen</button></li>`;
   return h + '</ul>';
@@ -563,6 +592,7 @@ function detailView(r, L) {
     <tr><th>IsInstalled</th><td><b>${b(inst)}</b>${el.g in changes ? ` <span class="muted">(im Modell: ${b(el.isInst)}, geändert)</span>` : ''}</td></tr>
     <tr><th>AcceptanceDate</th><td>${el.acc ? esc(el.acc) : '–'}</td></tr>
     <tr><th>Verzug am Stichtag</th><td>${verzug}</td></tr>
+    ${c === 'ueberfaellig' && wxSince(el.inst, S.day) ? `<tr><th>Wetter seit Soll</th><td>${esc(wxText(wxSince(el.inst, S.day)))}</td></tr>` : ''}
   </tbody></table>
   <p class="muted" style="font-size:12px;margin-top:12px">${esc(el.t)} · GlobalId <code>${esc(el.g)}</code>${el.parts.length ? ` · Baugruppe mit ${el.parts.length} Teilen` : ''}</p>`;
   return h + '</div>';
@@ -649,6 +679,8 @@ const drop = $('drop');
 window.addEventListener('message', ev => {
   if (ev.source !== window.parent) return;
   const d = ev.data || {};
+  if (d.type === 'bs-open' || d.type === 'bs-wx') WX = d.wx || null;
+  if (d.type === 'bs-wx' && els.length) render();
   if (d.type === 'bs-open') openModel(d.buffer, d.name);
   if (d.type === 'bs-saved') { try { localStorage.removeItem(storeKey); } catch (e) {} changes = {}; }
 });

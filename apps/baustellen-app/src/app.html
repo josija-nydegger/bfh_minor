@@ -249,6 +249,127 @@ var IfcWriter = (function () {
 if (typeof module !== "undefined") module.exports = IfcWriter;
 </script>
 
+<script id="wetter">
+/* Wetterverlauf am Standort: Tageswerte von Open-Meteo (Archiv, ERA5), gespeichert im IFC als
+   Pset «Baufortschritt_Wetter» an IfcSite. Der Standort kommt aus IfcSite.RefLatitude/RefLongitude/RefElevation.
+   Gespeicherte Tage bleiben unverändert (Beleg), neu abgerufen werden nur fehlende Tage bis gestern. */
+var IfcWeather = (function () {
+  var PSET = "Baufortschritt_Wetter";
+  var FIELDS = [["Niederschlag_mm", "p"], ["Schnee_cm", "s"], ["Wind_max_kmh", "w"], ["Boeen_max_kmh", "g"], ["Temp_max_C", "tx"], ["Temp_min_C", "tn"]];
+  var API = "https://archive-api.open-meteo.com/v1/archive";
+  var DESC = "\\s*(?:\\$|'(?:[^']|'')*')\\s*"; // Beschreibung: $ oder Text (darf Kommas enthalten)
+  var B64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
+  function newGid() { var s = B64[Math.floor(Math.random() * 4)]; for (var i = 0; i < 21; i++) s += B64[Math.floor(Math.random() * 64)]; return s; }
+  function isoOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function lineOf(text, id) { var m = new RegExp("#" + id + "\\s*=\\s*([A-Z0-9_]+)\\s*\\(([\\s\\S]*?)\\);").exec(text); return m ? { type: m[1], args: m[2], start: m.index, end: m.index + m[0].length } : null; }
+  // (46,29,13,200000) -> 46.48700
+  function angle(tok) {
+    var p = (tok || "").replace(/[()\s]/g, "").split(",").filter(Boolean).map(Number);
+    if (p.length < 2 || p.some(isNaN)) return null;
+    return p[0] + (p[1] || 0) / 60 + ((p[2] || 0) + (p[3] || 0) / 1e6) / 3600;
+  }
+  function split(args) { return IfcWriter.split("(" + args + ")"); }
+
+  // Standort und gespeicherte Tage lesen
+  function read(text) {
+    var out = { lat: null, lon: null, elev: null, site: null, days: {}, stored: 0 };
+    var m = /#(\d+)\s*=\s*IFCSITE\s*\(/.exec(text);
+    if (m) {
+      var l = lineOf(text, m[1]), t = split(l.args);
+      out.site = +m[1]; out.lat = angle(t[9]); out.lon = angle(t[10]);
+      var e = parseFloat(t[11]); out.elev = isNaN(e) ? null : e;
+    }
+    var ps = new RegExp("#(\\d+)\\s*=\\s*IFCPROPERTYSET\\s*\\(\\s*'[^']*'\\s*,[^,]*,\\s*'" + PSET + "'\\s*," + DESC + ",\\s*\\(([^)]*)\\)\\s*\\);").exec(text);
+    if (!ps) return out;
+    var cols = {};
+    (ps[2].match(/#\d+/g) || []).forEach(function (r) {
+      var l = lineOf(text, r.slice(1)); if (!l || l.type !== "IFCPROPERTYLISTVALUE") return;
+      var name = /^\s*'([^']*)'/.exec(l.args); if (!name) return;
+      var vals = []; l.args.replace(/IFC(LABEL|REAL)\(([^)]*)\)/g, function (_, k, v) { vals.push(k === "LABEL" ? v.replace(/'/g, "") : parseFloat(v)); });
+      cols[name[1]] = vals;
+    });
+    (cols.Datum || []).forEach(function (d, i) {
+      var day = {}; FIELDS.forEach(function (f) { var v = (cols[f[0]] || [])[i]; day[f[1]] = typeof v === "number" && !isNaN(v) ? v : null; });
+      out.days[d] = day;
+    });
+    out.stored = Object.keys(out.days).length;
+    return out;
+  }
+
+  // Zeitraum: frühestes Datum im Modell (Soll/Abnahme) bis gestern, höchstens 400 Tage zurück
+  function range(text) {
+    var min = null; text.replace(/IFCLABEL\('(\d{4}-\d{2}-\d{2})'\)/g, function (_, d) { if (!min || d < min) min = d; });
+    var y = new Date(); y.setDate(y.getDate() - 1);
+    var end = isoOf(y), lim = new Date(y); lim.setDate(lim.getDate() - 400);
+    var start = min && min > isoOf(lim) ? min : isoOf(lim);
+    if (min && min > end) return null;
+    return { start: start, end: end };
+  }
+  function missing(wx, rg) {
+    var out = [], d = new Date(rg.start + "T12:00:00"), e = rg.end;
+    for (var iso = isoOf(d); iso <= e; d.setDate(d.getDate() + 1), iso = isoOf(d)) if (!wx.days[iso]) out.push(iso);
+    return out;
+  }
+  // Fehlende Tage bei Open-Meteo holen; liefert { iso: {p,s,w,g,tx,tn} }
+  function fetchDays(wx, from, to) {
+    var url = API + "?latitude=" + wx.lat.toFixed(5) + "&longitude=" + wx.lon.toFixed(5) + (wx.elev != null ? "&elevation=" + wx.elev : "") +
+      "&start_date=" + from + "&end_date=" + to + "&timezone=Europe%2FZurich&daily=precipitation_sum,snowfall_sum,wind_speed_10m_max,wind_gusts_10m_max,temperature_2m_max,temperature_2m_min";
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error("Open-Meteo antwortet mit " + r.status); return r.json(); }).then(function (j) {
+      var d = j.daily || {}, out = {}, k = ["precipitation_sum", "snowfall_sum", "wind_speed_10m_max", "wind_gusts_10m_max", "temperature_2m_max", "temperature_2m_min"];
+      (d.time || []).forEach(function (iso, i) {
+        var v = k.map(function (n) { return d[n] ? d[n][i] : null; });
+        if (v[0] == null) return; // Tag noch ohne Daten: später erneut holen
+        out[iso] = { p: v[0], s: v[1], w: v[2], g: v[3], tx: v[4], tn: v[5] };
+      });
+      return out;
+    });
+  }
+
+  // Alle Tage als Pset an IfcSite schreiben (vorhandenes Pset wird ersetzt, IDs bleiben)
+  function write(text, wx) {
+    if (!wx.site) throw new Error("Kein IfcSite im Modell");
+    var dates = Object.keys(wx.days).sort();
+    if (!dates.length) return text;
+    var num = function (v) { return v == null || isNaN(v) ? "IFCREAL(0.)" : "IFCREAL(" + (Math.round(v * 10) / 10).toFixed(1) + ")"; };
+    var list = function (name, vals) { return "IFCPROPERTYLISTVALUE('" + name + "',$,(" + vals.join(",") + "),$)"; };
+    var src = "Open-Meteo Archiv (ERA5), Tageswerte Zeitzone Europe/Zurich, Standort " + wx.lat.toFixed(5) + " / " + wx.lon.toFixed(5) + (wx.elev != null ? ", " + wx.elev + " m" : "") + ", Fehlwert 0";
+    var props = [
+      ["Quelle", "IFCPROPERTYSINGLEVALUE('Quelle',$,IFCTEXT('" + src + "'),$)"],
+      ["Abgerufen", "IFCPROPERTYSINGLEVALUE('Abgerufen',$,IFCLABEL('" + isoOf(new Date()) + "'),$)"],
+      ["Datum", list("Datum", dates.map(function (d) { return "IFCLABEL('" + d + "')"; }))]
+    ].concat(FIELDS.map(function (f) { return [f[0], list(f[0], dates.map(function (d) { return num(wx.days[d][f[1]]); }))]; }));
+    var maxId = 0; text.replace(/#(\d+)\s*=/g, function (_, n) { n = +n; if (n > maxId) maxId = n; });
+    var oh = /#(\d+)\s*=\s*IFCOWNERHISTORY/.exec(text); oh = oh ? "#" + oh[1] : "$";
+    var ps = new RegExp("#(\\d+)\\s*=\\s*IFCPROPERTYSET\\s*\\(\\s*'([^']*)'\\s*,([^,]*),\\s*'" + PSET + "'\\s*," + DESC + ",\\s*\\(([^)]*)\\)\\s*\\);").exec(text);
+    if (ps) {
+      // Vorhandene Properties nach Name ersetzen, fehlende anhängen
+      var have = {}, extra = [];
+      (ps[4].match(/#\d+/g) || []).forEach(function (r) { var l = lineOf(text, r.slice(1)); var nm = l && /^\s*'([^']*)'/.exec(l.args); if (nm) have[nm[1]] = { id: +r.slice(1), l: l }; });
+      var repl = [], ids = [];
+      props.forEach(function (p) {
+        if (have[p[0]]) { repl.push({ start: have[p[0]].l.start, end: have[p[0]].l.end, s: "#" + have[p[0]].id + "=" + p[1] + ";" }); ids.push(have[p[0]].id); }
+        else { var id = ++maxId; extra.push("#" + id + "=" + p[1] + ";"); ids.push(id); }
+      });
+      Object.keys(have).forEach(function (n) { if (props.every(function (p) { return p[0] !== n; })) ids.push(have[n].id); });
+      repl.push({ start: ps.index, end: ps.index + ps[0].length, s: "#" + ps[1] + "=IFCPROPERTYSET('" + ps[2] + "'," + ps[3].trim() + ",'" + PSET + "','Wetter am Standort, Tageswerte',(" + ids.map(function (i) { return "#" + i; }).join(",") + "));" });
+      repl.sort(function (a, b) { return b.start - a.start; });
+      repl.forEach(function (r) { text = text.slice(0, r.start) + r.s + text.slice(r.end); });
+      if (extra.length) { var e1 = text.lastIndexOf("ENDSEC;"); text = text.slice(0, e1) + extra.join("\n") + "\n" + text.slice(e1); }
+      return text;
+    }
+    var lines = [], pids = [];
+    props.forEach(function (p) { var id = ++maxId; pids.push(id); lines.push("#" + id + "=" + p[1] + ";"); });
+    var pset = ++maxId, rel = ++maxId;
+    lines.push("#" + pset + "=IFCPROPERTYSET('" + newGid() + "'," + oh + ",'" + PSET + "','Wetter am Standort, Tageswerte',(" + pids.map(function (i) { return "#" + i; }).join(",") + "));");
+    lines.push("#" + rel + "=IFCRELDEFINESBYPROPERTIES('" + newGid() + "'," + oh + ",$,$,(#" + wx.site + "),#" + pset + ");");
+    var e = text.lastIndexOf("ENDSEC;");
+    return text.slice(0, e) + lines.join("\n") + "\n" + text.slice(e);
+  }
+  return { read: read, range: range, missing: missing, fetchDays: fetchDays, write: write, PSET: PSET };
+})();
+if (typeof module !== "undefined") module.exports = IfcWeather;
+</script>
+
 <script>
 (function () {
   // Passwörter stehen nicht im Code, nur ihre SHA-256-Hashes. Zum Ändern einen neuen Hash eintragen (Anleitung).
@@ -298,7 +419,9 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     $("logout").hidden = !r; $("open").hidden = !r || !S.text; $("save").hidden = !r || !S.text;
     $("model").textContent = S.name;
     $("pend").hidden = !S.text; $("pend").innerHTML = n ? "<b>" + n + "</b> ungespeicherte Änderung" + (n === 1 ? "" : "en") : "alles gespeichert";
-    $("save").disabled = !n;
+    var w = S.wxNew || 0;
+    if (S.text && w) $("pend").innerHTML += " · Wetter: <b>" + w + "</b> neue Tage";
+    $("save").disabled = !n && !w;
   }
   function show(which) { $("login").hidden = which !== "login"; $("pick").hidden = which !== "pick"; $("view").hidden = which !== "view"; }
 
@@ -338,7 +461,22 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
   function send() {
     var w = $("view").contentWindow; if (!w || !S.role || !S.text) return; // z. B. nach Abmelden (about:blank)
     var buf = textToBytes(S.text).buffer;
-    w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id }, "*", [buf]);
+    w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id, wx: wxMsg() }, "*", [buf]);
+  }
+  // ---------- Wetter am Standort (IfcWeather) ----------
+  function wxMsg() { return S.wx ? { lat: S.wx.lat, lon: S.wx.lon, elev: S.wx.elev, days: S.wx.days, stored: S.wx.stored, neu: S.wxNew || 0, state: S.wxState || "" } : null; }
+  function wxPush() { var w = $("view").contentWindow; if (w && S.role) w.postMessage({ type: "bs-wx", wx: wxMsg() }, "*"); }
+  function loadWx() {
+    var wx = S.wx, file = S.name;
+    if (!wx.site || wx.lat == null || wx.lon == null) { S.wxState = "Kein Standort im IFC (IfcSite: RefLatitude/RefLongitude fehlen). Ohne Standort kein Wetter."; wxPush(); return; }
+    var rg = IfcWeather.range(S.text), miss = rg ? IfcWeather.missing(wx, rg) : [];
+    if (!miss.length) { S.wxState = wx.stored ? "" : "Keine Tage abzurufen."; wxPush(); return; }
+    S.wxState = "Wetter wird abgerufen …"; wxPush();
+    IfcWeather.fetchDays(wx, miss[0], miss[miss.length - 1]).then(function (got) {
+      if (S.name !== file || S.wx !== wx) return; // inzwischen andere Datei
+      var n = 0; Object.keys(got).forEach(function (d) { if (!wx.days[d]) { wx.days[d] = got[d]; n++; } });
+      S.wxNew = (S.wxNew || 0) + n; S.wxState = ""; bar(); wxPush();
+    }, function (e) { if (S.wx !== wx) return; S.wxState = "Wetter nicht abrufbar (" + (e && e.message || e) + "). Internetverbindung prüfen. Gespeicherte Tage bleiben sichtbar."; wxPush(); });
   }
   function openFile(file) {
     if (!file) return;
@@ -348,7 +486,8 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
       var t = bytesToText(fr.result);
       if (!/ISO-10303-21/.test(t.slice(0, 2000))) { $("pickErr").textContent = "Das ist keine IFC-Datei (.ifc)."; $("pickErr").hidden = false; return; }
       $("pickErr").hidden = true; S.text = t; S.name = file.name; S.pend = { inst: {}, acc: {}, soll: {}, instfix: {} };
-      bar(); loadView();
+      S.wx = IfcWeather.read(t); S.wxNew = 0; S.wxState = "";
+      bar(); loadView(); loadWx();
     };
     fr.readAsArrayBuffer(file);
   }
@@ -378,7 +517,11 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     Object.keys(S.pend.soll).forEach(function (g) { (ch[g] = ch[g] || {}).InstallationDate = S.pend.soll[g]; });
     Object.keys(S.pend.instfix).forEach(function (g) { (ch[g] = ch[g] || {}).IsInstalled = S.pend.instfix[g]; });
     var res;
-    try { res = IfcWriter.write(S.text, ch); } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
+    try {
+      res = IfcWriter.write(S.text, ch);
+      if (S.wxNew && S.wx) res.text = IfcWeather.write(res.text, S.wx);
+    } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
+    var wxSaved = S.wxNew || 0;
     var base = S.name.replace(/\.ifc$/i, "").replace(/_stand_\d{4}-\d{2}-\d{2}(_\d{4})?(\s*\(\d+\))?$/, "");
     var now = new Date(), hhmm = String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0");
     var name = base + "_stand_" + todayIso() + "_" + hhmm + ".ifc";
@@ -387,15 +530,16 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     S.text = res.text; S.name = name; S.pend = { inst: {}, acc: {}, soll: {}, instfix: {} };
+    if (S.wx) { S.wx.stored = Object.keys(S.wx.days).length; S.wxNew = 0; }
     $("view").contentWindow.postMessage({ type: "bs-saved" }, "*");
     bar(); send();
     var r = res.report;
-    toast("Gespeichert: " + name + " · " + r.gesetzt + " Bauteile geändert" + (r.uebersprungen.length ? " · " + r.uebersprungen.length + " übersprungen" : "") + ". Datei in den gemeinsamen Ordner legen.");
+    toast("Gespeichert: " + name + " · " + r.gesetzt + " Bauteile geändert" + (wxSaved ? " · " + wxSaved + " Wettertage" : "") + (r.uebersprungen.length ? " · " + r.uebersprungen.length + " übersprungen" : "") + ". Datei in den gemeinsamen Ordner legen.");
   };
 
   $("logout").onclick = function () {
     if (pendCount()) { toast("Zuerst den Stand speichern."); return; }
-    S.role = null; S.text = ""; S.name = ""; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
+    S.role = null; S.text = ""; S.name = ""; S.wx = null; S.wxNew = 0; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
   };
   // Anmelden aus einer umgebenden Seite (z. B. Pitch-Präsentation mit der App im iframe).
   // Sie schickt das Passwort, die App prüft es mit demselben Hash-Vergleich wie das Formular. Der Schutz bleibt also gleich.
