@@ -291,10 +291,10 @@ footer { color: var(--muted); font-size: .8rem; text-align: center; }
       </section>
 
       <section class="panel" aria-labelledby="h-wx">
-        <div class="section-head"><h2 id="h-wx">Wetter am Standort</h2><p>Tageswerte Niederschlag, Schnee und Böen · Grundlage für die Begründung von Verzug</p></div>
+        <div class="section-head"><h2 id="h-wx">Wetter am Standort</h2><p>Tageswerte Niederschlag, Schnee und Böen · Modell ICON-CH1 (1 km), ERA5 zum Vergleich und wo ICON-CH1 fehlt; wo der Polier die eigene Station erfasst hat, gilt die Messung · Grundlage für die Begründung von Verzug</p></div>
         <div class="chart" id="wxchart"></div>
         <p class="wx-sum" id="wxsum"></p>
-        <div class="wx-legend"><span><i style="background:#2f6fb0"></i>Regen (mm)</span><span><i style="background:#8fb8de"></i>mit Schnee (mm Wasser)</span><span><i style="background:rgba(196,47,47,.16)"></i>Schlechtwettertag: ≥ 5 mm, ≥ 2 cm Schnee oder Böen ≥ 60 km/h</span></div>
+        <div class="wx-legend"><span><i style="background:#2f6fb0"></i>Regen (mm)</span><span><i style="background:#8fb8de"></i>mit Schnee (mm Wasser)</span><span><i style="background:var(--ink);border-radius:50%"></i>Messung eigene Station</span><span><i style="background:rgba(196,47,47,.16)"></i>Schlechtwettertag: ≥ 5 mm, ≥ 2 cm Schnee oder Böen ≥ 60 km/h</span></div>
         <p class="wx-state" id="wxstate"></p>
       </section>
 
@@ -791,7 +791,8 @@ if (typeof module !== "undefined") module.exports = BF;
       '<b>' + esc(x.name) + '</b><span class="muted">' + esc(x.cls) + " · " + esc(x.storey || "–") + "</span>" +
       '<div class="row"><span class="pill" style="--c:' + st.c + '">' + st.label + "</span>" + (x.delay != null ? '<span class="late">' + plural(x.delay, "Tag", "Tage") + " Verzug</span>" : "") + "</div>" +
       "<span>Soll " + esc(fmt(x.soll)) + " · Montiert " + esc(x.inst || "–") + " · Abnahme " + esc(fmt(x.acc)) + "</span>" +
-      (wxSince(x) ? '<span class="muted">Wetter seit Soll: ' + esc(wxText(wxSince(x))) + "</span>" : "") +
+      (wxSince(x) ? '<span class="muted">Wetter seit Soll: ' + esc(wxText(wxSince(x))) + "</span>" + '<span class="muted">Modelle getrennt: ' + esc(wxCmpSince(x)) + "</span>" : "") +
+      (mwOf(x) ? '<span class="muted">Wetter bei Montage: ' + esc(mwText(mwOf(x))) + "</span>" : "") +
       x.reasons.concat(x.hints).map(function (t) { return '<span class="muted">' + esc(t) + "</span>"; }).join("") +
       '<div class="row">' + act + '<button type="button" class="linkbtn" data-show="' + esc(x.gid) + '">In Liste zeigen</button></div>';
     box.hidden = false;
@@ -1058,22 +1059,47 @@ if (typeof module !== "undefined") module.exports = BF;
   }
   function dayIso(day) { return new Date(day * 86400000).toISOString().slice(0, 10); }
 
-  // ---------- Wetter am Standort (Tageswerte im IFC, Abruf über die App bei Open-Meteo) ----------
+  // ---------- Wetter am Standort (Tageswerte im IFC, Abruf über die App) ----------
+  // Modellwerte (Open-Meteo); Messung nur von der eigenen Station (Handeingabe Polier), sie geht pro Wert vor (src M/O)
+  var SRC = { M: "Messung eigene Station", C: "ICON-CH1", E: "ERA5" };
+  function f1(v) { return v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-CH"); }
   function wxBad(v) { return (v.p || 0) >= 5 || (v.s || 0) >= 2 || (v.g || 0) >= 60; }
   function wxSum(from, to) {
     var days = state.wx && state.wx.days; if (!days || !from || !to || from > to) return null;
-    var r = { n: 0, bad: 0, p: 0, s: 0, g: 0 };
-    Object.keys(days).forEach(function (d) { if (d < from || d > to) return; var v = days[d]; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; r.s += v.s || 0; if ((v.g || 0) > r.g) r.g = v.g; });
+    var r = { n: 0, bad: 0, p: 0, s: 0, g: 0, mess: 0 };
+    Object.keys(days).forEach(function (d) { if (d < from || d > to) return; var v = days[d]; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; r.s += v.s || 0; if ((v.g || 0) > r.g) r.g = v.g; if (v.m) r.mess++; });
     return r.n ? r : null;
   }
-  function wxText(r) { return r ? plural(r.bad, "Schlechtwettertag", "Schlechtwettertage") + " von " + r.n + " (" + Math.round(r.p) + " mm Niederschlag" + (r.s >= 1 ? ", " + Math.round(r.s) + " cm Schnee" : "") + ", Böen bis " + Math.round(r.g) + " km/h)" : ""; }
+  function wxText(r) { return r ? plural(r.bad, "Schlechtwettertag", "Schlechtwettertage") + " von " + r.n + " (" + Math.round(r.p) + " mm Niederschlag" + (r.s >= 1 ? ", " + Math.round(r.s) + " cm Schnee" : "") + ", Böen bis " + Math.round(r.g) + " km/h; " + (r.mess ? plural(r.mess, "Tag", "Tage") + " gemessen, sonst Modell ICON-CH1/ERA5" : "Modell ICON-CH1/ERA5") + ")" : ""; }
+  // Beide Modelle getrennt (ohne Messung), damit der Unterschied sichtbar bleibt
+  function wxCmp(from, to) {
+    var days = state.wx && state.wx.days; if (!days || !from || !to || from > to) return "";
+    var one = function (k, label) {
+      var r = { n: 0, bad: 0, p: 0, g: 0 };
+      Object.keys(days).forEach(function (d) { var v = d >= from && d <= to && days[d][k]; if (!v) return; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; if ((v.g || 0) > r.g) r.g = v.g; });
+      return r.n ? label + ": " + plural(r.bad, "Schlechtwettertag", "Schlechtwettertage") + " von " + r.n + ", " + Math.round(r.p) + " mm, Böen bis " + Math.round(r.g) + " km/h" : label + ": keine Werte";
+    };
+    return one("c", "ICON-CH1") + " · " + one("e", "ERA5");
+  }
+  function wxCmpSince(x) { return wxSince(x) ? wxCmp(x.soll, state.result.pruef) : ""; }
+  // Wetter bei der Montage (Pset Baufortschritt_Montagewetter am Bauteil)
+  function mwOf(x) { var mw = state.wx && state.wx.mw; return mw && x.inst === "Ja" ? mw[x.gid] || null : null; }
+  function mwText(s) {
+    if (!s) return "";
+    var at = s.at ? BF.fmt(s.at.slice(0, 10)) + " " + s.at.slice(11, 16) : "", parts = [at];
+    if (s.m) parts.push("Messung eigene Station" + (s.m.st ? " (" + s.m.st + ")" : "") + ": " + f1(s.m.t) + " °C, " + f1(s.m.p) + " mm in der letzten Stunde, Wind " + f1(s.m.w) + " / Böen " + f1(s.m.g) + " km/h");
+    if (s.o) parts.push("Modellwert " + String(s.o.model || "").replace(" (Open-Meteo)", "") + ": " + f1(s.o.t) + " °C, " + f1(s.o.p) + " mm/h" + (s.o.s ? ", " + f1(s.o.s) + " cm Schnee/h" : "") + ", Wind " + f1(s.o.w) + " / Böen " + f1(s.o.g) + " km/h");
+    else parts.push(s.status === "nicht abgerufen" ? "nicht abgerufen (am Montagetag offline)" : "wird abgerufen");
+    return parts.filter(Boolean).join(" · ");
+  }
   // Wetter vom Soll-Datum bis zum Prüfdatum, nur für überfällige Bauteile
   function wxSince(x) { return state.result && x.status === "ueberfaellig" && /^\d{4}-\d{2}-\d{2}$/.test(x.soll) ? wxSum(x.soll, state.result.pruef) : null; }
   function renderWeather() {
     var box = $("wxchart"), wx = state.wx, r = state.result;
     var st = [];
     if (wx && wx.state) st.push(wx.state);
-    if (wx && (wx.stored || wx.neu)) st.push("Im IFC gespeichert: " + plural(wx.stored, "Tag", "Tage") + (wx.neu ? " · neu abgerufen: " + plural(wx.neu, "Tag", "Tage") + ", werden mit «Stand speichern» ins IFC geschrieben" : "") + ". Quelle: Open-Meteo (ERA5), Standort aus IfcSite.");
+    if (wx && (wx.stored || wx.neu || wx.storedC || wx.neuC)) st.push("Im IFC gespeichert: ICON-CH1 " + plural(wx.storedC, "Tag", "Tage") + ", ERA5 " + plural(wx.stored, "Tag", "Tage") + (wx.neu || wx.neuC ? " · neu abgerufen: ICON-CH1 " + plural(wx.neuC, "Tag", "Tage") + ", ERA5 " + plural(wx.neu, "Tag", "Tage") + ", werden mit «Stand speichern» ins IFC geschrieben" : "") + ". Quelle: Open-Meteo (ICON-CH1: MeteoSchweiz-Modell, 1 km, ab Herbst 2025; ERA5: Reanalyse), Standort aus IfcSite.");
+    if (wx && wx.mx) { var mk = Object.keys(wx.mx.days); st.push(mk.length ? "Messung eigene Station (Handeingabe Polier): " + plural(mk.length, "Tag", "Tage") + (wx.mx.neu.length ? ", davon " + wx.mx.neu.length + " noch nicht gespeichert" : "") + "." : "Keine eigene Messstation erfasst."); }
     $("wxstate").textContent = st.join(" ");
     var days = wx && wx.days ? Object.keys(wx.days).filter(function (d) { return d <= r.pruef; }).sort() : [];
     if (!days.length) { box.innerHTML = '<p class="empty">' + (wx ? "Noch keine Wetterdaten." : "Wetter ist nur in der Baustellen-App verfügbar.") + "</p>"; $("wxsum").textContent = ""; return; }
@@ -1086,9 +1112,13 @@ if (typeof module !== "undefined") module.exports = BF;
     for (var v = 0; v <= ymax; v += step) s += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + "</text>";
     days.forEach(function (d) {
       var x = wx.days[d], k = BF.isoToDay(d) - d0, xx = L + k * bw;
-      var tip = BF.fmt(d) + ": " + (x.p || 0) + " mm" + (x.s ? ", " + x.s + " cm Schnee" : "") + ", Böen " + (x.g || 0) + " km/h, " + (x.tn != null ? x.tn : "–") + " bis " + (x.tx != null ? x.tx : "–") + " °C";
+      var src = x.src || {};
+      var mod = function (k, label) { var v = x[k]; return label + " " + (v ? f1(v.p) + " mm" + (v.s ? ", " + f1(v.s) + " cm Schnee" : "") + ", Böen " + f1(v.g) + " km/h, " + f1(v.tn) + " bis " + f1(v.tx) + " °C" : "–"); };
+      var tip = BF.fmt(d) + ": " + f1(x.p) + " mm (" + (SRC[src.p] || "–") + ")" + (x.s ? ", " + f1(x.s) + " cm Schnee (" + (SRC[src.s] || "–") + ")" : "") + ", Böen " + f1(x.g) + " km/h (" + (SRC[src.g] || "–") + "), " + f1(x.tn) + " bis " + f1(x.tx) + " °C (" + (SRC[src.t] || "–") + ")" +
+        (x.m ? " · Station: " + (x.m.st || "–") : "") + " · " + mod("c", "ICON-CH1:") + " · " + mod("e", "ERA5:");
       if (wxBad(x)) s += '<rect x="' + xx.toFixed(1) + '" y="' + T + '" width="' + bw.toFixed(1) + '" height="' + ph + '" fill="rgba(196,47,47,.16)"><title>Schlechtwettertag · ' + tip + "</title></rect>";
       if (x.p > 0) s += '<rect x="' + (xx + bw * .12).toFixed(1) + '" y="' + y(x.p).toFixed(1) + '" width="' + Math.max(1, bw * .76).toFixed(1) + '" height="' + (T + ph - y(x.p)).toFixed(1) + '" fill="' + (x.s >= 1 ? "#8fb8de" : "#2f6fb0") + '"><title>' + tip + "</title></rect>";
+      if (x.m) s += '<circle cx="' + (xx + bw / 2).toFixed(1) + '" cy="' + (y(x.p || 0) - 5).toFixed(1) + '" r="' + Math.max(1.5, Math.min(3.5, bw * .3)).toFixed(1) + '" fill="currentColor"><title>' + tip + "</title></circle>";
     });
     // Monatsanfänge beschriften; ein angeschnittener erster Monat entfällt, wenn der nächste zu nah folgt
     var marks = [], prevMo = null;
@@ -1105,7 +1135,7 @@ if (typeof module !== "undefined") module.exports = BF;
     }
     box.innerHTML = s + "</svg>";
     var sum = wxSum(days[0], r.pruef);
-    $("wxsum").innerHTML = sum ? "Vom " + esc(BF.fmt(days[0])) + " bis " + esc(BF.fmt(days[days.length - 1])) + ": <b>" + esc(wxText(sum)) + "</b>" : "";
+    $("wxsum").innerHTML = sum ? "Vom " + esc(BF.fmt(days[0])) + " bis " + esc(BF.fmt(days[days.length - 1])) + ": <b>" + esc(wxText(sum)) + "</b><br><span class=\"muted\">Modelle getrennt: " + esc(wxCmp(days[0], r.pruef)) + "</span>" : "";
   }
 
   function renderReqs() {
@@ -1211,9 +1241,9 @@ if (typeof module !== "undefined") module.exports = BF;
 
   /* ---------- Export ---------- */
   function tableData() {
-    var head = ["GlobalId", "Bauteil", "IFC-Klasse", "Geschoss", "Soll-Datum (InstallationDate)", "Montiert (IsInstalled)", "Abnahme (AcceptanceDate)", "Status", "Verzug (Tage)", "Anforderung", "Grund / Hinweis", "Prüfdatum", "Wetter seit Soll-Datum"];
+    var head = ["GlobalId", "Bauteil", "IFC-Klasse", "Geschoss", "Soll-Datum (InstallationDate)", "Montiert (IsInstalled)", "Abnahme (AcceptanceDate)", "Status", "Verzug (Tage)", "Anforderung", "Grund / Hinweis", "Prüfdatum", "Wetter seit Soll-Datum", "Modelle getrennt seit Soll-Datum (ICON-CH1 / ERA5)", "Wetter bei Montage"];
     var rows = state.result.rows.slice().sort(function (a, b) { return PRIO[a.status] - PRIO[b.status] || (b.delay || 0) - (a.delay || 0); }).map(function (x) {
-      return [x.gid, x.name, x.cls, x.storey, x.soll, x.inst, x.acc, STATUS[x.status].label, x.delay != null ? x.delay : "", x.req ? "Anforderung " + x.req : x.delay != null ? "Anforderung 3" : "", x.reasons.concat(x.hints).join(" | "), state.result.pruef, wxText(wxSince(x))];
+      return [x.gid, x.name, x.cls, x.storey, x.soll, x.inst, x.acc, STATUS[x.status].label, x.delay != null ? x.delay : "", x.req ? "Anforderung " + x.req : x.delay != null ? "Anforderung 3" : "", x.reasons.concat(x.hints).join(" | "), state.result.pruef, wxText(wxSince(x)), wxCmpSince(x), mwText(mwOf(x))];
     });
     return [head].concat(rows);
   }
