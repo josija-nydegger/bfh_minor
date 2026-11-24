@@ -112,6 +112,19 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .prog { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--ok); transition: width .3s; }
+.wx { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.wx div { background: var(--soft); border-radius: 8px; padding: 5px 2px; text-align: center; font-size: 11px; color: var(--muted); line-height: 1.25; }
+.wx div.bad { background: color-mix(in srgb, #d62828 14%, var(--soft)); color: var(--ink); }
+.wx b { display: block; font-size: 16px; line-height: 1.2; }
+.wx-note { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.mx-form { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); cursor: default; }
+.mx-form h3 { margin: 0 0 8px; font-size: 13.5px; }
+.mx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mx-grid label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--ink-2); font-weight: 600; min-width: 0; }
+.mx-grid label.wide { grid-column: 1 / -1; }
+.mx-grid input, .mx-grid select { height: 38px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); font-weight: 500; font-size: 15px; min-width: 0; width: 100%; }
+.mx-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mx-err { color: var(--bad); font-size: 12.5px; margin: 8px 0 0; }
 .prog small { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bulk { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .list { list-style: none; margin: 0; padding: 0 8px 8px; overflow-y: auto; border-top: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
@@ -249,20 +262,121 @@ const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / 864e5);
 const short = s => { if (!s) return '–'; const d = fromIso(s); return `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`; };
 const ch = s => { if (!s) return '–'; const d = fromIso(s); return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`; };
 const TODAY = toIso(new Date());
+// Wetter am Standort (kommt von der App): pro Tag und Wert Messung der eigenen Station, sonst ICON-CH1, sonst ERA5 (src M/C/E)
+let WX = null;
+const wxBad = v => (v.p || 0) >= 5 || (v.s || 0) >= 2 || (v.g || 0) >= 60;
+const wxIcon = v => (v.s || 0) >= 1 ? '❄' : (v.p || 0) >= 1 ? '🌧' : (v.g || 0) >= 60 ? '💨' : '☀';
+const f1 = v => v == null ? '–' : (Math.round(v * 10) / 10).toLocaleString('de-CH');
+function wxSince(from, to) {
+  if (!WX || !WX.days || !from || !to || from > to) return null;
+  const r = { n: 0, bad: 0, p: 0, s: 0, mess: 0 };
+  Object.keys(WX.days).forEach(d => { if (d < from || d > to) return; const v = WX.days[d]; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; r.s += v.s || 0; if (v.m) r.mess++; });
+  return r.n ? r : null;
+}
+const wxText = r => r ? `${r.bad} von ${r.n} Tagen Schlechtwetter (${Math.round(r.p)} mm${r.s >= 1 ? `, ${Math.round(r.s)} cm Schnee` : ''}; ${r.mess ? `${r.mess} Tage gemessen, sonst Modell ICON-CH1/ERA5` : 'Modell ICON-CH1/ERA5'})` : '';
+// Beide Modelle getrennt (ohne Messung): ICON-CH1 und ERA5
+function wxCmp(from, to) {
+  if (!WX || !WX.days || !from || !to || from > to) return '';
+  const one = (k, label) => {
+    const r = { n: 0, bad: 0, p: 0 };
+    Object.keys(WX.days).forEach(d => { const v = d >= from && d <= to && WX.days[d][k]; if (!v) return; r.n++; if (wxBad(v)) r.bad++; r.p += v.p || 0; });
+    return r.n ? `${label}: ${r.bad} von ${r.n} Tagen, ${Math.round(r.p)} mm` : `${label}: keine Werte`;
+  };
+  return `${one('c', 'ICON-CH1')} · ${one('e', 'ERA5')}`;
+}
+const cmpDay = v => ['c', 'e'].map(k => v[k] ? `${k === 'c' ? 'ICON-CH1' : 'ERA5'} ${f1(v[k].p)} mm${v[k].s ? `/${f1(v[k].s)} cm` : ''}, Böen ${f1(v[k].g)}` : `${k === 'c' ? 'ICON-CH1' : 'ERA5'} –`).join('; ');
+// Wetter bei der Montage (Momentaufnahme aus der App)
+function mwText(s) {
+  if (!s) return '';
+  const at = s.at ? `${s.at.slice(8, 10)}.${s.at.slice(5, 7)}. ${s.at.slice(11, 16)}` : '';
+  const o = s.o;
+  const val = o ? `Modellwert ${String(o.model || '').replace(' (Open-Meteo)', '')}: ${f1(o.t)} °C, ${f1(o.p)} mm/h${o.s ? `, ${f1(o.s)} cm Schnee/h` : ''}, Wind ${f1(o.w)} / Böen ${f1(o.g)} km/h` : '';
+  const st = o ? '' : s.status === 'nicht abgerufen' ? 'nicht abgerufen (am Montagetag offline)' : 'wird abgerufen …';
+  const m = s.m ? `Messung eigene Station${s.m.st ? ` (${s.m.st})` : ''}: ${f1(s.m.t)} °C, ${f1(s.m.p)} mm in der letzten Stunde, Wind ${f1(s.m.w)} / Böen ${f1(s.m.g)} km/h` : '';
+  return [at, m, val, st].filter(Boolean).join(' · ');
+}
+function wxStrip(day) {
+  if (!WX) return '';
+  const cells = [];
+  for (let i = 7; i >= 1; i--) {
+    const b = fromIso(day), d = toIso(new Date(b.getFullYear(), b.getMonth(), b.getDate() - i)), v = WX.days && WX.days[d];
+    const wd = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][fromIso(d).getDay()];
+    cells.push(v ? `<div class="${wxBad(v) ? 'bad' : ''}" title="${short(d)}: ${f1(v.p)} mm (${SRC[v.src.p] || '–'})${v.s ? `, ${f1(v.s)} cm Schnee (${SRC[v.src.s] || '–'})` : ''}, Böen ${f1(v.g)} km/h (${SRC[v.src.g] || '–'}), ${f1(v.tn)} bis ${f1(v.tx)} °C (${SRC[v.src.t] || '–'}) · Vergleich: ${cmpDay(v)}">${wd}<b>${wxIcon(v)}</b>${v.src.p === 'M' ? '•' : ''}${Math.round(v.p || 0)} mm</div>` : `<div>${wd}<b>–</b>&nbsp;</div>`);
+  }
+  return `<div class="wx" aria-label="Wetter der letzten 7 Tage">${cells.join('')}</div><p class="wx-note">Modell ICON-CH1, ERA5 wo ICON-CH1 fehlt · • = Messung eigene Station${WX.state ? ` · ${esc(WX.state)}` : ''}</p>${mxForm()}`;
+}
+const SRC = { M: 'Messung', C: 'ICON-CH1', E: 'ERA5' };
+// Eingabe der eigenen Station (Werte als Text, Komma oder Punkt)
+const draft = {};
+const num = s => { s = String(s ?? '').trim().replace(',', '.'); if (!s) return null; const n = Number(s); return isNaN(n) ? NaN : n; };
+const stationName = () => { try { return localStorage.getItem('polier-tool:station') || ''; } catch (e) { return ''; } };
+function readNums(defs) {
+  const v = {}; let err = '';
+  defs.forEach(([k, label, lo, hi]) => { const n = num(draft[k]); if (Number.isNaN(n) || (n != null && (n < lo || n > hi))) err = err || `${label}: Zahl zwischen ${lo} und ${hi}`; v[k.split('.')[1]] = Number.isNaN(n) ? null : n; });
+  if (!err && Object.values(v).every(x => x == null)) err = 'Mindestens einen Wert eingeben';
+  return { v, err };
+}
+const field = (k, label, ph, wide) => `<label class="${wide ? 'wide' : ''}">${label}<input data-draft="${k}" value="${esc(draft[k] ?? '')}" inputmode="${wide ? 'text' : 'decimal'}" placeholder="${ph}" autocomplete="off"></label>`;
+const MX_DEFS = [['mx.p', 'Niederschlag', 0, 500], ['mx.tn', 'Temperatur min', -50, 40], ['mx.tx', 'Temperatur max', -50, 40], ['mx.g', 'Böen max', 0, 300]];
+const MW_DEFS = [['mw.t', 'Temperatur', -50, 40], ['mw.p', 'Niederschlag', 0, 200], ['mw.w', 'Wind', 0, 250], ['mw.g', 'Böen', 0, 300]];
+// Tageswerte: nur heute oder gestern, gespeicherte Tage nicht mehr änderbar
+function mxDays() { const mx = WX && WX.mx; if (!EMBED || !mx) return []; return [[mx.today, 'Heute'], [mx.yesterday, 'Gestern']].filter(([d]) => !mx.saved.includes(d)); }
+function mxFill(day) {
+  const v = WX.mx.days[day] || {};
+  ['p', 'tn', 'tx', 'g'].forEach(k => { draft['mx.' + k] = v[k] == null ? '' : String(v[k]); });
+  draft['mx.st'] = v.st || stationName(); draft['mx.day'] = day;
+}
+function mxForm() {
+  const days = mxDays(); if (!days.length) return '';
+  if (!S.mxOpen) {
+    const neu = WX.mx.neu.length ? ` · erfasst, nicht gespeichert: ${WX.mx.neu.map(short).join(', ')}` : '';
+    return `<div class="bulk"><button class="btn2" data-a="mxOpen">Messung eigene Station erfassen …</button></div>${neu ? `<p class="wx-note">${esc(neu.slice(3))}</p>` : ''}`;
+  }
+  const day = days.some(([d]) => d === draft['mx.day']) ? draft['mx.day'] : days[0][0];
+  return `<div class="mx-form"><h3>Messung eigene Station · Tageswerte</h3><div class="mx-grid">
+    <label>Tag<select data-a="mxDay">${days.map(([d, l]) => `<option value="${d}" ${d === day ? 'selected' : ''}>${l}, ${short(d)}${WX.mx.days[d] ? ' (erfasst)' : ''}</option>`).join('')}</select></label>
+    ${field('mx.st', 'Station', 'z. B. Davis auf dem Hüttendach', false)}
+    ${field('mx.p', 'Niederschlag Tagessumme (mm)', 'z. B. 4,2')}${field('mx.g', 'Böen max (km/h)', 'z. B. 55')}
+    ${field('mx.tn', 'Temperatur min (°C)', 'z. B. -6')}${field('mx.tx', 'Temperatur max (°C)', 'z. B. 2,5')}
+  </div>${S.mxErr ? `<p class="mx-err">${esc(S.mxErr)}</p>` : ''}<div class="mx-act"><button class="btn2 go" data-a="mxSave">Übernehmen</button>${WX.mx.days[day] && WX.mx.neu.includes(day) ? '<button class="btn2 danger" data-a="mxDel">Eingabe löschen</button>' : ''}<button class="btn2" data-a="mxClose">Schliessen</button></div>
+  <p class="wx-note">Nur für heute oder gestern. Nach «Stand speichern» ist der Tag fest im IFC und nicht mehr änderbar. Leere Felder gelten als nicht gemessen, dann zählt der Modellwert.</p></div>`;
+}
+// Messung bei der Montage: nur am Montagetag
+function mwForm(el) {
+  const s = WX && WX.mw && WX.mw[el.g];
+  if (!EMBED || !s || !s.at || s.at.slice(0, 10) !== TODAY) return '';
+  const same = Object.values(WX.mw).filter(x => x.at === s.at).length;
+  if (S.mwOpen !== el.g) return `<div class="mx-act"><button class="btn2" data-a="mwOpen">${s.m ? 'Messung eigene Station ändern …' : 'Messung eigene Station erfassen …'}</button></div>`;
+  return `<div class="mx-form"><h3>Messung eigene Station bei der Montage (${s.at.slice(11, 16)})</h3><div class="mx-grid">
+    ${field('mw.st', 'Station', 'z. B. Davis auf dem Hüttendach', true)}
+    ${field('mw.t', 'Temperatur (°C)', 'z. B. -3')}${field('mw.p', 'Niederschlag letzte Stunde (mm)', 'z. B. 0,4')}
+    ${field('mw.w', 'Wind (km/h)', 'z. B. 20')}${field('mw.g', 'Böen (km/h)', 'z. B. 45')}
+  </div>${S.mwErr ? `<p class="mx-err">${esc(S.mwErr)}</p>` : ''}<div class="mx-act"><button class="btn2 go" data-a="mwSave">Übernehmen</button>${s.m ? '<button class="btn2 danger" data-a="mwDel">Messung entfernen</button>' : ''}<button class="btn2" data-a="mwClose">Schliessen</button></div>
+  <p class="wx-note">Nur am Montagetag möglich.${same > 1 ? ` Gilt für alle ${same} Bauteile, die um ${s.at.slice(11, 16)} gemeldet wurden.` : ''}</p></div>`;
+}
 
 // ── Zustand ──
 let els = [];            // Bauteile aus dem Modell
 let byId = new Map();    // expressID -> Index in els
 let changes = {};        // GlobalId -> IsInstalled (true/false), nur Änderungen des Poliers
+let times = {};          // GlobalId -> Zeitpunkt der Montagemeldung (Lokalzeit JJJJ-MM-TTThh:mm), für das Montagewetter
 let storeKey = '';
 let modelFile = '';
-const S = { day: TODAY, filter: 'heute', storey: 'alle', sel: null, iso: true, open: true, table: false, confirm: null, limit: LIST_STEP };
+const S = { day: TODAY, filter: 'heute', storey: 'alle', sel: null, iso: true, open: true, table: false, confirm: null, limit: LIST_STEP, mxOpen: false, mxErr: '', mwOpen: null, mwErr: '' };
 
-const loadChanges = () => { try { changes = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (e) { changes = {}; } };
+const loadChanges = () => {
+  try { changes = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (e) { changes = {}; }
+  try { times = JSON.parse(localStorage.getItem(storeKey + ':zeit') || '{}') || {}; } catch (e) { times = {}; }
+};
 // Baustellen-App: jede Änderung an die App melden; sie schreibt sie beim Speichern ins IFC
 const EMBED = window.parent !== window;
-const report = () => { if (EMBED) parent.postMessage({ type: 'bs-inst', changes }, '*'); };
-const saveChanges = () => { try { localStorage.setItem(storeKey, JSON.stringify(changes)); } catch (e) {} report(); };
+const report = () => { if (EMBED) parent.postMessage({ type: 'bs-inst', changes, times }, '*'); };
+const saveChanges = () => {
+  Object.keys(times).forEach(g => { if (changes[g] !== true) delete times[g]; });
+  try { localStorage.setItem(storeKey, JSON.stringify(changes)); localStorage.setItem(storeKey + ':zeit', JSON.stringify(times)); } catch (e) {}
+  report();
+};
+const nowLocal = () => { const d = new Date(); return `${toIso(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
 // Wirksamer Wert: Rückmeldung des Poliers vor Modellwert
 const isInst = el => el.g in changes ? changes[el.g] : el.isInst;
@@ -471,7 +585,7 @@ function setInstalled(ks, value) {
   let n = 0;
   ks.forEach(k => {
     const el = els[k]; if (el.acc) return;
-    if (value === el.isInst) delete changes[el.g]; else changes[el.g] = value;
+    if (value === el.isInst) delete changes[el.g]; else { if (value === true && changes[el.g] !== true) times[el.g] = nowLocal(); changes[el.g] = value; }
     n++;
   });
   saveChanges(); render(); return n;
@@ -522,6 +636,7 @@ function listView(L, cnt, isToday, R) {
   const pct = cnt.dayAll ? Math.round(cnt.dayDone / cnt.dayAll * 100) : 0;
   let h = `<div class="head inner" data-a="toggle"><h2>${titles[S.filter]}<span class="muted"> · ${L.length}</span></h2>`;
   if (S.filter === 'heute') h += `<div class="prog"><div class="bar"><span style="width:${pct}%"></span></div><small>${cnt.dayDone} von ${cnt.dayAll} mit Soll-Datum ${short(S.day)} montiert</small></div>`;
+  if (S.filter === 'heute' || S.filter === 'ueberfaellig') h += wxStrip(S.day);
   if (S.filter === 'fehler') h += `<p class="muted" style="margin:6px 0 0;font-size:13px">Diese Bauteile kann das Tool nicht einordnen. Bitte dem Modellautor bzw. der Bauleitung melden.</p>`;
   if ((S.filter === 'heute' || S.filter === 'ueberfaellig') && L.length > 1) {
     h += `<div class="bulk">${S.confirm === 'bulk'
@@ -540,7 +655,9 @@ function listView(L, cnt, isToday, R) {
     const meta = r.c === 'montiert' ? '✓ montiert' : r.c === 'abgenommen' ? `✓ abgen. ${short(r.el.acc)}` : r.c === 'fehler' ? fehlerKurz(r.el)
       : r.c === 'ueberfaellig' ? `${daysBetween(r.el.inst, S.day)} T. Verzug` : short(r.el.inst);
     const changed = r.el.g in changes ? ' · geändert' : '';
-    h += `<li><button class="row" data-k="${r.k}"><span class="dot" style="background:${COLORS[r.c]}"></span><span class="rm"><b>${esc(r.el.n)}</b><small>${esc(typ(r.el.t))} · ${esc(r.el.s)}${changed}</small></span><span class="meta c-${r.c}">${meta}</span></button></li>`;
+    const wxr = r.c === 'ueberfaellig' ? wxSince(r.el.inst, S.day) : null;
+    const wxs = wxr && wxr.bad ? ` · ${wxr.bad}× Schlechtwetter` : '';
+    h += `<li><button class="row" data-k="${r.k}"><span class="dot" style="background:${COLORS[r.c]}"></span><span class="rm"><b>${esc(r.el.n)}</b><small>${esc(typ(r.el.t))} · ${esc(r.el.s)}${changed}${wxs}</small></span><span class="meta c-${r.c}">${meta}</span></button></li>`;
   });
   if (L.length > S.limit) h += `<li><button class="btn2 more-rows" data-a="more">Weitere ${Math.min(LIST_STEP, L.length - S.limit)} von ${L.length - S.limit} anzeigen</button></li>`;
   return h + '</ul>';
@@ -563,7 +680,10 @@ function detailView(r, L) {
     <tr><th>IsInstalled</th><td><b>${b(inst)}</b>${el.g in changes ? ` <span class="muted">(im Modell: ${b(el.isInst)}, geändert)</span>` : ''}</td></tr>
     <tr><th>AcceptanceDate</th><td>${el.acc ? esc(el.acc) : '–'}</td></tr>
     <tr><th>Verzug am Stichtag</th><td>${verzug}</td></tr>
+    ${c === 'ueberfaellig' && wxSince(el.inst, S.day) ? `<tr><th>Wetter seit Soll</th><td>${esc(wxText(wxSince(el.inst, S.day)))}<br><span class="muted">Modelle getrennt: ${esc(wxCmp(el.inst, S.day))}</span></td></tr>` : ''}
+    ${inst === true && WX && WX.mw && WX.mw[el.g] ? `<tr><th>Wetter bei Montage</th><td>${esc(mwText(WX.mw[el.g]))}</td></tr>` : ''}
   </tbody></table>
+  ${inst === true ? mwForm(el) : ''}
   <p class="muted" style="font-size:12px;margin-top:12px">${esc(el.t)} · GlobalId <code>${esc(el.g)}</code>${el.parts.length ? ` · Baugruppe mit ${el.parts.length} Teilen` : ''}</p>`;
   return h + '</div>';
 }
@@ -590,9 +710,33 @@ document.addEventListener('click', e => {
   if (t.dataset.f) { S.filter = t.dataset.f; S.confirm = null; S.limit = LIST_STEP; render(); return; }
   if (t.dataset.day) { S.day = t.dataset.day; render(); return; }
   if (t.dataset.k != null && t.dataset.a == null) { select(+t.dataset.k); return; }
+  if (t.dataset.a === 'toggle' && e.target.closest('.mx-form')) return;
   const a = t.dataset.a, el = S.sel != null ? els[S.sel] : null;
-  if (a === 'toggle') { if (innerWidth < 900 && !e.target.closest('.bulk')) { S.open = !S.open; render(); } }
-  else if (a === 'installed') { setInstalled([S.sel], true); toast(`${el.n}: montiert ✓`); }
+  if (a === 'toggle') { if (innerWidth < 900 && !e.target.closest('.bulk, .mx-form')) { S.open = !S.open; render(); } }
+  else if (a === 'mxDay') { /* Auswahl über change */ }
+  else if (a === 'mxOpen') { S.mxOpen = true; S.mxErr = ''; mxFill(mxDays()[0][0]); render(); }
+  else if (a === 'mxClose') { S.mxOpen = false; render(); }
+  else if (a === 'mxSave' || a === 'mxDel') {
+    const day = draft['mx.day'] || mxDays()[0][0];
+    if (a === 'mxDel') { parent.postMessage({ type: 'bs-mx', iso: day, v: null }, '*'); S.mxOpen = false; toast('Eingabe gelöscht'); render(); return; }
+    const { v, err } = readNums(MX_DEFS), st = String(draft['mx.st'] || '').trim();
+    S.mxErr = err || (!st ? 'Station angeben' : ''); if (S.mxErr) { render(); return; }
+    try { localStorage.setItem('polier-tool:station', st); } catch (er) {}
+    parent.postMessage({ type: 'bs-mx', iso: day, v, st }, '*'); S.mxOpen = false; toast(`Messung ${short(day)} übernommen · mit «Stand speichern» ins IFC`); render();
+  }
+  else if (a === 'mwOpen') {
+    const m = WX.mw[el.g].m || {}; S.mwOpen = el.g; S.mwErr = '';
+    ['t', 'p', 'w', 'g'].forEach(k => { draft['mw.' + k] = m[k] == null ? '' : String(m[k]); }); draft['mw.st'] = m.st || stationName(); render();
+  }
+  else if (a === 'mwClose') { S.mwOpen = null; render(); }
+  else if (a === 'mwSave' || a === 'mwDel') {
+    if (a === 'mwDel') { parent.postMessage({ type: 'bs-mwm', gid: el.g, v: null }, '*'); S.mwOpen = null; toast('Messung entfernt'); render(); return; }
+    const { v, err } = readNums(MW_DEFS), st = String(draft['mw.st'] || '').trim();
+    S.mwErr = err || (!st ? 'Station angeben' : ''); if (S.mwErr) { render(); return; }
+    try { localStorage.setItem('polier-tool:station', st); } catch (er) {}
+    parent.postMessage({ type: 'bs-mwm', gid: el.g, v, st }, '*'); S.mwOpen = null; toast('Messung übernommen · mit «Stand speichern» ins IFC'); render();
+  }
+  else if (a === 'installed') { setInstalled([S.sel], true); toast(`${el.n}: montiert ✓${EMBED && WX ? ' · Wetter wird abgerufen' : ''}`); }
   else if (a === 'undo') { setInstalled([S.sel], false); toast('Zurückgesetzt'); }
   else if (a === 'bulk') { S.confirm = 'bulk'; render(); }
   else if (a === 'bulkNo') { S.confirm = null; render(); }
@@ -601,8 +745,10 @@ document.addEventListener('click', e => {
   else if (a === 'more') { S.limit += LIST_STEP; render(); }
   else if (a === 'reset') { S.confirm = 'reset'; render(); }
   else if (a === 'resetNo') { S.confirm = null; render(); }
-  else if (a === 'resetYes') { changes = {}; saveChanges(); S.confirm = null; render(); toast('Alle Änderungen verworfen'); }
+  else if (a === 'resetYes') { changes = {}; times = {}; saveChanges(); S.confirm = null; render(); toast('Alle Änderungen verworfen'); }
 });
+document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.draft; if (k) draft[k] = e.target.value; });
+document.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.a === 'mxDay') { mxFill(e.target.value); S.mxErr = ''; render(); } });
 $('storey').onchange = e => { S.storey = e.target.value; S.limit = LIST_STEP; render(); fit(boxOf(storeyKeys()), true, .95); };
 $('bBack').onclick = back;
 $('bIso').onclick = () => { S.iso = !S.iso; render(); };
@@ -649,8 +795,10 @@ const drop = $('drop');
 window.addEventListener('message', ev => {
   if (ev.source !== window.parent) return;
   const d = ev.data || {};
+  if (d.type === 'bs-open' || d.type === 'bs-wx') WX = d.wx || null;
+  if (d.type === 'bs-wx' && els.length && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.mx-form'))) render();
   if (d.type === 'bs-open') openModel(d.buffer, d.name);
-  if (d.type === 'bs-saved') { try { localStorage.removeItem(storeKey); } catch (e) {} changes = {}; }
+  if (d.type === 'bs-saved') { try { localStorage.removeItem(storeKey); localStorage.removeItem(storeKey + ':zeit'); } catch (e) {} changes = {}; times = {}; }
 });
 if (!EMBED) {
   showStart('Diese Ansicht ist Teil der Baustellen-App. Bitte Baustellen-App.html öffnen und als Polier anmelden.');

@@ -249,6 +249,259 @@ var IfcWriter = (function () {
 if (typeof module !== "undefined") module.exports = IfcWriter;
 </script>
 
+<script id="wetter">
+/* Wetter am Standort, gespeichert im IFC. Der Standort kommt aus IfcSite.RefLatitude/RefLongitude/RefElevation.
+   Modellwerte immer; Messwerte nur von einer eigenen Station auf der Baustelle, von Hand erfasst durch den Polier
+   (Stationen von MeteoSchweiz liegen zu weit weg und zu tief, Niederschlag und Wind sind zu lokal).
+   - Pset «Baufortschritt_Wetter_ICON_CH1» an IfcSite: Tageswerte Modell ICON-CH1 (Open-Meteo, Historical Forecast), gilt vor ERA5
+   - Pset «Baufortschritt_Wetter» an IfcSite: Tageswerte Modell ERA5 (Open-Meteo Archiv, Reanalyse), Vergleich und Ersatz
+   - Pset «Baufortschritt_Wetter_Messung» an IfcSite: Tageswerte der eigenen Station (Handeingabe)
+   - Pset «Baufortschritt_Montagewetter» am Bauteil: Modell-Stundenwert zum Zeitpunkt der Montagemeldung
+     (Open-Meteo, MeteoSchweiz-Modell ICON-CH1, sonst ICON-CH2) und optional Messung der eigenen Station
+   Gespeicherte Tage bleiben unverändert (Beleg), neu abgerufen werden nur fehlende Tage bis gestern. */
+var IfcWeather = (function () {
+  var PSET = "Baufortschritt_Wetter", PSET_C = "Baufortschritt_Wetter_ICON_CH1", PSET_M = "Baufortschritt_Wetter_Messung", PSET_MW = "Baufortschritt_Montagewetter";
+  var CH1_START = "2025-08-01"; // ICON-CH1 gibt es bei Open-Meteo erst ab etwa August/September 2025
+  var FIELDS_M = [["Niederschlag_mm", "p"], ["Temp_min_C", "tn"], ["Temp_max_C", "tx"], ["Boeen_max_kmh", "g"]];
+  var MISS_M = -999; // Fehlwert in der Messreihe (nicht erfasst)
+  var FIELDS = [["Niederschlag_mm", "p"], ["Schnee_cm", "s"], ["Wind_max_kmh", "w"], ["Boeen_max_kmh", "g"], ["Temp_max_C", "tx"], ["Temp_min_C", "tn"]];
+  var API = "https://archive-api.open-meteo.com/v1/archive";
+  var API_CH1 = "https://historical-forecast-api.open-meteo.com/v1/forecast";
+  var FORECAST = "https://api.open-meteo.com/v1/forecast";
+  var DESC = "\\s*(?:\\$|'(?:[^']|'')*')\\s*"; // Beschreibung: $ oder Text (darf Kommas enthalten)
+  var B64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
+  function newGid() { var s = B64[Math.floor(Math.random() * 4)]; for (var i = 0; i < 21; i++) s += B64[Math.floor(Math.random() * 64)]; return s; }
+  function isoOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function lineOf(text, id) { var m = new RegExp("#" + id + "\\s*=\\s*([A-Z0-9_]+)\\s*\\(([\\s\\S]*?)\\);").exec(text); return m ? { type: m[1], args: m[2], start: m.index, end: m.index + m[0].length } : null; }
+  // (46,29,13,200000) -> 46.48700
+  function angle(tok) {
+    var p = (tok || "").replace(/[()\s]/g, "").split(",").filter(Boolean).map(Number);
+    if (p.length < 2 || p.some(isNaN)) return null;
+    return p[0] + (p[1] || 0) / 60 + ((p[2] || 0) + (p[3] || 0) / 1e6) / 3600;
+  }
+  function split(args) { return IfcWriter.split("(" + args + ")"); }
+  // Text für STEP: Apostroph und Backslash verdoppeln, Nicht-ASCII als \X2\…\X0\ (z. B. Umlaute)
+  function step(s) {
+    return String(s).replace(/\\/g, "\\\\").replace(/'/g, "''").replace(/[^\x20-\x7e]+/g, function (u) {
+      return "\\X2\\" + u.split("").map(function (c) { return c.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0"); }).join("") + "\\X0\\";
+    });
+  }
+  function unstep(s) {
+    return String(s).replace(/''/g, "'").replace(/\\X2\\([0-9A-F]+)\\X0\\/gi, function (_, h) { var o = ""; for (var i = 0; i < h.length; i += 4) o += String.fromCharCode(parseInt(h.substr(i, 4), 16)); return o; }).replace(/\\\\/g, "\\");
+  }
+  var LBL = function (v) { return v == null || v === "" ? "$" : "IFCLABEL('" + step(v) + "')"; };
+  var TXT = function (v) { return "IFCTEXT('" + step(v) + "')"; };
+  var REAL = function (v) { return v == null || isNaN(v) ? "$" : "IFCREAL(" + (Math.round(v * 10) / 10).toFixed(1) + ")"; };
+  var single = function (name, val) { return [name, "IFCPROPERTYSINGLEVALUE('" + name + "',$," + val + ",$)"]; };
+  function maxIdOf(text) { var maxId = 0; text.replace(/#(\d+)\s*=/g, function (_, n) { n = +n; if (n > maxId) maxId = n; }); return maxId; }
+  function psetByName(text, name) { return new RegExp("#(\\d+)\\s*=\\s*IFCPROPERTYSET\\s*\\(\\s*'([^']*)'\\s*,([^,]*),\\s*'" + name + "'\\s*," + DESC + ",\\s*\\(([^)]*)\\)\\s*\\);").exec(text); }
+  // Werte eines Psets lesen: Einzelwerte als Text/Zahl, Listen als Arrays
+  function readProps(text, refList) {
+    var out = {};
+    (refList.match(/#\d+/g) || []).forEach(function (r) {
+      var l = lineOf(text, r.slice(1)); if (!l) return;
+      var name = /^\s*'([^']*)'/.exec(l.args); if (!name) return;
+      if (l.type === "IFCPROPERTYLISTVALUE") {
+        out[name[1]] = split((split(l.args)[2] || "()").replace(/^\s*\(|\)\s*$/g, "")).map(function (v) {
+          var m = /^IFC(LABEL|TEXT|REAL)\(([\s\S]*)\)$/.exec(v.trim());
+          return !m ? null : m[1] === "REAL" ? parseFloat(m[2]) : unstep(m[2].replace(/^'|'$/g, ""));
+        });
+      } else if (l.type === "IFCPROPERTYSINGLEVALUE") {
+        var t = split(l.args)[2] || "$", m = /^IFC(LABEL|TEXT|REAL)\(([\s\S]*)\)$/.exec(t);
+        out[name[1]] = !m ? null : m[1] === "REAL" ? parseFloat(m[2]) : unstep(m[2].replace(/^'|'$/g, ""));
+      }
+    });
+    return out;
+  }
+  function daysOf(cols, fields, miss) {
+    var days = {};
+    (cols.Datum || []).forEach(function (d, i) {
+      var day = {}; fields.forEach(function (f) { var v = (cols[f[0]] || [])[i]; day[f[1]] = typeof v === "number" && !isNaN(v) && v !== miss ? v : null; });
+      days[d] = day;
+    });
+    return days;
+  }
+
+  // Montagewetter-Psets: { Element-ID: Pset-ID }
+  function montageIndex(text) {
+    var ids = {}, out = {}, m, re = new RegExp("#(\\d+)\\s*=\\s*IFCPROPERTYSET\\s*\\(\\s*'[^']*'\\s*,[^,]*,\\s*'" + PSET_MW + "'", "g");
+    while ((m = re.exec(text))) ids[m[1]] = true;
+    if (!Object.keys(ids).length) return out;
+    var rr = /#\d+\s*=\s*IFCRELDEFINESBYPROPERTIES\s*\(([^;]*)\);/g;
+    while ((m = rr.exec(text))) {
+      var t = split(m[1]), ps = /#(\d+)/.exec(t[5] || ""); if (!ps || !ids[ps[1]]) continue;
+      (t[4].match(/#\d+/g) || []).forEach(function (r) { out[r.slice(1)] = +ps[1]; });
+    }
+    return out;
+  }
+  // Montagewetter aller Bauteile: { GlobalId: Momentaufnahme }
+  function readMontage(text) {
+    var idx = montageIndex(text), out = {};
+    Object.keys(idx).forEach(function (eid) {
+      var l = lineOf(text, eid), g = l && /^\s*'([^']{22})'/.exec(l.args), pl = lineOf(text, idx[eid]); if (!g || !pl) return;
+      out[g[1]] = snapOf(readProps(text, split(pl.args)[4] || ""));
+    });
+    return out;
+  }
+  function snapOf(p) {
+    var has = function (keys) { return keys.some(function (k) { return p[k] != null; }); };
+    return {
+      at: p.Zeitpunkt || "", status: p.Status || "", ab: p.Abgerufen || "",
+      m: has(["Mess_Temp_C", "Mess_Niederschlag_mm_1h", "Mess_Wind_kmh", "Mess_Boeen_kmh"]) ? { st: p.Mess_Station || "", zeit: p.Mess_Zeit || "", t: p.Mess_Temp_C, p: p.Mess_Niederschlag_mm_1h, w: p.Mess_Wind_kmh, g: p.Mess_Boeen_kmh } : null,
+      o: has(["Modell_Temp_C", "Modell_Wind_kmh"]) ? { model: p.Modell, hour: p.Modell_Stunde, t: p.Modell_Temp_C, p: p.Modell_Niederschlag_mm_h, s: p.Modell_Schnee_cm_h, w: p.Modell_Wind_kmh, g: p.Modell_Boeen_kmh } : null
+    };
+  }
+
+  // Standort, gespeicherte Tage und Montagewetter lesen
+  function read(text) {
+    var out = { lat: null, lon: null, elev: null, site: null, days: {}, stored: 0, dc: {}, storedC: 0, mx: { days: {} }, mw: readMontage(text) };
+    var m = /#(\d+)\s*=\s*IFCSITE\s*\(/.exec(text);
+    if (m) {
+      var l = lineOf(text, m[1]), t = split(l.args);
+      out.site = +m[1]; out.lat = angle(t[9]); out.lon = angle(t[10]);
+      var e = parseFloat(t[11]); out.elev = isNaN(e) ? null : e;
+    }
+    var ps = psetByName(text, PSET);
+    if (ps) { out.days = daysOf(readProps(text, ps[4]), FIELDS, null); out.stored = Object.keys(out.days).length; }
+    var pc = psetByName(text, PSET_C);
+    if (pc) { out.dc = daysOf(readProps(text, pc[4]), FIELDS, null); out.storedC = Object.keys(out.dc).length; }
+    var pm = psetByName(text, PSET_M);
+    if (pm) {
+      var c = readProps(text, pm[4]);
+      out.mx.days = daysOf(c, FIELDS_M, MISS_M);
+      (c.Datum || []).forEach(function (d, i) { out.mx.days[d].st = (c.Station || [])[i] || ""; out.mx.days[d].erf = (c.Erfasst || [])[i] || ""; });
+    }
+    return out;
+  }
+
+  // Zeitraum: frühestes Datum im Modell (Soll/Abnahme) bis gestern, höchstens 400 Tage zurück
+  function range(text) {
+    var min = null; text.replace(/IFCLABEL\('(\d{4}-\d{2}-\d{2})'\)/g, function (_, d) { if (!min || d < min) min = d; });
+    var y = new Date(); y.setDate(y.getDate() - 1);
+    var end = isoOf(y), lim = new Date(y); lim.setDate(lim.getDate() - 400);
+    var start = min && min > isoOf(lim) ? min : isoOf(lim);
+    if (min && min > end) return null;
+    return { start: start, end: end };
+  }
+  function missing(days, rg) {
+    var out = [], d = new Date(rg.start + "T12:00:00"), e = rg.end;
+    for (var iso = isoOf(d); iso <= e; d.setDate(d.getDate() + 1), iso = isoOf(d)) if (!days[iso]) out.push(iso);
+    return out;
+  }
+  // Fehlende Tage bei Open-Meteo holen; liefert { iso: {p,s,w,g,tx,tn} }. ch1 = true: ICON-CH1 statt ERA5
+  function fetchDays(wx, from, to, ch1) {
+    var url = (ch1 ? API_CH1 : API) + "?latitude=" + wx.lat.toFixed(5) + "&longitude=" + wx.lon.toFixed(5) + (wx.elev != null ? "&elevation=" + wx.elev : "") +
+      "&start_date=" + from + "&end_date=" + to + "&timezone=Europe%2FZurich&daily=precipitation_sum,snowfall_sum,wind_speed_10m_max,wind_gusts_10m_max,temperature_2m_max,temperature_2m_min" + (ch1 ? "&models=meteoswiss_icon_ch1" : "");
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error("Open-Meteo antwortet mit " + r.status); return r.json(); }).then(function (j) {
+      var d = j.daily || {}, out = {}, k = ["precipitation_sum", "snowfall_sum", "wind_speed_10m_max", "wind_gusts_10m_max", "temperature_2m_max", "temperature_2m_min"];
+      (d.time || []).forEach(function (iso, i) {
+        var v = k.map(function (n) { return d[n] ? d[n][i] : null; });
+        if (v[0] == null) return; // Tag noch ohne Daten: später erneut holen
+        out[iso] = { p: v[0], s: v[1], w: v[2], g: v[3], tx: v[4], tn: v[5] };
+      });
+      return out;
+    });
+  }
+
+  // Pset an eine Entität schreiben: vorhandenes Pset (psetId) wird ersetzt (Properties nach Name, IDs bleiben), sonst neu angelegt
+  function upsert(text, targetId, name, desc, props, psetId) {
+    var maxId = maxIdOf(text);
+    var oh = /#(\d+)\s*=\s*IFCOWNERHISTORY/.exec(text); oh = oh ? "#" + oh[1] : "$";
+    var pl = psetId ? lineOf(text, psetId) : null;
+    if (pl) {
+      var tok = split(pl.args), have = {}, extra = [], repl = [], ids = [];
+      (tok[4].match(/#\d+/g) || []).forEach(function (r) { var l = lineOf(text, r.slice(1)); var nm = l && /^\s*'([^']*)'/.exec(l.args); if (nm) have[nm[1]] = { id: +r.slice(1), l: l }; });
+      props.forEach(function (p) {
+        if (have[p[0]]) { repl.push({ start: have[p[0]].l.start, end: have[p[0]].l.end, s: "#" + have[p[0]].id + "=" + p[1] + ";" }); ids.push(have[p[0]].id); }
+        else { var id = ++maxId; extra.push("#" + id + "=" + p[1] + ";"); ids.push(id); }
+      });
+      Object.keys(have).forEach(function (n) { if (props.every(function (p) { return p[0] !== n; })) ids.push(have[n].id); });
+      repl.push({ start: pl.start, end: pl.end, s: "#" + psetId + "=IFCPROPERTYSET(" + tok[0] + "," + tok[1] + ",'" + name + "','" + desc + "',(" + ids.map(function (i) { return "#" + i; }).join(",") + "));" });
+      repl.sort(function (a, b) { return b.start - a.start; });
+      repl.forEach(function (r) { text = text.slice(0, r.start) + r.s + text.slice(r.end); });
+      if (extra.length) { var e1 = text.lastIndexOf("ENDSEC;"); text = text.slice(0, e1) + extra.join("\n") + "\n" + text.slice(e1); }
+      return text;
+    }
+    var lines = [], pids = [];
+    props.forEach(function (p) { var id = ++maxId; pids.push(id); lines.push("#" + id + "=" + p[1] + ";"); });
+    var pset = ++maxId, rel = ++maxId;
+    lines.push("#" + pset + "=IFCPROPERTYSET('" + newGid() + "'," + oh + ",'" + name + "','" + desc + "',(" + pids.map(function (i) { return "#" + i; }).join(",") + "));");
+    lines.push("#" + rel + "=IFCRELDEFINESBYPROPERTIES('" + newGid() + "'," + oh + ",$,$,(#" + targetId + "),#" + pset + ");");
+    var e = text.lastIndexOf("ENDSEC;");
+    return text.slice(0, e) + lines.join("\n") + "\n" + text.slice(e);
+  }
+  function listProps(fields, days, miss) {
+    var dates = Object.keys(days).sort();
+    var num = function (v) { return v == null || isNaN(v) ? "IFCREAL(" + miss + ")" : "IFCREAL(" + (Math.round(v * 10) / 10).toFixed(1) + ")"; };
+    var list = function (name, vals) { return [name, "IFCPROPERTYLISTVALUE('" + name + "',$,(" + vals.join(",") + "),$)"]; };
+    return [list("Datum", dates.map(function (d) { return "IFCLABEL('" + d + "')"; }))]
+      .concat(fields.map(function (f) { return list(f[0], dates.map(function (d) { return num(days[d][f[1]]); })); }));
+  }
+
+  // Modell-Tageswerte an IfcSite: ERA5 (Pset Baufortschritt_Wetter) bzw. ICON-CH1 (ch1 = true)
+  function write(text, wx, ch1) {
+    if (!wx.site) throw new Error("Kein IfcSite im Modell");
+    var days = ch1 ? wx.dc : wx.days; if (!Object.keys(days).length) return text;
+    var where = ", Tageswerte Zeitzone Europe/Zurich, Standort " + wx.lat.toFixed(5) + " / " + wx.lon.toFixed(5) + (wx.elev != null ? ", " + wx.elev + " m" : "") + ", Fehlwert 0";
+    var src = ch1 ? "Open-Meteo Historical Forecast, MeteoSchweiz-Modell ICON-CH1 (Raster etwa 1 km, kurzfristige Prognoseläufe aneinandergereiht, Modellwerte, keine Stationsmessung). Gilt vor ERA5" + where
+      : "Open-Meteo Archiv (Reanalyse ERA5, Modellwerte, keine Stationsmessung). Vergleich zu ICON-CH1 und Ersatz, wo ICON-CH1 fehlt" + where;
+    var name = ch1 ? PSET_C : PSET;
+    var props = [single("Quelle", TXT(src)), single("Abgerufen", LBL(isoOf(new Date())))].concat(listProps(FIELDS, days, "0."));
+    var ps = psetByName(text, name);
+    return upsert(text, wx.site, name, ch1 ? "Wetter am Standort, Tageswerte Modell ICON-CH1" : "Wetter am Standort, Tageswerte Modell ERA5", props, ps ? +ps[1] : null);
+  }
+  // Mess-Tageswerte der eigenen Station an IfcSite
+  function writeMeasured(text, wx) {
+    if (!wx.site) throw new Error("Kein IfcSite im Modell");
+    var days = wx.mx.days, dates = Object.keys(days).sort(); if (!dates.length) return text;
+    var labels = function (name, k) { return [name, "IFCPROPERTYLISTVALUE('" + name + "',$,(" + dates.map(function (d) { return "IFCLABEL('" + step(days[d][k] || "") + "')"; }).join(",") + "),$)"]; };
+    var src = "Messung der eigenen Station auf der Baustelle, von Hand erfasst durch den Polier in der Baustellen-App (keine MeteoSchweiz-Station). " +
+      "Niederschlag: Tagessumme, Temperatur: Tagesminimum/-maximum, Böen: Tagesmaximum. Fehlwert " + MISS_M + " = nicht erfasst, dann gilt der Modellwert. Erfasst = Zeitpunkt der Eingabe (Lokalzeit).";
+    var props = [single("Quelle", TXT(src))].concat(listProps(FIELDS_M, days, MISS_M + ".0"), [labels("Station", "st"), labels("Erfasst", "erf")]);
+    var ps = psetByName(text, PSET_M);
+    return upsert(text, wx.site, PSET_M, "Wetter am Standort, Tageswerte Messung eigene Station", props, ps ? +ps[1] : null);
+  }
+  // Montagewetter an die Bauteile (snaps: { GlobalId: Momentaufnahme })
+  function writeMontage(text, snaps) {
+    var idx = montageIndex(text);
+    Object.keys(snaps).forEach(function (gid) {
+      var s = snaps[gid];
+      var el = new RegExp("#(\\d+)\\s*=\\s*IFC[A-Z0-9_]+\\s*\\(\\s*'" + gid.replace(/\$/g, "\\$") + "'").exec(text); if (!el) return;
+      var psetId = idx[el[1]] || null;
+      var o = s.o || {}, m = s.m || {};
+      var src = "Modell_*: Modellwert, Open-Meteo, MeteoSchweiz-Modell ICON-CH1 (sonst ICON-CH2), Stundenwert zum Zeitpunkt der Montagemeldung, Standort aus IfcSite. " +
+        "Mess_*: Messung der eigenen Station auf der Baustelle, von Hand erfasst durch den Polier am Montagetag (leer = nicht erfasst). Zeiten in Lokalzeit Europe/Zurich.";
+      var props = [
+        single("Zeitpunkt", LBL(s.at)), single("Status", LBL(s.status)), single("Abgerufen", LBL(s.ab)), single("Quelle", TXT(src)),
+        single("Modell", LBL(o.model)), single("Modell_Stunde", LBL(o.hour)),
+        single("Modell_Temp_C", REAL(o.t)), single("Modell_Niederschlag_mm_h", REAL(o.p)), single("Modell_Schnee_cm_h", REAL(o.s)), single("Modell_Wind_kmh", REAL(o.w)), single("Modell_Boeen_kmh", REAL(o.g)),
+        single("Mess_Station", LBL(m.st)), single("Mess_Zeit", LBL(m.zeit)),
+        single("Mess_Temp_C", REAL(m.t)), single("Mess_Niederschlag_mm_1h", REAL(m.p)), single("Mess_Wind_kmh", REAL(m.w)), single("Mess_Boeen_kmh", REAL(m.g))
+      ];
+      text = upsert(text, +el[1], PSET_MW, "Wetter bei der Montagemeldung", props, psetId);
+    });
+    return text;
+  }
+  // Modellwert zum Zeitpunkt at (Date): Stundenwert ICON-CH1, sonst ICON-CH2; null = noch nicht verfügbar
+  function fetchHour(wx, at) {
+    var pad = function (n) { return String(n).padStart(2, "0"); }, iso = isoOf(at), key = iso + "T" + pad(at.getHours()) + ":00";
+    var url = FORECAST + "?latitude=" + wx.lat.toFixed(5) + "&longitude=" + wx.lon.toFixed(5) + (wx.elev != null ? "&elevation=" + wx.elev : "") +
+      "&models=meteoswiss_icon_ch1,meteoswiss_icon_ch2&hourly=temperature_2m,precipitation,snowfall,wind_speed_10m,wind_gusts_10m&start_date=" + iso + "&end_date=" + iso + "&timezone=Europe%2FZurich";
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error("Open-Meteo antwortet mit " + r.status); return r.json(); }).then(function (j) {
+      var h = j.hourly || {}, i = (h.time || []).indexOf(key); if (i < 0) return null;
+      var models = [["meteoswiss_icon_ch1", "MeteoSchweiz ICON-CH1 (Open-Meteo)"], ["meteoswiss_icon_ch2", "MeteoSchweiz ICON-CH2 (Open-Meteo)"]];
+      for (var k = 0; k < models.length; k++) {
+        var sfx = "_" + models[k][0], v = function (n) { var a = h[n + sfx]; return a && a[i] != null ? a[i] : null; };
+        if (v("temperature_2m") != null) return { model: models[k][1], hour: key.replace("T", " "), t: v("temperature_2m"), p: v("precipitation"), s: v("snowfall"), w: v("wind_speed_10m"), g: v("wind_gusts_10m") };
+      }
+      return null;
+    });
+  }
+  return { read: read, range: range, missing: missing, fetchDays: fetchDays, fetchHour: fetchHour, write: write, writeMeasured: writeMeasured, writeMontage: writeMontage, step: step, unstep: unstep, PSET: PSET, PSET_C: PSET_C, PSET_M: PSET_M, PSET_MW: PSET_MW, CH1_START: CH1_START };
+})();
+if (typeof module !== "undefined") module.exports = IfcWeather;
+</script>
+
 <script>
 (function () {
   // Passwörter stehen nicht im Code, nur ihre SHA-256-Hashes. Zum Ändern einen neuen Hash eintragen (Anleitung).
@@ -258,7 +511,7 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     "4d3eb5178ada3e68f1b068401692eed3c145a64e5bd1c17d4fe5579d6f5d8a58": { id: "bauleitung", label: "Bauleitung", color: "var(--bauleitung)" }
   };
   var $ = function (id) { return document.getElementById(id); };
-  var S = { role: null, name: "", text: "", pend: { inst: {}, acc: {}, soll: {}, instfix: {} } };
+  var S = { role: null, name: "", text: "", pend: { inst: {}, acc: {}, soll: {}, instfix: {} }, mwNew: {}, mwIfc: {}, mxNew: {}, mxIfc: {} };
 
   function toast(t) { var el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 3200); }
   function todayIso() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
@@ -298,7 +551,11 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     $("logout").hidden = !r; $("open").hidden = !r || !S.text; $("save").hidden = !r || !S.text;
     $("model").textContent = S.name;
     $("pend").hidden = !S.text; $("pend").innerHTML = n ? "<b>" + n + "</b> ungespeicherte Änderung" + (n === 1 ? "" : "en") : "alles gespeichert";
-    $("save").disabled = !n;
+    var w = (S.wxNew || 0) + (S.dcNew || 0), mw = Object.keys(S.mwNew || {}).length, mx = Object.keys(S.mxNew || {}).length;
+    if (S.text && w) $("pend").innerHTML += " · Wetter: <b>" + w + "</b> neue Tage";
+    if (S.text && mx) $("pend").innerHTML += " · Messung: <b>" + mx + "</b> Tage";
+    if (S.text && mw) $("pend").innerHTML += " · Montagewetter: <b>" + mw + "</b>";
+    $("save").disabled = !n && !w && !mw && !mx;
   }
   function show(which) { $("login").hidden = which !== "login"; $("pick").hidden = which !== "pick"; $("view").hidden = which !== "view"; }
 
@@ -338,8 +595,122 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
   function send() {
     var w = $("view").contentWindow; if (!w || !S.role || !S.text) return; // z. B. nach Abmelden (about:blank)
     var buf = textToBytes(S.text).buffer;
-    w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id }, "*", [buf]);
+    w.postMessage({ type: "bs-open", name: S.name, text: S.text, buffer: buf, role: S.role.id, wx: wxMsg() }, "*", [buf]);
   }
+  // ---------- Wetter am Standort (IfcWeather) ----------
+  // S.wx.dc: Tageswerte ICON-CH1 · S.wx.days: Tageswerte ERA5 · S.wx.mx.days: Messung eigene Station (Handeingabe) · S.wx.mw: Montagewetter pro GlobalId
+  // S.wxNew / S.dcNew: neue Modelltage ERA5 / ICON-CH1, S.mxNew: neu erfasste Messtage, S.mwNew: Montagewetter, das noch ins IFC muss
+  function nowLocal() { var d = new Date(); return todayIso() + "T" + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+  function siteOk(wx) { return wx && wx.site && wx.lat != null && wx.lon != null; }
+  function yesterdayIso() { var d = new Date(); d.setDate(d.getDate() - 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  // Pro Tag und Wert: Messung der eigenen Station, sonst ICON-CH1, sonst ERA5 (src: M, C, E); Schnee nur aus dem Modell
+  function merged() {
+    var e = S.wx.days, c = S.wx.dc, m = S.wx.mx.days, out = {};
+    Object.keys(e).concat(Object.keys(c), Object.keys(m)).forEach(function (d) {
+      if (out[d]) return;
+      var a = m[d] || null, cc = c[d] || null, b = e[d] || null;
+      var pick = function (k, mess) { return mess && a && a[k] != null ? [a[k], "M"] : cc && cc[k] != null ? [cc[k], "C"] : b && b[k] != null ? [b[k], "E"] : [null, null]; };
+      var p = pick("p", 1), g = pick("g", 1), tx = pick("tx", 1), tn = pick("tn", 1), s = pick("s"), w = pick("w");
+      out[d] = { p: p[0], g: g[0], tx: tx[0], tn: tn[0], w: w[0], s: s[0], src: { p: p[1], g: g[1], t: tx[1] || tn[1], s: s[1] }, m: a, c: cc, e: b };
+    });
+    return out;
+  }
+  // Montagewetter für die Anzeige: «ausstehend» von einem früheren Tag wird nicht mehr nachgeholt
+  function mwView() {
+    var out = {}, today = todayIso();
+    Object.keys(S.wx.mw).forEach(function (g) {
+      var s = S.wx.mw[g], v = Object.assign({}, s);
+      if (s.status === "ausstehend" && s.at.slice(0, 10) < today) v.status = "nicht abgerufen";
+      out[g] = v;
+    });
+    return out;
+  }
+  function wxMsg() {
+    if (!S.wx) return null;
+    return { lat: S.wx.lat, lon: S.wx.lon, elev: S.wx.elev, days: merged(), stored: S.wx.stored, neu: S.wxNew || 0, storedC: S.wx.storedC, neuC: S.dcNew || 0, state: S.wxState || "", mw: mwView(),
+      mx: { days: S.wx.mx.days, saved: Object.keys(S.mxIfc || {}), neu: Object.keys(S.mxNew || {}), today: todayIso(), yesterday: yesterdayIso() } };
+  }
+  function wxPush() { var w = $("view").contentWindow; if (w && S.role) w.postMessage({ type: "bs-wx", wx: wxMsg() }, "*"); }
+  // Modell-Tageswerte holen: ERA5 und ICON-CH1 (ab CH1_START), je nur fehlende Tage
+  function loadWx() {
+    var wx = S.wx, file = S.name;
+    if (!siteOk(wx)) { S.wxState = "Kein Standort im IFC (IfcSite: RefLatitude/RefLongitude fehlen). Ohne Standort kein Wetter."; wxPush(); return; }
+    var rg = IfcWeather.range(S.text);
+    var missE = rg ? IfcWeather.missing(wx.days, rg) : [];
+    var missC = rg ? IfcWeather.missing(wx.dc, rg).filter(function (d) { return d >= IfcWeather.CH1_START; }) : [];
+    if (!missE.length && !missC.length) { S.wxState = wx.stored || wx.storedC ? "" : "Keine Tage abzurufen."; wxPush(); return; }
+    S.wxState = "Wetter wird abgerufen …"; wxPush();
+    var err = [];
+    var get = function (miss, ch1) {
+      if (!miss.length) return Promise.resolve();
+      return IfcWeather.fetchDays(wx, miss[0], miss[miss.length - 1], ch1).then(function (got) {
+        if (S.name !== file || S.wx !== wx) return; // inzwischen andere Datei
+        var days = ch1 ? wx.dc : wx.days, n = 0;
+        Object.keys(got).forEach(function (d) { if (!days[d]) { days[d] = got[d]; n++; } });
+        if (ch1) S.dcNew = (S.dcNew || 0) + n; else S.wxNew = (S.wxNew || 0) + n;
+      }, function (e) { err.push((ch1 ? "ICON-CH1" : "ERA5") + " nicht abrufbar (" + (e && e.message || e) + ")"); });
+    };
+    Promise.all([get(missC, true), get(missE, false)]).then(function () {
+      if (S.wx !== wx) return;
+      S.wxState = err.length ? err.join(", ") + ". Internetverbindung prüfen. Gespeicherte Tage bleiben sichtbar." : ""; bar(); wxPush();
+    });
+  }
+  // Polier meldet Montagen (changes) mit Zeitpunkt (times): Montagewetter anlegen bzw. verwerfen
+  function onInst(changes, times) {
+    var wx = S.wx; if (!siteOk(wx)) return;
+    Object.keys(S.mwNew).forEach(function (g) {
+      if (changes[g] === true && times[g]) return;
+      delete S.mwNew[g]; if (S.mwIfc[g]) wx.mw[g] = S.mwIfc[g]; else delete wx.mw[g];
+    });
+    Object.keys(changes).forEach(function (g) {
+      if (changes[g] !== true || !times[g] || (wx.mw[g] && wx.mw[g].at === times[g])) return;
+      wx.mw[g] = { at: times[g], status: "ausstehend", ab: "", o: null, m: null }; S.mwNew[g] = true;
+    });
+    bar(); wxPush(); fetchMontage();
+  }
+  // Polier erfasst Tageswerte der eigenen Station: nur für heute oder gestern, gespeicherte Tage bleiben unverändert
+  function onMx(d) {
+    var wx = S.wx; if (!wx || !d || !d.iso) return;
+    if ((d.iso !== todayIso() && d.iso !== yesterdayIso()) || S.mxIfc[d.iso]) return;
+    if (!d.v) { delete wx.mx.days[d.iso]; delete S.mxNew[d.iso]; }
+    else { wx.mx.days[d.iso] = { p: d.v.p, tn: d.v.tn, tx: d.v.tx, g: d.v.g, st: String(d.st || ""), erf: nowLocal() }; S.mxNew[d.iso] = true; }
+    bar(); wxPush();
+  }
+  // Polier erfasst die Messung bei der Montage: nur am Montagetag; gilt für alle Bauteile mit derselben Montagezeit
+  function onMwm(d) {
+    var wx = S.wx, s0 = wx && d && wx.mw[d.gid]; if (!s0 || s0.at.slice(0, 10) !== todayIso()) return;
+    Object.keys(wx.mw).forEach(function (g) {
+      var s = wx.mw[g]; if (s.at !== s0.at) return;
+      s.m = d.v ? { st: String(d.st || ""), zeit: nowLocal(), t: d.v.t, p: d.v.p, w: d.v.w, g: d.v.g } : null; S.mwNew[g] = true;
+    });
+    bar(); wxPush();
+  }
+  // Ausstehendes Montagewetter abrufen, nur am Tag der Montage (nicht rückwirkend)
+  var mwBusy = false, mwAgain = false;
+  function fetchMontage() {
+    var wx = S.wx; if (!siteOk(wx)) return;
+    if (mwBusy) { mwAgain = true; return; }
+    var today = todayIso(), groups = {};
+    Object.keys(wx.mw).forEach(function (g) { var s = wx.mw[g]; if (s.status === "ausstehend" && s.at.slice(0, 10) === today) (groups[s.at] = groups[s.at] || []).push(g); });
+    var ats = Object.keys(groups); if (!ats.length) return;
+    mwBusy = true;
+    var next = function (i) {
+      if (S.wx !== wx) { mwBusy = false; return; }
+      if (i >= ats.length) { mwBusy = false; bar(); wxPush(); if (mwAgain) { mwAgain = false; fetchMontage(); } return; }
+      var at = ats[i], d = new Date(at);
+      IfcWeather.fetchHour(wx, d).catch(function () { return null; }).then(function (o) {
+        if (!o) { next(i + 1); return; } // offline oder noch nicht verfügbar: später erneut, aber nur heute
+        groups[at].forEach(function (g) {
+          var s = wx.mw[g]; if (!s || s.at !== at) return;
+          s.o = o; s.status = "abgerufen"; s.ab = nowLocal(); S.mwNew[g] = true;
+        });
+        next(i + 1);
+      });
+    };
+    next(0);
+  }
+  setInterval(fetchMontage, 5 * 60000);
+  window.addEventListener("online", function () { if (!S.wx) return; loadWx(); fetchMontage(); });
   function openFile(file) {
     if (!file) return;
     if (pendCount()) { toast("Zuerst den Stand speichern, sonst gehen Änderungen verloren."); return; }
@@ -348,7 +719,8 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
       var t = bytesToText(fr.result);
       if (!/ISO-10303-21/.test(t.slice(0, 2000))) { $("pickErr").textContent = "Das ist keine IFC-Datei (.ifc)."; $("pickErr").hidden = false; return; }
       $("pickErr").hidden = true; S.text = t; S.name = file.name; S.pend = { inst: {}, acc: {}, soll: {}, instfix: {} };
-      bar(); loadView();
+      S.wx = IfcWeather.read(t); S.wxNew = 0; S.dcNew = 0; S.mwNew = {}; S.mxNew = {}; S.mwIfc = JSON.parse(JSON.stringify(S.wx.mw)); S.mxIfc = JSON.parse(JSON.stringify(S.wx.mx.days)); S.wxState = "";
+      bar(); loadView(); loadWx(); fetchMontage();
     };
     fr.readAsArrayBuffer(file);
   }
@@ -363,7 +735,9 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
   window.addEventListener("message", function (ev) {
     if (ev.source !== $("view").contentWindow || !S.role) return;
     var d = ev.data || {};
-    if (d.type === "bs-inst" && S.role.id === "polier") S.pend.inst = d.changes || {};
+    if (d.type === "bs-inst" && S.role.id === "polier") { S.pend.inst = d.changes || {}; onInst(S.pend.inst, d.times || {}); }
+    if (d.type === "bs-mx" && S.role.id === "polier") onMx(d);
+    if (d.type === "bs-mwm" && S.role.id === "polier") onMwm(d);
     if (d.type === "bs-acc" && S.role.id === "bauleitung") S.pend.acc = d.changes || {};
     if (d.type === "bs-soll" && S.role.id === "bauleitung") S.pend.soll = d.changes || {};
     // Bauleitung korrigiert IsInstalled nur, wenn der Wert fehlt oder ungültig ist (prüft die Ansicht)
@@ -378,7 +752,15 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     Object.keys(S.pend.soll).forEach(function (g) { (ch[g] = ch[g] || {}).InstallationDate = S.pend.soll[g]; });
     Object.keys(S.pend.instfix).forEach(function (g) { (ch[g] = ch[g] || {}).IsInstalled = S.pend.instfix[g]; });
     var res;
-    try { res = IfcWriter.write(S.text, ch); } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
+    try {
+      res = IfcWriter.write(S.text, ch);
+      if (S.wxNew && S.wx) res.text = IfcWeather.write(res.text, S.wx);
+      if (S.dcNew && S.wx) res.text = IfcWeather.write(res.text, S.wx, true);
+      if (S.wx && Object.keys(S.mxNew || {}).length) res.text = IfcWeather.writeMeasured(res.text, S.wx);
+      var mwKeys = Object.keys(S.mwNew || {});
+      if (mwKeys.length && S.wx) { var snaps = {}; mwKeys.forEach(function (g) { snaps[g] = S.wx.mw[g]; }); res.text = IfcWeather.writeMontage(res.text, snaps); }
+    } catch (e) { toast("Speichern nicht möglich: " + e.message); return; }
+    var wxSaved = (S.wxNew || 0) + (S.dcNew || 0) + Object.keys(S.mxNew || {}).length, mwSaved = Object.keys(S.mwNew || {}).length;
     var base = S.name.replace(/\.ifc$/i, "").replace(/_stand_\d{4}-\d{2}-\d{2}(_\d{4})?(\s*\(\d+\))?$/, "");
     var now = new Date(), hhmm = String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0");
     var name = base + "_stand_" + todayIso() + "_" + hhmm + ".ifc";
@@ -387,15 +769,16 @@ if (typeof module !== "undefined") module.exports = IfcWriter;
     a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
     S.text = res.text; S.name = name; S.pend = { inst: {}, acc: {}, soll: {}, instfix: {} };
+    if (S.wx) { S.wx.stored = Object.keys(S.wx.days).length; S.wx.storedC = Object.keys(S.wx.dc).length; S.wxNew = 0; S.dcNew = 0; S.mwNew = {}; S.mxNew = {}; S.mwIfc = JSON.parse(JSON.stringify(S.wx.mw)); S.mxIfc = JSON.parse(JSON.stringify(S.wx.mx.days)); }
     $("view").contentWindow.postMessage({ type: "bs-saved" }, "*");
     bar(); send();
     var r = res.report;
-    toast("Gespeichert: " + name + " · " + r.gesetzt + " Bauteile geändert" + (r.uebersprungen.length ? " · " + r.uebersprungen.length + " übersprungen" : "") + ". Datei in den gemeinsamen Ordner legen.");
+    toast("Gespeichert: " + name + " · " + r.gesetzt + " Bauteile geändert" + (wxSaved ? " · " + wxSaved + " Wettertage" : "") + (mwSaved ? " · Montagewetter für " + mwSaved + " Bauteile" : "") + (r.uebersprungen.length ? " · " + r.uebersprungen.length + " übersprungen" : "") + ". Datei in den gemeinsamen Ordner legen.");
   };
 
   $("logout").onclick = function () {
     if (pendCount()) { toast("Zuerst den Stand speichern."); return; }
-    S.role = null; S.text = ""; S.name = ""; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
+    S.role = null; S.text = ""; S.name = ""; S.wx = null; S.wxNew = 0; S.dcNew = 0; S.mwNew = {}; S.mxNew = {}; $("view").removeAttribute("srcdoc"); $("view").src = "about:blank"; show("login"); bar();
   };
   // Anmelden aus einer umgebenden Seite (z. B. Pitch-Präsentation mit der App im iframe).
   // Sie schickt das Passwort, die App prüft es mit demselben Hash-Vergleich wie das Formular. Der Schutz bleibt also gleich.

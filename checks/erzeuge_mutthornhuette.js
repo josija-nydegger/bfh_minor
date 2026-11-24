@@ -57,7 +57,8 @@ function placement(rel, x, y, z, axis, ref) {
   return add(`IFCLOCALPLACEMENT(${rel || "$"},${ap})`);
 }
 const sitePl = placement(null, 0, 0, 0);
-const site = add(`IFCSITE(${gid()},${oh},'Mutthorn',$,$,${sitePl},$,$,.ELEMENT.,$,$,$,$,$)`);
+// Standort der neuen Mutthornhütte (seit 2026): 46° 29' 13.2" N, 7° 49' 0.2" O, 2788 m ü. M. (Wikipedia), für das Wetter
+const site = add(`IFCSITE(${gid()},${oh},'Mutthorn',$,$,${sitePl},$,$,.ELEMENT.,(46,29,13,200000),(7,49,0,200000),2788.,$,$)`);
 const bldPl = placement(sitePl, 0, 0, 0);
 const building = add(`IFCBUILDING(${gid()},${oh},${str("Mutthornhütte")},$,$,${bldPl},$,$,.ELEMENT.,$,$,$)`);
 add(`IFCRELAGGREGATES(${gid()},${oh},$,$,${project},(${site}))`);

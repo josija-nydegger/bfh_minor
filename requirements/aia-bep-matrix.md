@@ -28,6 +28,7 @@ Polier und Bauleitung arbeiten mit der [Baustellen-App](../apps/baustellen-app/A
 | Prüfung Anforderungen 1–3 | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: Status, Pendenzen, Verzug, Bericht für `results/`; Zweitprüfung mit dem ifclite-Skript `baufortschritt.js` | umgesetzt |
 | `AcceptanceDate` | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Abnehmen» (Datum = Prüfdatum, höchstens heute) | umgesetzt (Prototyp) |
 | Korrektur `InstallationDate` / `AcceptanceDate` / ungültiges `IsInstalled` bei Datenfehlern | Bauleitung | Baustellen-App, Bauleitungs-Ansicht: «Korrigieren» | umgesetzt (Prototyp) |
+| Wetter am Standort (Psets `Baufortschritt_Wetter_ICON_CH1`, `Baufortschritt_Wetter` (ERA5) und `Baufortschritt_Wetter_Messung` an `IfcSite`, `Baufortschritt_Montagewetter` am Bauteil) zur Begründung von Verzug und Rückverfolgung bei Streitigkeiten | App (Modellwerte Open-Meteo: ICON-CH1, ERA5 zum Vergleich; Standort aus `IfcSite`); Polier (Messung eigene Station, Handeingabe) | Baustellen-App: Tageswerte beim Öffnen (auch rückwirkend), Montagewetter bei der Montagemeldung (nur am selben Tag), Messung eigene Station pro Tag (heute/gestern) und bei der Montage, Speichern mit «Stand speichern», Anzeige bei Bauleitung und Polier | umgesetzt (Prototyp) |
 
 Grenze: Der Passwortschutz im Browser verhindert Fehlbedienung, ist aber kein Zugriffsschutz. Echten Schutz bietet erst Variante B mit Server (siehe [Konzept](../workflow/Konzept_Baustellen-App.md)). Die früheren Einzeltools mit CSV-Rückführung stehen in der Git-Historie (Commit `aa46e8b`).
 

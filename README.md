@@ -26,7 +26,7 @@ Polier: anmelden → Montage melden → Stand speichern ──IFC──▶ Baule
 
 ### Was ihr braucht
 
-- Laptop mit Chrome oder Edge und Internet (die 3D-Ansicht lädt three.js und web-ifc von einem CDN)
+- Laptop mit Chrome oder Edge und Internet (die 3D-Ansicht lädt three.js und web-ifc von einem CDN, das Wetter kommt von Open-Meteo)
 - die Passwörter für Polier und Bauleitung. Sie stehen nicht im Repository, ihr bekommt sie von Team 4.
 - Python wird nicht gebraucht.
 
